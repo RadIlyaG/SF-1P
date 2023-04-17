@@ -40,33 +40,17 @@ proc BuildTests {} {
   }
   lappend lTestNames   ID
   
-  if 0 {
   if {[string index $gaSet(dutFam.cell) 0]=="1"} {
     if {[string index $gaSet(dutFam.cell) 2]=="4"} {
-      lappend lTestNames CellularModemL4
+      lappend lTestNames CellularModem_SIM1 CellularModem_SIM2
     } else {
-      lappend lTestNames CellularModem
+      lappend lTestNames CellularModem_SIM1 CellularModem_SIM2
     } 
   } elseif {[string index $gaSet(dutFam.cell) 0]=="2"} {
     if {[string index $gaSet(dutFam.cell) 2]=="4"} {
-      lappend lTestNames CellularDualModemL4
+      lappend lTestNames CellularDualModemL4_RadOS
     } else {
-      lappend lTestNames CellularDualModem
-    }
-  }
-  } else {
-    if {[string index $gaSet(dutFam.cell) 0]=="1"} {
-      if {[string index $gaSet(dutFam.cell) 2]=="4"} {
-        lappend lTestNames CellularModem_SIM1 CellularModem_SIM2 ; #CellularModemL4_RadOS
-      } else {
-        lappend lTestNames CellularModem_SIM1 CellularModem_SIM2
-      } 
-    } elseif {[string index $gaSet(dutFam.cell) 0]=="2"} {
-      if {[string index $gaSet(dutFam.cell) 2]=="4"} {
-        lappend lTestNames CellularDualModemL4_RadOS
-      } else {
-        lappend lTestNames CellularModem_SIM1 CellularModem_SIM2 ; #CellularDualModem_RadOS
-      }
+      lappend lTestNames CellularModem_SIM1 CellularModem_SIM2
     }
   }
   
@@ -83,7 +67,6 @@ proc BuildTests {} {
   if {$gaSet(dutFam.gps)!="0" && $gaSet(dutFam.lora)=="0"} {}
     ## test GPS if no LORA
     
-    ## 07:49 10/07/2022  meantime we don't check lora
   if {$gaSet(dutFam.gps)!="0"} {
     lappend lTestNames GPS
   }

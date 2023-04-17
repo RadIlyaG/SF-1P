@@ -79,8 +79,6 @@ proc PowerResetAndLogin2Boot {} {
   set ret [Login2Boot]
   return $ret 
 }
-# ***************************************************************************
-
 
 # ***************************************************************************
 # Login2Uboot
@@ -143,6 +141,7 @@ proc Login2Uboot {} {
   
   return $ret
 }
+
 # ***************************************************************************
 # OpenUboot
 # ***************************************************************************
@@ -172,6 +171,7 @@ proc OpenUboot {} {
   }
   return $ret
 }
+
 # ***************************************************************************
 # Login
 # ***************************************************************************
@@ -573,8 +573,6 @@ proc LogonDebug {com} {
   Send $com "logon debug\r" stam 0.25 
   Status "logon debug"
    if {[string match {*command not recognized*} $buffer]==0} {
-#     set ret [Send $com "logon debug\r" password]
-#     if {$ret!=0} {return $ret}
     regexp {Key code:\s+(\d+)\s} $buffer - kc
     catch {exec $::RadAppsPath/atedecryptor.exe $kc pass} password
     set ret [Send $com "$password\r" "-1p#" ]
@@ -595,7 +593,6 @@ proc DescrPassword {mode prompt} {
   set ret [Send $com "$password\r" $prompt 1]
   return $ret
 }
-
 
 # ***************************************************************************
 # DryContactAlarmcheck
@@ -706,15 +703,6 @@ proc BrdEepromPerf {} {
   set ret [BuildEepromString newUut] 
   if {$ret!=0} {return $ret}  
   
-#   for {set i 1} {$i<=10} {incr i} {
-#     puts "ping $i"
-#     set ret [Send $com "ping 10.10.10.10\r" "10.10.10.10 is alive"]
-#     if {$ret==0} {break}
-#   }
-#   if {$ret!=0} {
-#     set gaSet(fail) "10.10.10.10 is not alive" 
-#   }
-
   Status "Read EEPROM"
   puts "\n[MyTime]eeprom before erase"
   set ret [Send $com "cat /sys/class/i2c-adapter/i2c-0/0-0052/eeprom\r" "\]#"]  
@@ -881,8 +869,7 @@ proc BrdEepromPerf {} {
     } 
     Wait "Wait for rebooting" 30
   }
-  
-  
+    
   return $ret
 }
 
@@ -893,18 +880,8 @@ proc IDPerf {mode} {
   global gaSet buffer
   puts "[MyTime] IDPerf $mode"
   
-#   set ret [BuildEepromString fromIDPerf] 
-#   if {$ret!=0} {return $ret}
-  
   set com $gaSet(comDut)
   set ret [Login]
-#   Send $com "\r" stam 0.25
-#   Send $com "exit all\r" stam 0.25
-#   if {[string match *1p* $buffer]} {
-#     set ret 0
-#   } else {
-#     set ret [Login]
-#   }
   if {$ret=="PowerOffOn"} {
     Power all off
     after 4000
@@ -932,18 +909,10 @@ proc IDPerf {mode} {
   } else {
     puts "GetMac No User_eeprom"
     set dutMac "EmptyEEPROM"
-    #set gaSet(fail) "Read EEPROM fail"
-    #return -1
   } 
   set ret [Send $com "exit\r" "#"]  
   if {$ret!=0} {return $ret} 
   
-  # if {$mode=="readMac"} {
-    # return 0
-  # }
-#   set ret [Login]
-#   if {$ret!=0} {return $ret}
-
   if {[string range $dutMac 0 5]!="1806F5"} {
     if {$macLink==""} {
       set gaSet(fail) "MAC Address is empty."
@@ -969,8 +938,7 @@ proc IDPerf {mode} {
   }
   
   AddToPairLog $gaSet(pair) "$buffer"
-  
-  
+    
   set res  [regexp {Sw:\s+([\d\.a-z]+)\s} $buffer ma uutSw]
   if {$res==0} {
     set gaSet(fail) "Read Sw fail"
@@ -1077,8 +1045,8 @@ proc IDPerf {mode} {
   }
   
   return 0
-  
 }  
+
 # ***************************************************************************
 # CellularModemCloseGpio
 # ***************************************************************************
@@ -1132,7 +1100,6 @@ proc Ping2Cellular {slot ip} {
   }
   return 0
 }
-  
   
 # ***************************************************************************
 # SerialPortsPerf
@@ -1188,15 +1155,12 @@ proc SerialPortsPerf {} {
     if {$ret==0} {break}
   }
   if {$ret!=0} {
-    set gaSet(fail) "Read \'$txt2\' on Serial-2 fail" 
-    return $ret
+    set gaSet(fail) "Read \'$txt2\' on Serial-2 fail"     
   }
-  
-  
-  
+    
   return $ret
-  
 }
+
 # ***************************************************************************
 # SerialCloseBackGrPr
 # ***************************************************************************
@@ -1214,113 +1178,6 @@ proc SerialCloseBackGrPr {ser mode} {
   return 0
 }
  
-# ***************************************************************************
-# RouterCreate
-# ***************************************************************************
-proc RouterCreate {port} {
-  global gaSet buffer
-  puts "[MyTime] RouterCreate $port"
-  
-  set com $gaSet(comDut)
-  Send $com "\r" stam 0.25
-  Send $com "\r" stam 0.25
-  if {[string match " \# " $buffer]} {
-    Send $com "exit\r" "login:"
-    set ret [Login2App]
-  } elseif {[string match *SecFlow-1v#* $buffer]} {
-    set ret 0
-  } else {
-    set ret [PowerResetAndLogin2App]
-  }
-  if {$ret!=0} {return $ret}
-  
-  set ret [Send $com "router interface create address-prefix 10.10.10.30/24 physical-interface eth$port interface-id 1\r" "SecFlow-1v#"]
-  if {$ret!=0} {
-    set gaSet(fail) "Router Create on Eth-$port fail" 
-    return -1
-  }
-  
-  Status "Check Eth-$port link status"
-  set ret [Send $com "port show status\r" SecFlow-1v#]
-  if {$ret!=0} {
-    set gaSet(fail) "Read port show status fail" 
-    return -1
-  }
-  set res [regexp "eth$port\[\\s\\|\]+\(UP\|DOWN\)\\s" $buffer ma val]
-  if {$res==0} {
-    set gaSet(fail) "Read port show status fail" 
-    return -1
-  }
-  puts "RouterCreate $port ma:<$ma> val:<$val>"
-  if {$val!="UP"} {
-    after 10000
-    set ret [Send $com "port show status\r" SecFlow-1v#]
-    if {$ret!=0} {
-      set gaSet(fail) "Read port show status fail" 
-      return -1
-    }
-    set res [regexp "eth$port\[\\s\\|\]+\(UP\|DOWN\)\\s" $buffer ma val]
-    if {$res==0} {
-      set gaSet(fail) "Read port show status fail" 
-      return -1
-    }
-    puts "RouterCreate $port ma:<$ma> val:<$val>"
-    if {$val!="UP"} {
-      after 10000
-      set ret [Send $com "port show status\r" SecFlow-1v#]
-      if {$ret!=0} {
-        set gaSet(fail) "Read port show status fail" 
-        return -1
-      }
-      set res [regexp "eth$port\[\\s\\|\]+\(UP\|DOWN\)\\s" $buffer ma val]
-      if {$res==0} {
-        set gaSet(fail) "Read port show status fail" 
-        return -1
-      }
-      puts "RouterCreate $port ma:<$ma> val:<$val>"
-      if {$val!="UP"} {
-        set gaSet(fail) "Link of Eth-$port isn't UP" 
-        set ret "-1"
-      } else {
-        set ret "0"
-      }  
-    } else {
-      set ret "0"
-    }
-  } else {
-    set ret "0"
-  }
-  
-  return $ret
-}
-# ***************************************************************************
-# RouterRemove
-# ***************************************************************************
-proc RouterRemove {} {
-  global gaSet buffer
-  puts "[MyTime] RouterRemove"
-  
-  set com $gaSet(comDut)
-  Send $com "\r" stam 0.25
-  Send $com "\r" stam 0.25
-  if {[string match " \# " $buffer]} {
-    Send $com "exit\r" "login:"
-    set ret [Login2App]
-  } elseif {[string match *SecFlow-1v#* $buffer]} {
-    set ret 0
-  } else {
-    set ret [PowerResetAndLogin2App]
-  }
-  if {$ret!=0} {return $ret}
-  
-  set ret [Send $com "router interface remove interface-id 1\r" "SecFlow-1v#"]
-  if {$ret!=0} {
-    set gaSet(fail) "Router Remove fail"
-    return -1
-  }
-  
-  return $ret
-}
 # ***************************************************************************
 # PoePerf
 # ***************************************************************************
