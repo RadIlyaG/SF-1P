@@ -1,6 +1,6 @@
-##***************************************************************************
-##** OpenRL
-##***************************************************************************
+#***************************************************************************
+#** OpenRL
+#***************************************************************************
 proc OpenRL {} {
   global gaSet
   if [info exists gaSet(curTest)] {
@@ -112,6 +112,7 @@ proc RetriveUsbChannel {} {
   puts "serNum:$serNum channel:$channel"
   return $channel
 }
+
 # ***************************************************************************
 # OpenPio
 # ***************************************************************************
@@ -126,8 +127,7 @@ proc OpenPio {} {
   }
   
   set gaSet(idMuxMngIO) [RLUsbMmux::Open 1 $channel]
-#   set gaSet(idAI)       [RLUsbPio::Open 4 PORT $channel]
-#   RLUsbPio::SetConfig $gaSet(idAI) 11111111 ; # all 8 pins are IN
+  
   set gaSet(idPioDrContIn)  [RLUsbPio::Open 7 PORT $channel]
   RLUsbPio::SetConfig $gaSet(idPioDrContIn) 11111111 ; # all 8 pins are IN
   set gaSet(idPioDrContOut) [RLUsbPio::Open 8 PORT $channel]
@@ -148,7 +148,6 @@ proc ClosePio {} {
   foreach rb "1 2" {
 	  catch {RLUsbPio::Close $gaSet(idPwr$rb)}
   }
-#   catch {RLUsbPio::Close $gaSet(idAI)}
   catch {RLUsbPio::Close $gaSet(idPioDrContOut)}
   catch {RLUsbPio::Close $gaSet(idPioDrContIn)}
   catch {RLUsbMmux::Close $gaSet(idMuxMngIO)}
@@ -342,7 +341,6 @@ proc Status {txt {color white}} {
   update
 }
 
-
 #***************************************************************************
 #** Wait
 #***************************************************************************
@@ -361,7 +359,6 @@ proc Wait {txt count {color white}} {
   return 0
 }
 
-
 #***************************************************************************
 #** Init_UUT
 #***************************************************************************
@@ -375,7 +372,6 @@ proc Init_UUT {init} {
   set gaSet(curTest) ""
   Status "Done"
 }
-
 
 # ***************************************************************************
 # PerfSet
@@ -396,6 +392,7 @@ proc PerfSet {state} {
     }  
   }
 }
+
 # ***************************************************************************
 # MyWaitFor
 # ***************************************************************************
@@ -440,15 +437,13 @@ proc MyWaitFor {com expected testEach timeout} {
   Status ""
   return $ret
 } 
+
 # ***************************************************************************
 # Power
 # ***************************************************************************
 proc Power {ps state} {
   global gaSet gaGui 
   puts "[MyTime] Power $ps $state"
-#   RLSound::Play information
-#   DialogBox -type OK -message "Turn $ps $state"
-#   return 0
   set ret 0
   switch -exact -- $ps {
     1   {set pioL 1}
@@ -467,13 +462,8 @@ proc Power {ps state} {
       }
     } 
   }
-#   $gaGui(tbrun)  configure -state disabled 
-#   $gaGui(tbstop) configure -state normal
   Status ""
   update
-  #exec C:\\RLFiles\\Btl\\beep.exe &
-#   RLSound::Play information
-#   DialogBox -type OK -message "Turn $ps $state"
   return $ret
 }
 
@@ -554,15 +544,13 @@ proc AddToPairLog {pair line}  {
   puts $logFileID "..[MyTime]..$line"
   close $logFileID
 }
+
 # ***************************************************************************
 # ShowLog 
 # ***************************************************************************
 proc ShowLog {} {
 	global gaSet
-	#exec notepad tmpFiles/logFile-$gaSet(pair).txt &
-#   if {[info exists gaSet(logFile.$gaSet(pair))] && [file exists $gaSet(logFile.$gaSet(pair))]} {
-#     exec notepad $gaSet(logFile.$gaSet(pair)) &
-#   }
+	
   if {[info exists gaSet(log.$gaSet(pair))] && [file exists $gaSet(log.$gaSet(pair))]} {
     exec notepad $gaSet(log.$gaSet(pair)) &
   }
@@ -589,6 +577,7 @@ proc mparray {a {pattern *}} {
   }
   update
 }
+
 # ***************************************************************************
 # GetDbrName
 # ***************************************************************************
@@ -613,7 +602,6 @@ proc GetDbrName {} {
   after 1000
   if ![file exists MarkNam_$barcode.txt] {
     set gaSet(fail) "File $fileName is not created. Verify the Barcode"
-    #exec C:\\RLFiles\\Tools\\Btl\\failbeep.exe &
     RLSound::Play fail
 	  Status "Test FAIL"  red
     DialogBox -aspect 2000 -type Ok -message $gaSet(fail) -icon images/error
@@ -628,9 +616,6 @@ proc GetDbrName {} {
   close $fileId
   }
   
-  #set res "ETX-1P/ACEX/1SFP1UTP/4UTP/L1"
-  
-  #set txt "$barcode $res"
   set txt "[string trim $res]"
   #set gaSet(entDUT) $txt
   set gaSet(entDUT) ""
@@ -729,8 +714,8 @@ proc UpdateAppsHelpText {} {
 
 # ***************************************************************************
 # RetriveDutFam
-## set gaSet(DutInitName) SF-1P.E1.DC.4U2S.2RSM.L1.G.LR2.2R.tcl
-## set dutInitName  [regsub -all / SF-1V/E2/12V/4U1S/2RS/L1/G/L1 .].tcl
+# set gaSet(DutInitName) SF-1P.E1.DC.4U2S.2RSM.L1.G.LR2.2R.tcl
+# set dutInitName  [regsub -all / SF-1V/E2/12V/4U1S/2RS/L1/G/L1 .].tcl
 # RetriveDutFam $dutInitName
 # ***************************************************************************
 proc RetriveDutFam {{dutInitName ""}} {
@@ -786,7 +771,6 @@ proc RetriveDutFam {{dutInitName ""}} {
     set gaSet(dutFam.serPortCsp) 0
   }
   ToggleComDut
-  
   
   if {[string match *\.2PA\.* $dutInitName]} {
     set gaSet(dutFam.poe) 2PA
@@ -860,17 +844,12 @@ proc RetriveDutFam {{dutInitName ""}} {
   }
   
   puts "[parray gaSet dut*]\n" ; update
-#   foreach nam [array names gaSet dutFam.*] {
-#     puts -nonewline "$gaSet($nam)."
-#   }
-#   puts "$dutInitName"
-
-
+  return {}
 }  
 
 # ***************************************************************************
 # BuildEepromString
-## BuildEepromString newUut
+# BuildEepromString newUut
 # ***************************************************************************
 proc BuildEepromString {mode} {
   global gaSet
@@ -1185,6 +1164,7 @@ proc DownloadConfFile {cf cfTxt save com} {
   puts "[MyTime] Finish DownloadConfFile" ; update
   return $ret 
 }
+
 # ***************************************************************************
 # Ping
 # ***************************************************************************
@@ -1215,6 +1195,7 @@ proc Ping {dutIp} {
   }
   return 0
 }
+
 # ***************************************************************************
 # GetMac
 # ***************************************************************************
@@ -1279,6 +1260,7 @@ proc GetMac {qty} {
     return $mac
   }  
 }
+
 # ***************************************************************************
 # SplitString2Paires
 # ***************************************************************************
@@ -1303,22 +1285,6 @@ proc GetDbrSW {barcode} {
   catch {exec $gaSet(javaLocation)\\java -jar $::RadAppsPath/SWVersions4IDnumber.jar $barcode} b
   puts "GetDbrSW b:<$b>" ; update
   after 1000
-#   if ![info exists gaSet(dbrUbootSWnum)] {
-#     set gaSet(dbrUbootSWnum) ""
-#   }
-#   set dbrUbootSWnumIndx [lsearch $b $gaSet(dbrUbootSWnum)]  
-#   if {$dbrUbootSWnumIndx<0} {
-#     set gaSet(fail) "There is no Uboot for $gaSet(dbrUbootSWnum) ID:$barcode. Verify the Barcode."
-#     RLSound::Play fail
-# 	  Status "Test FAIL"  red
-#     DialogBox -aspect 2000 -type Ok -message $gaSet(fail) -icon images/error
-#     pack $gaGui(frFailStatus)  -anchor w
-# 	  $gaSet(runTime) configure -text ""
-#   	return -1
-#   }
-#   set dbrUbootSWver [string trim [lindex $b [expr {1+$dbrUbootSWnumIndx}]]]
-#   puts dbrUbootSWver:<$dbrUbootSWver>
-#   set gaSet(dbrUbootSWver) $dbrUbootSWver
 
   if ![info exists gaSet(dbrBootSwNum)] {
     set gaSet(dbrBootSwNum) ""
@@ -1367,6 +1333,7 @@ proc GetDbrSW {barcode} {
   focus -force $gaGui(tbrun)
   return 0
 }
+
 # ***************************************************************************
 # GuiMuxMngIO
 # ***************************************************************************
@@ -1379,9 +1346,10 @@ proc GuiMuxMngIO {mngMode} {
   RLUsbMmux::Close $gaSet(idMuxMngIO) 
   RLEH::Close
 }
+
 # ***************************************************************************
 # MuxMngIO
-##     MuxMngIO 2ToPc
+#     MuxMngIO 2ToPc
 # ***************************************************************************
 proc MuxMngIO {mngMode} {
   global gaSet
@@ -1416,10 +1384,8 @@ proc MuxMngIO {mngMode} {
     nc {
       ## do nothing, already disconected
     }
-  } 
-;   
+  }    
 }
-
 
 # ***************************************************************************
 # wsplit
@@ -1427,6 +1393,7 @@ proc MuxMngIO {mngMode} {
 proc wsplit {str sep} {
   split [string map [list $sep \0] $str] \0
 }
+
 # ***************************************************************************
 # LoadBootErrorsFile
 # ***************************************************************************
@@ -1454,6 +1421,7 @@ proc LoadBootErrorsFile {} {
 #   }
   return {}
 }
+
 # ***************************************************************************
 # OpenTeraTerm
 # ***************************************************************************
@@ -1479,7 +1447,6 @@ proc OpenTeraTerm {comName} {
   exec $path /c=[set $comName] /baud=$baud /W="$val" &
   return {}
 }  
-# *********
 
 # ***************************************************************************
 # UpdateInitsToTesters
@@ -1716,190 +1683,6 @@ proc ReadCookies {} {
   }
 } 
 
-
-
-proc fff {} {
-  router interface create address-prefix 10.10.10.20/24 physical-interface eth2  purpose application-host
-  
-  gnss update admin-status enable
-  
-  router nat static create protocol tcp  original-port 4443  modified-ip 10.0.3.70  modified-port 8443
-  
-  lxd update admin-status enable
-  
-}
-proc inex {} {
-  package require tcom
-  set ie [tcom::ref createobject InternetExplorer.Application]
-  $ie Visible True
-  ##$ie GoHome
-  $ie Navigate "https://10.10.10.20:4443/login"
-  while {[$ie Busy]} {
-   puts -nonewline .
-   update
-   after 100
- }
- 
-  set loc [$ie LocationURL]
-  while { [ $ie Busy ] } {
-    puts -nonewline "."
-    flush stdout
-    after 250
-  }
-  
-  set doc [ $ie Document ]
-  while { [ $doc readyState ] != "complete" } {
-    after 250
-  }
-  set body [$doc body]
-  set inn [$body innerHTML]
-  #join [[::tcom::info interface $ie] methods] \n
-  #join [[::tcom::info interface $body] methods] \n
-  
-  set inputs [ $body getElementsByTagName "*" ]
-  set length [ $inputs length ]
-  set index 0
-  while { $index < $length } {
-    set input [ $inputs item $index ]
-    if [catch { $input name } name] {
-    
-    } else {
-      puts "input:<$input> name:<$name>"
-      if { [ string compare $name "overridelink" ] == 0 } {
-        $input focus
-        after 250
-        $input click
-        break
-      }
-    }
-    incr index    
-  }
-  
-  set doc [ $ie Document ]
-  while { [ $doc readyState ] != "complete" } {
-    after 250
-  }
-  set body [$doc body]
-  
-  set inputs [ $body getElementsByTagName "input" ]
-  set length [ $inputs length ]
-  set index 0
-  while { $index < $length } {
-    set input [ $inputs item $index ]
-    if [catch { $input name } name] {
-    
-    } else {
-      puts "input:<$input> name:<$name>"
-      if { [ string compare $name "username" ] == 0 } {
-        $input focus
-        $input value "admin"
-        while { [ $doc readyState ] != "complete" } {
-          after 250
-        }
-      }
-      if { [ string compare $name "password" ] == 0 } {
-        $input focus
-        $input value "admin"
-        while { [ $doc readyState ] != "complete" } {
-          after 250
-        }
-      }
-    }
-    incr index    
-  }
-  
-}
-
-proc vvv {} {
-  package require twapi
-  set ie [ twapi::comobj InternetExplorer.Application ]
-  $ie Visible 0
-  set szUrl "https://10.10.10.20:4443/login"
-  $ie Navigate $szUrl
-  $ie Visible 1
-  set w [ $ie HWND ]
-  set wIE [ list $w HWND ]
-  while { [ $ie Busy ] } {
-    puts -nonewline "."
-    flush stdout
-    after 250
-  }
-  set doc [ $ie Document ]
-  while { [ $doc readyState ] != "complete" } {
-    after 250
-  }
-  set body [ $doc body ]
-  
-  
-  set inputs [ $body getElementsByTagName "*" ]
-  set length [ $inputs length ]
-  set index 0
-  while { $index < $length } {
-    set input [ $inputs item $index ]
-    if [catch { $input name } name] {
-      puts "$index"
-    } else {
-      puts "input:<$input> name:<$name>"
-    }
-    incr index
-  }
-  
-  set index 0    
-  while { $index < $length } {
-    set input [ $inputs item $index ]
-    if [catch { $input name } name] {
-    
-    } else {
-      puts "input:<$input> name:<$name>"
-      if { [ string compare $name "overridelink" ] == 0 } {
-        $input focus
-        after 250
-        $input click
-        break
-      }
-    }
-    incr index    
-  }
-  
-  $ie Navigate $szUrl
-  while { [ $ie Busy ] } {
-    puts -nonewline "."
-    flush stdout
-    after 250
-  }
-  set doc [ $ie Document ]
-  while { [ $doc readyState ] != "complete" } {
-    after 250
-  }
-  set body [ $doc body ]
-  
-  set inputs [ $body getElementsByTagName "input" ]
-  set length [ $inputs length ]
-  set index 0
-  while { $index < $length } {
-    set input [ $inputs item $index ]
-    if [catch { $input name } name] {
-    
-    } else {
-      puts "input:<$input> name:<$name>"
-      if { [ string compare $name "username" ] == 0 } {
-        $input value "admin"
-        $input focus
-      }
-      if { [ string compare $name "password" ] == 0 } {
-        $input value "admin"
-        $input focus
-      }
-      
-    }
-    incr index    
-  }
-  
-  set inputs [ $body getElementsByClassName "login-form" ]
-
-}
-## https://wiki.tcl-lang.org/page/IE+Automation+With+TWAPI
-
 # ***************************************************************************
 # ParseSW
 # ***************************************************************************
@@ -1995,7 +1778,6 @@ proc LoraServerPolling {} {
       }   
       after 200      
     }
-    
     
     ## read the folder again
     set flags [glob -nocomplain -directory $fld *]

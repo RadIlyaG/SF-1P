@@ -14,10 +14,7 @@ proc BuildTests {} {
   
   set lTestsAllTests [list]
   set lTestNames [list]
-#   set lDownloadTests [list BrdEeprom]
-#   eval lappend lTestsAllTests $lDownloadTests
-  
-  ## 14:15 28/12/2022
+
   lappend lTestNames PowerOffOn
   
   lappend lTestNames UsbTree
@@ -92,7 +89,6 @@ proc BuildTests {} {
   lappend lTestNames  FrontPanelLeds 
   lappend lTestNames  Factory_Settings SSH Mac_BarCode
 
-  
   eval lappend lTestsAllTests $lTestNames
   
   set glTests ""
@@ -106,8 +102,8 @@ proc BuildTests {} {
   set gaSet(startFrom) [lindex $glTests 0]
   $gaGui(startFrom) configure -values $glTests -height [llength $glTests]
   
+  return {}
 }
-
 
 # ***************************************************************************
 # Testing
@@ -125,9 +121,6 @@ proc Testing {} {
   }
   set ti [clock format [clock seconds] -format  "%Y.%m.%d_%H.%M"]
   set gaSet(logFile) c:/logs/logFile_[set ti]_$gaSet(pair).txt
-#   if {[string match {*Leds*} $gaSet(startFrom)] || [string match {*Mac_BarCode*} $gaSet(startFrom)]} {
-#     set ret 0
-#   }
   
   set pair 1
   if {$gaSet(act)==0} {return -2}
@@ -151,15 +144,6 @@ proc Testing {} {
     $gaSet(startTime) configure -text "$startTime ."
     AddToPairLog $gaSet(pair) "Test \'$testName\' started"
     set ret [$testName 1]
-    if {$ret!=0 && $ret!="-2" && $testName!="Mac_BarCode" && $testName!="ID" && $testName!="Leds"} {
-#     set logFileID [open tmpFiles/logFile-$gaSet(pair).txt a+]
-#     puts $logFileID "**** Test $numberedTest fail and rechecked. Reason: $gaSet(fail); [MyTime]"
-#     close $logFileID
-#     puts "\n **** Rerun - Test $numberedTest finish;  ret of $numberedTest is: $ret;  [MyTime]\n"
-#     $gaSet(startTime) configure -text "$startTime .."
-      
-#     set ret [$testName 2]
-    }
     
     if {$ret==0} {
       set retTxt "PASS."
@@ -189,6 +173,7 @@ proc Testing {} {
   puts "RunTests4 ret:$ret gaSet(startFrom):$gaSet(startFrom)"   
   return $ret
 }
+
 # ***************************************************************************
 # UbootVersion
 # ***************************************************************************
@@ -196,6 +181,7 @@ proc UbootVersion {run} {
    set ret [UbootCheckVersionRam]
    return $ret
 }
+
 # ***************************************************************************
 # UsbMicroSD
 # ***************************************************************************
@@ -263,6 +249,7 @@ proc ID {run} {
   
   return $ret
 }
+
 # ***************************************************************************
 # DataTransmissionConf
 # ***************************************************************************
@@ -284,6 +271,7 @@ proc DataTransmissionConf {run} {
   
   return $ret
 } 
+
 # ***************************************************************************
 # DataTransmission
 # ***************************************************************************
@@ -329,7 +317,6 @@ proc DataTransmission {run} {
   return $ret
 } 
 
-
 # ***************************************************************************
 # SerialPorts
 # ***************************************************************************
@@ -337,6 +324,7 @@ proc SerialPorts {run} {
   set ret [SerialPortsPerf]
   return $ret
 }
+
 # ***************************************************************************
 # POE
 # ***************************************************************************
@@ -345,6 +333,7 @@ proc POE {run} {
   MuxMngIO nc    
   return $ret
 }
+
 # ***************************************************************************
 # GPS
 # ***************************************************************************
@@ -353,7 +342,6 @@ proc GPS {run} {
   set ret [GpsPerf]
   return $ret
 }
-
 
 # ***************************************************************************
 # Factory_Settings
@@ -415,8 +403,6 @@ proc WiFi_2G {run} {
   
   Wait "Wait for up" 15
   
-  #FtpDeleteFile  [string tolower startMeasurement_$gaSet(wifiNet)]
-  #FtpDeleteFile  [string tolower wifireport_$gaSet(wifiNet).txt]
   catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)} res
   puts "FtpDeleteFile <$res>"
   catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt} res
@@ -429,7 +415,6 @@ proc WiFi_2G {run} {
   set ret [FtpVerifyNoReport]
   if {$ret!=0} {return $ret}
   
-  #set ret [FtpUploadFile startMeasurement_$gaSet(wifiNet)]
   catch {exec python.exe lib_sftp.py FtpUploadFile startMeasurement_$gaSet(wifiNet)} res
   puts "FtpDeleteFile <$res>"
   regexp {result: (-?1) } $res ma ret
@@ -440,9 +425,7 @@ proc WiFi_2G {run} {
   set ret [WifiPerf 2.4 $locWifiReport]
   
   if {$ret==0} { 
-    #FtpDeleteFile  [string tolower startMeasurement_$gaSet(wifiNet)]
-    #FtpDeleteFile [string tolower wifireport_$gaSet(wifiNet).txt]
-	catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)} res
+    catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)} res
     puts "FtpDeleteFile <$res>"
     catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt} res
     puts "FtpDeleteFile <$res>"
@@ -450,6 +433,7 @@ proc WiFi_2G {run} {
 
   return $ret
 }
+
 # ***************************************************************************
 # WiFi5G  
 # ***************************************************************************
@@ -469,8 +453,6 @@ proc WiFi_5G {run} {
     return -1 
   }
   
-  #FtpDeleteFile [string tolower startMeasurement_$gaSet(wifiNet)]
-  #FtpDeleteFile [string tolower wifireport_$gaSet(wifiNet).txt]
   catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)} res
   puts "FtpDeleteFile <$res>"
   catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt} res
@@ -482,7 +464,6 @@ proc WiFi_5G {run} {
   set ret [FtpVerifyNoReport]
   if {$ret!=0} {return $ret}
   
-  #set ret [FtpUploadFile startMeasurement_$gaSet(wifiNet)]
   catch {exec python.exe lib_sftp.py FtpUploadFile startMeasurement_$gaSet(wifiNet)} res
   puts "FtpDeleteFile <$res>"
   regexp {result: (-?1) } $res ma ret
@@ -493,9 +474,7 @@ proc WiFi_5G {run} {
   set ret [WifiPerf 5 $locWifiReport]
   
   if {$ret==0} {
-    #FtpDeleteFile [string tolower startMeasurement_$gaSet(wifiNet)]
-    #FtpDeleteFile [string tolower wifireport_$gaSet(wifiNet).txt]
-	catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)} res
+    catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)} res
     puts "FtpDeleteFile <$res>"
     catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt} res
     puts "FtpDeleteFile <$res>"
@@ -503,12 +482,14 @@ proc WiFi_5G {run} {
   
   return $ret
 }
+
 # ***************************************************************************
 # PLC
 # ***************************************************************************
 proc PLC {run} {
   set ret [PlcPerf]
 }
+
 # ***************************************************************************
 # LoRa
 # ***************************************************************************
@@ -562,24 +543,28 @@ proc LoRa {run} {
   
   return $ret  
 }
+
 # ***************************************************************************
 # LinuxLeds
 # ***************************************************************************
 proc LteLeds {run} {
   set ret [LinuxLedsPerf]
 }
+
 # ***************************************************************************
 # BootLeds
 # ***************************************************************************
 proc FrontPanelLeds {run} {
   set ret [BootLedsPerf]
 }
+
 # ***************************************************************************
 # FDbutton
 # ***************************************************************************
 proc FDbutton {run} {
   set ret [FDbuttonPerf]
 }
+
 # ***************************************************************************
 # UsbTree
 # ***************************************************************************
@@ -598,6 +583,7 @@ proc UsbTree {run} {
   }
   return $ret
 }
+
 # ***************************************************************************
 # SOC_Flash_Memory
 # ***************************************************************************
@@ -616,27 +602,23 @@ proc SOC_Flash_Memory {run} {
   }
   return $ret
 }
+
 # ***************************************************************************
 # SOC_i2C
 # ***************************************************************************
 proc SOC_i2C {run} {
   global gaSet buffer
   set com $gaSet(comDut)
-#   Send $com "\r" stam 0.25
-#   Send $com "\r" stam 0.25
-#   if {[string match *PCPE* $buffer]} {
-#     set ret 0
-#   } else {
-#     set ret [PowerResetAndLogin2Boot]
-#   }
   set ret [PowerResetAndLogin2Boot]
   if {$ret==0} {
     set ret [SocI2cPerform]
   }
   return $ret
 }
+
 # ***************************************************************************
-# 
+# MicroSD
+# ***************************************************************************
 proc MicroSD {run} {
   global gaSet buffer
   set com $gaSet(comDut)
@@ -679,6 +661,7 @@ proc SSH {run} {
   }  
   return $ret
 }
+
 # ***************************************************************************
 # CellularModem_SIM1
 # ***************************************************************************

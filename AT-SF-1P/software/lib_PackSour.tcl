@@ -121,11 +121,9 @@ package require RLSound
 package require RLCom
 package require RLEtxGen
 RLSound::Open ; # [list failbeep fail.wav passbeep pass.wav beep warning.wav]
-#package require RLScotty ; #RLTcp
 package require ezsmtp
 package require http
 package require RLAutoUpdate
-##package require registry
 package require sqlite3
 package require ftp
 package require http
@@ -166,7 +164,6 @@ set gaSet(toNotTestClr) SystemButtonFace
 set gaSet(halfPassClr)  #ccffcc
 
 set gaSet(useExistBarcode) 0
-#set gaSet(1.barcode1) CE100025622
 
 set gaSet(gpibMode) com
 set gaSet(relDebMode) Release
@@ -190,8 +187,6 @@ if ![info exists gaSet(hwAdd)] {
   set gaSet(hwAdd) A
 }
 
-
-#puts "$gaSet(DutFullName)"
 ToggleComDut
 LoadNoTraceFile
 
@@ -203,4 +198,3 @@ wm deiconify .
 wm geometry . $gaGui(xy)
 update
 Status "Ready"
-

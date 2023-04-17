@@ -1352,19 +1352,6 @@ proc GpsPerf {} {
     set gaSet(fail) "Enable gnss fail" 
     return -1
   }
-#   set ret [Send $com "show status\r" "more"]
-#   if {$ret!=0} {
-#     set gaSet(fail) "Gnss show fail" 
-#     return -1
-#   }
-#   set buf $buffer
-#   set ret [Send $com "\r" "gnss(1)#"]
-#   if {$ret!=0} {
-#     set gaSet(fail) "Gnss show fail" 
-#     return -1
-#   }
-#   append buf $buffer
-#   set buffer $buf
     
   set maxWait 6
   set sec1 [clock seconds]
@@ -1375,12 +1362,7 @@ proc GpsPerf {} {
     set aft [expr {$sec2-$sec1}]
     set ret [Wait "Wait for GPS sync ($aft sec)" 10]
     if {$ret!=0} {return -1}
-    #Status "Wait for GPS sync ($i)"
     set ret [Send $com "show status\r" "more" 2]
-#     if {$ret!=0} {
-#       set gaSet(fail) "Gnss show fail" 
-#       return -1
-#     }  
     set buf $buffer
     set ret [Send $com "\r" "gnss(1)#"]
     if {$ret!=0} {
@@ -1433,7 +1415,6 @@ proc GpsPerf {} {
     if {$ret==0} {
       break
     }
-    
     
     after 5000
     set ret -1
@@ -1532,8 +1513,6 @@ proc FrontLedsPerf {} {
     set ret [Send $com "c\r" "Loading software"]
     set ret [Login2App]
     if {$ret!=0} {return $ret}
-  
-    
   }
   return $ret
 }
@@ -1824,8 +1803,6 @@ proc WifiPerf {baud locWifiReport} {
   if {$baud=="2.4"} {
   
     ## we stop the measurement and wait upto 2 minutes to verify that wifireport will be deleted
-    #FtpDeleteFile [string tolower startMeasurement_$gaSet(wifiNet)]
-    #FtpDeleteFile  [string tolower wifireport_$gaSet(wifiNet).txt]
     catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)} res
     puts "FtpDeleteFile <$res>"
     catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt} res
@@ -1834,7 +1811,6 @@ proc WifiPerf {baud locWifiReport} {
     set ret [FtpVerifyNoReport]
     if {$ret!=0} {return $ret}
 
-    #FtpUploadFile startMeasurement_$gaSet(wifiNet)
     catch {exec python.exe lib_sftp.py FtpUploadFile startMeasurement_$gaSet(wifiNet)} res
     puts "FtpDeleteFile <$res>"
     regexp {result: (-?1) } $res ma ret
@@ -1858,7 +1834,6 @@ proc WifiPerf {baud locWifiReport} {
     
       set ret [WiFiReport $locWifiReport $baud off]
       if {$ret!=0} {
-        #FtpDeleteFile  [string tolower wifireport_$gaSet(wifiNet).txt]
         catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt} res
         puts "FtpDeleteFile <$res>"
       
@@ -1874,13 +1849,12 @@ proc WifiPerf {baud locWifiReport} {
 #     
 #       set ret [WiFiReport $locWifiReport $baud off]
 #       if {$ret!=0} {return $ret}
-    }  
-   
+    }     
   }
- 
  
   return $ret
 }
+
 # ***************************************************************************
 # WiFiReport
 # ***************************************************************************
@@ -1897,7 +1871,6 @@ proc WiFiReport {locWifiReport baud ant} {
     if {$gaSet(act)==0} {return -2}
     puts "i:<$i>"
     $gaSet(runTime) configure -text "$i" ; update
-    #if {[FtpGetFile wifiReport_$gaSet(wifiNet).txt $locWifiReport]=="1"} {}
     catch {exec python.exe lib_sftp.py FtpGetFile [string tolower wifiReport_$gaSet(wifiNet).txt] $locWifiReport} res
     regexp {result: (-?1) } $res ma res
     puts "FtpGetFile res <$res>"
@@ -1928,6 +1901,7 @@ proc WiFiReport {locWifiReport baud ant} {
   puts "WiFiReport ret before return <$ret> gaSet(fail):<$gaSet(fail)>" 
   return $ret
 }
+
 # ***************************************************************************
 # WiFiReadReport
 #  set locWifiReport LocWifiReport.txt
@@ -1942,7 +1916,6 @@ proc WiFiReadReport {locWifiReport baud ant tr} {
   puts "WiFiReadReport wlanIntfR:<$wlanIntfR>"
   
   set ::wlanIntfR $wlanIntfR
-  #set res [regexp "SSID\\s+\(\\d+\)\\s+:\\s+RAD_TST1_$gaSet(wifiNet)" $wlanIntfR ma val]
   set res [regexp "SSID\\s+:\\s+RAD_TST1_$gaSet(wifiNet)" $wlanIntfR ma]
   
   if {$res==0} {
@@ -1953,11 +1926,7 @@ proc WiFiReadReport {locWifiReport baud ant tr} {
     set gaSet(fail) "Read SSID RAD_TST1_$gaSet(wifiNet) fail"
     return "TryAgain"
   }
-#   set res [regexp "SSID ${val}.+54" $wlanIntfR wlanIntf]
-#   if {$res==0} {
-#     set gaSet(fail) "Read SSID fail"
-#     return "TryAgain"
-#   }
+
   puts "WiFiReadReport ma:<$ma>"
   set res [regexp "SSID\\s+:\\s+RAD_TST1_$gaSet(wifiNet).+?%" $wlanIntfR wlanIntf]
   if {$res==0} {
@@ -2148,6 +2117,7 @@ proc PlcPerf {} {
 
   return $ret
 }
+
 # ***************************************************************************
 # DataTransmissionSetup
 # ***************************************************************************
@@ -2181,8 +2151,6 @@ proc DataTransmissionSetup {} {
   set ret [Send $com "ifconfig br0 up\r" "\]#"]
   if {$ret!=0} {return $ret}
   
-
-
   set ret [Send $com "brctl addbr br1\r" "\]#"]
   if {$ret!=0} {return $ret}
   set ret [Send $com "brctl addif br1 lan0\r" "\]#"]
@@ -2321,6 +2289,7 @@ proc DataTransmissionSetup_RadOS {} {
       
   return $ret
 }
+
 # ***************************************************************************
 # LinuxLedsPerf
 # ***************************************************************************
@@ -2337,122 +2306,49 @@ proc LinuxLedsPerf {} {
   }
   
   set ret [Config4CellBar]
-  if {$ret!=0} {return $ret}
+  if {$ret!=0} {return $ret}  
+    
+  Send $com "cd / \r" stam 0.1
+  set txt "Press \'OK\' and verify LTE Bar Leds is changing in the following order:\n\n\
+  all OFF -> 1 and 3 -> 2 and 4 -> all ON -> all OFF"
+  while 1 {
   
-#   set gaSet(fail) "Confugure AUX Led fail"
-#   Send $com "cd / \r" stam 0.1
-#   set ret [Send $com "cd /sys/class/gpio\r" "\]#"]
-#   if {$ret!=0} {return $ret}
-#   set ret [Send $com "echo 441 > export\r" "\]#"]
-#   if {$ret!=0} {return $ret}
-#   set ret [Send $com "echo out > gpio441/direction\r" "\]#"]
-#   if {$ret!=0} {return $ret}
-#   set ret [Send $com "echo 442 > export\r" "\]#"]
-#   if {$ret!=0} {return $ret}
-#   set ret [Send $com "echo out > gpio442/direction\r" "\]#"]
-#   if {$ret!=0} {return $ret}
-#   set ret [Send $com "echo 443 > export\r" "\]#"]
-#   if {$ret!=0} {return $ret}
-#   set ret [Send $com "echo out > gpio443/direction\r" "\]#"]
-#   Send $com "echo 0 > gpio441/value\r" "\]#"
-#   Send $com "echo 0 > gpio442/value\r" "\]#"  
-#   set ret [Send $com "echo 0 > gpio443/value\r" "\]#"] 
-#   if {$ret!=0} {return $ret}
-#   RLSound::Play information
-#   set res [DialogBox -title "AUX and LTE Leds Test" -type "Yes No" \
-#       -message "Verify the AUX and the LTE (if exists) Leds are OFF" -icon images/info]
-#   if {$res=="No"} {
-#     set gaSet(fail) "AUX and LTE Led are not OFF" 
-#     return -1
-#   }
-#   
-#   set ret [Send $com "\r\r" "\]#" 1]
-#   if {$ret!=0} {
-#     set ret [Login]
-#     if {$ret!=0} {return $ret}
-#     set ret [Login2Linux]
-#     if {$ret!=0} {return $ret}  
-#     Send $com "cd / \r" stam 0.1
-#     set ret [Send $com "cd /sys/class/gpio\r" "\]#"]
-#     if {$ret!=0} {return $ret}  
-#   }
-#   set ret [Send $com "echo 1 > gpio442/value\r" "\]#"]
-#   if {$ret!=0} {return $ret}
-#   RLSound::Play information
-#   set res [DialogBox -title "AUX Green Led Test" -type "Yes No" \
-#       -message "Verify the AUX Green Led is ON" -icon images/info]
-#   if {$res=="No"} {
-#     set gaSet(fail) "AUX Green Led is not ON" 
-#     return -1
-#   }
-#   Send $com "echo 0 > gpio442/value\r" "\]#"   
-#   
-#   set ret [Send $com "echo 1 > gpio443/value\r" "\]#"]
-#   if {$ret!=0} {return $ret}
-#   RLSound::Play information
-#   set res [DialogBox -title "AUX Red Led Test" -type "Yes No" \
-#       -message "Verify the AUX Red Led is ON" -icon images/info]
-#   if {$res=="No"} {
-#     set gaSet(fail) "AUX Red Led is not ON" 
-#     return -1
-#   }
-#   Send $com "echo 0 > gpio443/value\r" "\]#"  
-#   
-#   if {$gaSet(dutFam.cell)!=0} {}  
-#     set ret [Send $com "echo 1 > gpio441/value\r" "\]#"]
-#     if {$ret!=0} {return $ret}
-#     RLSound::Play information
-#     set res [DialogBox -title "LTE Green Led Test" -type "Yes No" \
-#         -message "Verify the LTE Green Led is ON" -icon images/info]
-#     if {$res=="No"} {
-#       set gaSet(fail) "LTE Green Led is not ON" 
-#       return -1
-#     }
-#     Send $com "echo 0 > gpio441/value\r" "\]#" 
-#     
-  #   set ret [Config4CellBar]
-  #   if {$ret!=0} {return $ret}
+    set ret [Send $com "\r\r" "\]#" 1]
+    if {$ret!=0} {
+      set ret [Login]
+      if {$ret!=0} {return $ret}
+      set ret [Login2Linux]
+      if {$ret!=0} {return $ret}    
+    }
+    RLSound::Play information
+    set res [DialogBox -title "CellBar Test" -type "OK" -message $txt -icon images/info]
     
-    Send $com "cd / \r" stam 0.1
-    set txt "Press \'OK\' and verify LTE Bar Leds is changing in the following order:\n\n\
-    all OFF -> 1 and 3 -> 2 and 4 -> all ON -> all OFF"
-    while 1 {
+    Send $com "./lte_ledtest.sh 0\r" "\]#" 
+    after 250
+    Send $com "./lte_ledtest.sh 5\r" "\]#" 
+    after 250
+    Send $com "./lte_ledtest.sh 10\r" "\]#" 
+    after 250
+    Send $com "./lte_ledtest.sh 15\r" "\]#" 
+    after 250
+    Send $com "./lte_ledtest.sh 0\r" "\]#"
     
-      set ret [Send $com "\r\r" "\]#" 1]
-      if {$ret!=0} {
-        set ret [Login]
-        if {$ret!=0} {return $ret}
-        set ret [Login2Linux]
-        if {$ret!=0} {return $ret}    
-      }
-      RLSound::Play information
-      set res [DialogBox -title "CellBar Test" -type "OK" -message $txt -icon images/info]
-      
-      Send $com "./lte_ledtest.sh 0\r" "\]#" 
-      after 250
-      Send $com "./lte_ledtest.sh 5\r" "\]#" 
-      after 250
-      Send $com "./lte_ledtest.sh 10\r" "\]#" 
-      after 250
-      Send $com "./lte_ledtest.sh 15\r" "\]#" 
-      after 250
-      Send $com "./lte_ledtest.sh 0\r" "\]#"
-      
-      RLSound::Play information
-      set res [DialogBox -title "LTE Led Bar Test" -type "Yes No Repeat" \
-          -message "Does the LTE Led Bar work well?" -icon images/info]
-      if {$res=="No"} {
-        set gaSet(fail) "CellBar Test Fail" 
-        set ret -1
-        break
-      } elseif {$res=="Yes"}  {
-        set ret 0
-        break
-      }
-    } 
+    RLSound::Play information
+    set res [DialogBox -title "LTE Led Bar Test" -type "Yes No Repeat" \
+        -message "Does the LTE Led Bar work well?" -icon images/info]
+    if {$res=="No"} {
+      set gaSet(fail) "CellBar Test Fail" 
+      set ret -1
+      break
+    } elseif {$res=="Yes"}  {
+      set ret 0
+      break
+    }
+  } 
  
   return $ret
 }
+
 # ***************************************************************************
 # Config4CellBar
 # ***************************************************************************
@@ -2474,8 +2370,6 @@ proc Config4CellBar {} {
   set ret [Send $com "\4\r" "\]#"]
   if {$ret!=0} {return $ret}
   
-  
-
   Send $com "cat > lte_ledbar_test.sh \r" stam 0.1
   set id [open lte_ledbar_test.sh r]
     while {[gets $id line]>=0} {
@@ -2490,9 +2384,9 @@ proc Config4CellBar {} {
   Send $com "chmod 777 lte_ledtest.sh\r" "\]#"  
   Send $com "chmod 777 lte_ledbar_test.sh\r" "\]#"  
   
-  #Send $com "./lte_ledbar_test.sh\r" "\]#" 
   return $ret
 }
+
 # ***************************************************************************
 # Login2Boot
 # ***************************************************************************
@@ -2538,6 +2432,7 @@ proc Login2Boot {} {
   
   return $ret
 }
+
 # ***************************************************************************
 # BootLedsPerf_loop
 # ***************************************************************************
@@ -2643,15 +2538,6 @@ proc BootLedsPerf_loop {} {
   }
   Send $com "gpio toogle GPIO113\r" "PCPE"
   
-#   set ledName   [list WAN1   WAN2   WiFi   SIM1   SIM2   UTP1   UTP2   UTP3   UTP4   Ser1_TX Ser2_TX]
-#   set par1      [list 2      2      2      1      1      1      1      1      1      1       1]
-#   set onReg1    [list 0x80ef 0x80fe 0x80fe 0x90fe 0x90fe 0x80ef 0x80ef 0x80ef 0x80ef 0x90ef  0x90ef]
-#   set onReg2    [list 0x9696 0x9696 0x9676 0x9656 0x9636 0x9636 0x9656 0x9676 0x9696 0x9636  0x9676]
-#   set offReg1   [list 0x80ee 0x80ee 0x80ee 0x90ee 0x90ee 0x80ee 0x80ee 0x80ee 0x80ee 0x90ee  0x90ee]
-#   set offReg2   [list 0x9696 0x9696 0x9676 0x9656 0x9636 0x9636 0x9656 0x9676 0x9696 0x9636  0x9676]
-  
-#   set txt "Press OK and verify LEDs turn ON and OFF in the following order:\n\n\
-#   WAN1 -> WAN2 -> WiFi (if exists) -> SIM1 (if exists) -> SIM2 (if exists) ->  SFP ->  WAN2 ->  UTP1 ->  UTP2 ->  UTP3 ->  UTP4 ->  Ser1_TX -> Ser1_RX"
   set txt "Press OK and verify LEDs turn ON and OFF in the following order:\n\n\
   \"Green AUX\" -> \"Red AUX\" -> WiFi (if exists) -> SIM1 (if exists) -> SIM2 (if exists) -> SFP-1 (if exists) -> SFP-2 (if exists) -> UTP-3 (if exists) ->  UTP-4 (if exists) ->  UTP-5  -> UTP-6 -> Ser1_TX -> Ser1_RX -> Ser2_TX -> Ser2_RX" 
   set ::LedsInLoopStop 0
@@ -2664,9 +2550,6 @@ proc BootLedsPerf_loop {} {
   }
   after 300 LedsInLoop
   RLSound::Play information
-#   set txt "Verify LEDs turn ON and OFF in the following order:\n\n\
-#   WAN1 -> WAN2 -> WiFi (if exists) -> SIM1 (if exists) -> SIM2 (if exists) ->  SFP ->  WAN2 -> UTP1 ->  UTP2 ->  UTP3 ->  UTP4 ->  Ser1_TX -> Ser1_RX\n\n\n\
-#   Do the Leds work well?"
   set txt "Verify LEDs turn ON and OFF in the following order:\n\n\
     \"Green AUX\" -> \"Red AUX\" -> WiFi (if exists) -> SIM1 (if exists) -> SIM2 (if exists) -> SFP-1 (if exists) -> SFP-2 (if exists) -> UTP-3 ->  UTP-4  ->  UTP-5  (if exists) -> UTP-6 (if exists) -> Ser1_TX -> Ser1_RX -> Ser2_TX -> Ser2_RX\n\n\n\
   Do the Leds work well?"
@@ -2687,19 +2570,6 @@ proc BootLedsPerf_loop {} {
 proc LedsInLoop {} {
   global gaSet
   if $::LedsInLoopStop {return 0}
-#   set ledName   [list WAN1   WAN2   WiFi   SIM1   SIM2   SFP    WAN2   UTP1   UTP2   UTP3   UTP4   Ser1_TX Ser1_RX]
-#   set par1      [list 2      2      2      1      1      2      2      1      1      1      1      1       1]
-#   set onReg1    [list 0x80ef 0x80fe 0x80fe 0x90fe 0x90fe 0x80ef 0x80ef 0x80ef 0x80ef 0x80ef 0x80ef 0x90ef  0x90ef]
-#   set onReg2    [list 0x9696 0x9696 0x9676 0x9656 0x9636 0x96b6 0x9676 0x9636 0x9656 0x9676 0x9696 0x9636  0x9676]
-#   set offReg1   [list 0x80ee 0x80ee 0x80ee 0x90ee 0x90ee 0x80ee 0x80ee 0x80ee 0x80ee 0x80ee 0x80ee 0x90ee  0x90ee]
-#   set offReg2   [list 0x9696 0x9696 0x9676 0x9656 0x9636 0x96b6 0x9676 0x9636 0x9656 0x9676 0x9696 0x9636  0x9676]
-  
-#   set ledName   [list "Green AUX" "Red AUX" WiFi    SIM1   SIM2   SFP-1   SFP-2 UTP-3  UTP-4  UTP-5  UTP-6  Ser1_TX  Ser1_RX  Ser2_TX  Ser2_RX ]
-#   set par1      [list 1           1         1       1      1      2      2      1      1      1      1      1        1        1        1       ]
-#   set onReg1    [list 0x80fe      0x80fe    0x80fe  0x90fe 0x90fe 0x80ef 0x80fe 0x80ef 0x80ef 0x80ef 0x80ef 0x90ef   0x90ef   0x90ef   0x90ef  ]
-#   set onReg2    [list 0x9656      0x9636    0x9676  0x9656 0x9636 0x96b6 0x96b6 0x9636 0x9656 0x9676 0x9696 0x9636   0x9676   0x9656   0x9696  ]
-#   set offReg1   [list 0x80ee      0x80ee    0x80ee  0x90ee 0x90ee 0x80ee 0x80ee 0x80ee 0x80ee 0x80ee 0x80ee 0x90ee   0x90ee   0x90ee   0x90ee  ]
-#   set offReg2   [list 0x9656      0x9636    0x9676  0x9656 0x9636 0x96b6 0x96b6 0x9636 0x9656 0x9676 0x9696 0x9636   0x9676   0x9656   0x9696  ]
 
   set ledName   [list SFP-1   SFP-2 UTP-3  UTP-4  UTP-5  UTP-6  Ser1_TX  Ser1_RX  Ser2_TX  Ser2_RX   SIM1   SIM2   WiFi   "Green AUX" "Red AUX"]
   set par1      [list 2      2      1      1      1      1      1        1        1        1         1      1      1      1           1        ]
@@ -2731,6 +2601,7 @@ proc LedsInLoop {} {
   }
   after 500 LedsInLoop 
 }
+
 # ***************************************************************************
 # FDbuttonPerf
 # ***************************************************************************
@@ -3047,13 +2918,7 @@ proc ReadBootParams {} {
       return -1
     }
   }
-  
-  # set res [string match {*Nov 22 2021*} $gaSet(loginBuffer)]
-  # if {$res == 0} {
-    # set gaSet(fail) "No \'Nov 22 2021\' in Boot"
-    # return -1
-  # }
-  
+    
   set res [string match "*DRAM:  $gaSet(dutFam.mem) GiB*" $gaSet(loginBuffer)]
   if {$res == 0} {
     set gaSet(fail) "No \'DRAM:  $gaSet(dutFam.mem) GiB\' in Boot"
@@ -3078,9 +2943,9 @@ proc ReadBootParams {} {
     }
   }
   
-  
   return 0
 }  
+
 # ***************************************************************************
 # ReadWanLanStatus
 # ***************************************************************************
@@ -3131,6 +2996,7 @@ proc ReadWanLanStatus {} {
   }
   return 0
 }
+
 # ***************************************************************************
 # MicroSDPerform
 # ***************************************************************************
@@ -3173,6 +3039,7 @@ proc MicroSDPerform {} {
   
   return $ret
 }  
+
 # ***************************************************************************
 # ConfigDryContact
 # ***************************************************************************
@@ -3193,9 +3060,8 @@ proc ConfigDryContact {} {
   Send $com "$line\r" stam 0.25
   set ret 0; # [Send $com "\4\r" "\]#"]
   return $ret
-  
-  
 }
+
 # ***************************************************************************
 # SshPerform
 # ***************************************************************************
@@ -3224,9 +3090,6 @@ proc SshPerform {} {
     return -2
   } 
   
-#   package require RLPlink
-#    # plink.exe -ssh -P 22 su@169.254.1.1
-#   set id [RLPlink::Open $gaSet(sshUutIp) -protocol ssh -password 1234 -user su@$gaSet(sshUutIp) -port 22]
   set ret -1
   set gaSet(fail) "No SSH session"
   for {set i 1} {$i <= 10} {incr i} {
@@ -3297,6 +3160,7 @@ proc ReadRssi {} {
   }
   return 0
 }
+
 # ***************************************************************************
 # CellularLte_RadOS
 # ***************************************************************************
@@ -3533,10 +3397,7 @@ proc CellularModemPerf_RadOS {actSim disSim l4} {
       }
       
       set res3 1
-      
-        
       set res4 1
-      
       
       if {$res1 && $res2 && $res3 && $res4} {
         set ret 0
@@ -3659,6 +3520,7 @@ proc CellularLte_RadOS_Sim12 {} {
   set ret [Send $com "exit all\r" "-1p"]
   return $ret
 }
+
 # ***************************************************************************
 # CellularModemPerf_RadOS_Sim12
 # ***************************************************************************
@@ -3811,9 +3673,7 @@ proc CellularModemPerf_RadOS_Sim12 {actSim disSim l4} {
     }
     
   }
-  
   if {$ret!=0} {return $ret} 
-
   
   if {$ret==0} {
     set w 5; Wait "Wait $w seconds for Network" $w
@@ -4029,8 +3889,6 @@ proc __LedsInLoop {} {
   }
   
   return 0
-  
-  
 }
 # ***************************************************************************
 # PowerOffOnPerf
@@ -4059,7 +3917,6 @@ proc PowerOffOnPerf {} {
   }
   return $ret
 }
-
 
 # ***************************************************************************
 # LoraModuleConf
@@ -4247,12 +4104,7 @@ proc LoraPerf {data} {
     set gaSet(fail) "Delete $logFile fail"
     return -1
   }
-  # set ret [JoinLoraDev]
-  # if {$ret!=0} {
-    # set ret [JoinLoraDev]
-    # if {$ret!=0} {return $ret}
-  # }
-  #puts "\n[MyTime] LoraPerf before Send <[glob -nocomplain -directory //$gaSet(LoraServerHost)/c$/LoraDirs/ChirpStackLogs *]>"; update
+  
   set ret [SendDataToLoraDev $data]
   if {$ret!=0} {return $ret}
   puts "[MyTime] LoraPerf after Send <[glob -nocomplain -directory //$gaSet(LoraServerHost)/c$/LoraDirs/ChirpStackLogs *]>"; update
