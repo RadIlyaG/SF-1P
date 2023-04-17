@@ -1,0 +1,17 @@
+    Name                   : Wi-Fi 2
+    Description            : TP-Link Wireless USB Adapter #2
+    GUID                   : c0788ac6-bbd4-4089-864b-9035ebc853d3
+    Physical address       : 28:ee:52:18:17:ee
+    State                  : connected
+    SSID                   : RAD_TST1_at-sf1p-1-10_1
+    BSSID                  : d8:c0:a6:8f:9e:70
+    Network type           : Infrastructure
+    Radio type             : 802.11n
+    Authentication         : Open
+    Cipher                 : None
+    Connection mode        : Profile
+    Channel                : 4
+    Receive rate (Mbps)    : 78
+    Transmit rate (Mbps)   : 78
+    Signal                 : 71% 
+    Profile                : RAD_TST1_at-sf1p-1-10_1 

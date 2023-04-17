@@ -1,0 +1,3 @@
+1. install Flask: pip install Flask https://flask.palletsprojects.com/en/2.2.x/installation/
+2.1. run from command line Flask --app myFl1.py run  https://flask.palletsprojects.com/en/2.2.x/quickstart/#http-methods
+2.2. or from wish run catch {exec py myfl1.py &} res  
