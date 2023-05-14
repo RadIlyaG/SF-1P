@@ -624,23 +624,27 @@ proc DryContactAlarmcheck {mode} {
     MuxSwitchBox 2 $gr2st
     after 250
     set ret [Send $com "cat \$DC_IN1_DIR/value \> \$DC_OUT1_DIR/value\r" stam 0.2]
+    Send $com "cat \$DC_IN1_DIR/value\r" stam 0.2
+    Send $com "cat \$DC_OUT1_DIR/value\r" stam 0.2
 		set ret [Send $com "cat \$DC_IN2_DIR/value \> \$DC_OUT2_DIR/value\r" stam 0.2]
+    Send $com "cat \$DC_IN2_DIR/value\r" stam 0.2
+    Send $com "cat \$DC_OUT2_DIR/value\r" stam 0.2
     after 250
     RLUsbPio::Get $gaSet(idPioDrContIn) buffer
-    puts "DryContactAlarmcheckGo buffer after gr2st:<$gr2st> gr1st:<$gr1st>:<$buffer>"
+    puts "DryContactAlarmcheck buffer after gr2st:<$gr2st> gr1st:<$gr1st> buffer:<$buffer> sb:<$sb>"
     if [string match *$sb $buffer] {
       #puts "$buffer match *$sb"
       set res 0
     } else {
       set gaSet(fail) "I/O Alarm is [string range $buffer 6 7]. Should be $sb"
-      #puts "$buffer doesnt match *$sb"
+      puts "$gaSet(fail)"
       set res -1
       break
     }
   }
   set ret [Send $com "\r\r" "\]#" 1]
   set ret $res
- return $ret
+  return $ret
 } 
 
 # ***************************************************************************
@@ -923,7 +927,8 @@ proc IDPerf {mode} {
     if {$ret!=0} {return $ret}
   }
   set macLink ""  
-  set res [regexp {ADDRESS\s+([0-9A-F\:]+) } $buffer ma macLink]
+  #set res [regexp {ADDRESS\s+([0-9A-F\:]+) } $buffer ma macLink]
+  set res [regexp {\s+([0-9A-F\:]+) } $buffer ma macLink]
   if {$res} {
     set dutMac [string toupper [join [split $macLink :] ""]]
     set hexDutMac 0x$dutMac
@@ -1020,10 +1025,15 @@ proc IDPerf {mode} {
   set uutModel [string trim $uutModel]
   puts "uutModel:$uutModel"
   
-  regsub {_} $uutModel / uutModel
-  puts "uutModel:$uutModel"
+  # 10:39 11/05/2023
+  #regsub {_} $uutModel / uutModel
+  #puts "uutModel:$uutModel"
   if {($gaSet(dutFam.wanPorts) == "4U2S" || $gaSet(dutFam.wanPorts) == "5U1S") && $uutModel != "SF-1P superset"} {
-	  set gaSet(fail) "The Model is \'$uutModel\'. Should be \'SF-1P superset\'" 
+	  if {[string match *R06* $gaSet(DutInitName)] && $uutModel != "SF-1P superset CP_2"} {
+      set gaSet(fail) "The Model is \'$uutModel\'. Should be \'SF-1P superset CP_2\'" 
+    } else {
+      set gaSet(fail) "The Model is \'$uutModel\'. Should be \'SF-1P superset\'" 
+    }
     return -1
   } elseif {$gaSet(dutFam.wanPorts) == "2U" && $uutModel != "SF-1P"} {
 	  set gaSet(fail) "The Model is \'$uutModel\'. Should be \'SF-1P\'" 
@@ -1142,6 +1152,11 @@ proc SerialPortsPerf {} {
   puts "[MyTime] SerialPortsPerf"
   
   set com $gaSet(comDut)
+  if {$gaSet(dutFam.serPort)=="2RSM" || $gaSet(dutFam.serPort)=="2RMI"} {
+    set comSer1 $gaSet(comSer485)  
+  } else {
+    set comSer1 $gaSet(comSer1)
+  }
   
   set ret [Send $com "\r\r" "\]#" 1]
   if {$ret!=0} {
@@ -1156,6 +1171,8 @@ proc SerialPortsPerf {} {
   if {$ret!=0} {return -1}
   set ret [Send $com "stty -F /dev/ttyMV1 115200\r" "#"]
   if {$ret!=0} {return -1}
+  set ret [Send $com "cat /dev/ttyMV1 &\r" "#"]
+  if {$ret!=0} {return -1}
   
   
   set txt1 "ABCD_1234 7890"
@@ -1167,7 +1184,7 @@ proc SerialPortsPerf {} {
   
     set ret [Send $gaSet(comSer2) "echo \"$txt1\" > /dev/ttyMV1\r" "#"]
     if {$ret!=0} {return -1}
-  	set ret [ReadCom $gaSet(comSer1) "$txt1" 3]
+  	set ret [ReadCom $comSer1 "$txt1" 3]
     puts "ret after i:$i comSer1:<$ret>" ; update
     if {$ret==0} {break}
   }
@@ -1176,13 +1193,16 @@ proc SerialPortsPerf {} {
     return $ret
   }
   
-  set ret [Send $com "cat /dev/ttyMV1 &\r" "#"]
-  if {$ret!=0} {return -1}
   
-  set txt2 "0987_abcd 6543"
+  set txt2 "10987_abcd6543"
   Status "Send \'$txt2\' from Serial-1 to Serial-2"
   for {set i 1} {$i<=2} {incr i} {
-    Send $gaSet(comSer1) "$txt2\r" "stam" 1
+    # Send $comSer1 "1\r2\r" "stam" 1
+    # set ret [RLCom::Read $gaSet(comSer2) buffer]
+    # puts "buffer:<$buffer>"
+    
+    Send $comSer1 "$txt2\r\r" "stam" 1
+    after 1000
     set ret [ReadCom $gaSet(comSer2) "$txt2" 3]
     puts "ret after i:$i comSer2:<$ret>" ; update
     if {$ret==0} {break}
@@ -1191,8 +1211,6 @@ proc SerialPortsPerf {} {
     set gaSet(fail) "Read \'$txt2\' on Serial-2 fail" 
     return $ret
   }
-  
-  
   
   return $ret
   
@@ -2939,6 +2957,7 @@ proc UsbStartTreePerform {} {
     set ret 0
   }
   set ret [Send $com "usb stop\r" "stam" 1]
+  after 3000
   
   for {set ii 1} {$ii <=3} {incr ii} {
     set ret [Send $com "usb start\r" "stam" 3]
@@ -2953,6 +2972,7 @@ proc UsbStartTreePerform {} {
     set res [regexp {scanning bus 0 for devices[\.\s]+(\d) USB Device\(s\) found} $buffer ma val]
     if {$res == 0} {
       set ret [Send $com "usb stop\r" "stam" 1]
+      after 3000
       set ret [Send $com "usb start\r" "stam" 3]
       if [string match "*PCPE*" $buffer] {
         set ret 0
@@ -3041,8 +3061,8 @@ proc SocFlashMemPerform {} {
     set gaSet(fail) "\'mmc dev 1:0\' fail"
     return -1
   }
-  if ![string match {*dev 1:0 switch to partitions \#0, OK*} $buffer] {
-    set gaSet(fail) "\'dev 1:0 switch to partitions 0\' does not exist"
+  if ![string match {*switch to partitions \#0, OK*} $buffer] {
+    set gaSet(fail) "\'switch to partitions 0\' does not exist"
     return -1
   }
   if ![string match {*mmc1(part 0) is current device*} $buffer] {
@@ -3287,10 +3307,10 @@ proc MicroSDPerform {} {
     set gaSet(fail) "\'mmc dev 0:1\' fail"
     return -1
   }
-  if ![string match {*dev 0:1 switch to partitions \#0, OK*} $buffer] { 
+  if ![string match {*switch to partitions \#0, OK*} $buffer] { 
     after 500
     set ret [Send $com "mmc dev 0:1\r" "PCPE"]
-    if ![string match {*dev 0:1 switch to partitions \#0, OK*} $buffer] { 
+    if ![string match {*switch to partitions \#0, OK*} $buffer] { 
       set gaSet(fail) "\'dev 0:1 switch to partitions 0\' does not exist"
       return -1
     }

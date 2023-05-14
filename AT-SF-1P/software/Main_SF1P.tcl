@@ -32,7 +32,12 @@ proc BuildTests {} {
     
   }
   lappend lTestNames SOC_Flash_Memory SOC_i2C 
-  lappend lTestNames BrdEeprom
+  
+  if {$gaSet(dutFam.sf)=="ETX-1P"} {
+    lappend lTestNames BrdEeprom
+  }
+  ## no BrdEeprom in SFP
+  
   if {$gaSet(dutFam.sf)=="ETX-1P"} {
     ## no DRY Contact
   } else {  
@@ -210,14 +215,16 @@ proc Testing {} {
 # UbootVersion
 # ***************************************************************************
 proc UbootVersion {run} {
-   set ret [UbootCheckVersionRam]
-   return $ret
+  set ::sendSlow 1
+  set ret [UbootCheckVersionRam]
+  return $ret
 }
 # ***************************************************************************
 # UsbMicroSD
 # ***************************************************************************
 proc UsbMicroSD {run} {
   global gaSet buffer
+  set ::sendSlow 1
   set com $gaSet(comDut)
   Send $com "\r" stam 0.25
   Send $com "\r" stam 0.25
@@ -237,6 +244,7 @@ proc UsbMicroSD {run} {
 # ***************************************************************************
 proc DryContactAlarm {run} {
   global gaSet buffer
+  set ::sendSlow 0
   MuxMngIO nc
   set com $gaSet(comDut)
   Send $com "\r" stam 0.25
@@ -257,6 +265,7 @@ proc DryContactAlarm {run} {
 # BrdEeprom
 # ***************************************************************************
 proc BrdEeprom {run} {
+  set ::sendSlow 0
   MuxMngIO nc
   set ret [BrdEepromPerf]   
   return $ret
@@ -267,6 +276,7 @@ proc BrdEeprom {run} {
 # ***************************************************************************
 proc ID {run} {
   global gaSet
+  set ::sendSlow 0
   MuxMngIO nc
   set ret 0
   set ret [IDPerf ID]  
@@ -285,6 +295,7 @@ proc ID {run} {
 # ***************************************************************************
 proc DataTransmissionConf {run} {
   global gaSet
+  set ::sendSlow 0
   Power all on
   MuxMngIO 6ToGen
      
@@ -306,6 +317,7 @@ proc DataTransmissionConf {run} {
 # ***************************************************************************
 proc DataTransmission {run} {
   global gaSet
+  set ::sendSlow 0
   MuxMngIO 6ToGen
   after 2000
   puts "[MyTime] RLEtxGen::PortsConfig -admStatus down"; update
@@ -351,6 +363,7 @@ proc DataTransmission {run} {
 # SerialPorts
 # ***************************************************************************
 proc SerialPorts {run} {
+  set ::sendSlow 1
   set ret [SerialPortsPerf]
   return $ret
 }
@@ -358,6 +371,7 @@ proc SerialPorts {run} {
 # POE
 # ***************************************************************************
 proc POE {run} {
+  set ::sendSlow 0
   set ret [PoePerf]
   MuxMngIO nc    
   return $ret
@@ -366,6 +380,7 @@ proc POE {run} {
 # GPS
 # ***************************************************************************
 proc GPS {run} {
+  set ::sendSlow 0
   MuxMngIO nc
   set ret [GpsPerf]
   return $ret
@@ -376,6 +391,7 @@ proc GPS {run} {
 # Factory_Settings
 # ***************************************************************************
 proc Factory_Settings {run} {
+  set ::sendSlow 0
   set ret [ReadImei]
   if {$ret!=0} {return $ret}
   set ret [FactorySettingsPerf]
@@ -387,6 +403,7 @@ proc Factory_Settings {run} {
 # Mac_BarCode
 # ***************************************************************************
 proc Mac_BarCode {run} {
+  set ::sendSlow 0
   global gaSet  
   puts "Mac_BarCode"
   set pair 1
@@ -426,6 +443,7 @@ proc Mac_BarCode {run} {
 # ***************************************************************************
 proc WiFi_2G {run} {
   global gaSet
+  set ::sendSlow 0
   Power all off
   after 4000
   Power all on 
@@ -472,6 +490,7 @@ proc WiFi_2G {run} {
 # ***************************************************************************
 proc WiFi_5G {run} {
   global gaSet
+  set ::sendSlow 0
   Power all off
   after 4000
   Power all on   
@@ -524,6 +543,7 @@ proc WiFi_5G {run} {
 # PLC
 # ***************************************************************************
 proc PLC {run} {
+  set ::sendSlow 0
   set ret [PlcPerf]
 }
 # ***************************************************************************
@@ -531,6 +551,7 @@ proc PLC {run} {
 # ***************************************************************************
 proc LoRa {run} {
   global gaSet
+  set ::sendSlow 0
   MuxMngIO nc
   set ret [LoraModuleConf]
   if {$ret=="-1"} { 
@@ -583,18 +604,21 @@ proc LoRa {run} {
 # LinuxLeds
 # ***************************************************************************
 proc LteLeds {run} {
+  set ::sendSlow 0
   set ret [LinuxLedsPerf]
 }
 # ***************************************************************************
 # BootLeds
 # ***************************************************************************
 proc FrontPanelLeds {run} {
+  set ::sendSlow 0
   set ret [BootLedsPerf]
 }
 # ***************************************************************************
 # FDbutton
 # ***************************************************************************
 proc FDbutton {run} {
+  set ::sendSlow 0
   set ret [FDbuttonPerf]
 }
 # ***************************************************************************
@@ -602,6 +626,7 @@ proc FDbutton {run} {
 # ***************************************************************************
 proc UsbTree {run} {
   global gaSet buffer
+  set ::sendSlow 1
   set com $gaSet(comDut)
   Send $com "\r" stam 0.25
   Send $com "\r" stam 0.25
@@ -620,6 +645,7 @@ proc UsbTree {run} {
 # ***************************************************************************
 proc SOC_Flash_Memory {run} {
   global gaSet buffer
+  set ::sendSlow 1
   set com $gaSet(comDut)
   Send $com "\r" stam 0.25
   Send $com "\r" stam 0.25
@@ -638,6 +664,7 @@ proc SOC_Flash_Memory {run} {
 # ***************************************************************************
 proc SOC_i2C {run} {
   global gaSet buffer
+  set ::sendSlow 1
   set com $gaSet(comDut)
 #   Send $com "\r" stam 0.25
 #   Send $com "\r" stam 0.25
@@ -652,9 +679,12 @@ proc SOC_i2C {run} {
   }
   return $ret
 }
+
 # ***************************************************************************
-# 
+# MicroSD
+# ***************************************************************************
 proc MicroSD {run} {
+  set ::sendSlow 1
   global gaSet buffer
   set com $gaSet(comDut)
   Send $com "\r" stam 0.25
@@ -675,6 +705,7 @@ proc MicroSD {run} {
 # ***************************************************************************
 proc SSH {run} {
   global gaSet buffer
+  set ::sendSlow 0
   MuxMngIO 6ToPc
   set pair 1
   foreach unit {1} {
@@ -701,6 +732,7 @@ proc SSH {run} {
 # ***************************************************************************
 proc CellularModem_SIM1 {run} {
   global gaSet
+  set ::sendSlow 0
   if {[package vcompare $gaSet(SWver) "5.0.3.33"] != "1"} {
     ## if gaSet(SWver) = "5.0.3.33", then vcompare = 0 
     ## if gaSet(SWver) < "5.0.3.33", then vcompare = -1 
@@ -720,6 +752,7 @@ proc CellularModem_SIM1 {run} {
 # ***************************************************************************
 proc CellularModem_SIM2 {run} {
   global gaSet
+  set ::sendSlow 0
   if {[package vcompare $gaSet(SWver) "5.0.3.33"] != "1"} {
     ## if gaSet(SWver) = "5.0.3.33", then vcompare = 0 
     ## if gaSet(SWver) < "5.0.3.33", then vcompare = -1 
@@ -738,5 +771,6 @@ proc CellularModem_SIM2 {run} {
 # PowerOffOn
 # ***************************************************************************
 proc PowerOffOn {run} {
+  set ::sendSlow 0
   return [PowerOffOnPerf]
 }  

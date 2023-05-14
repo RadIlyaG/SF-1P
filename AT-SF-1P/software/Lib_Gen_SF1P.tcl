@@ -47,10 +47,10 @@ proc OpenComUut {} {
 #   if {$ret!=0} {
 #     set gaSet(fail) "Open COM $gaSet(comSer2) fail"
 #   }
-#   set ret [RLCom::Open $gaSet(comSer485) 9600 8 NONE 1]
-#   if {$ret!=0} {
-#     set gaSet(fail) "Open COM $gaSet(comSer485) fail"
-#   }
+  set ret [RLCom::Open $gaSet(comSer485) 115200 8 NONE 1]
+  if {$ret!=0} {
+    set gaSet(fail) "Open COM $gaSet(comSer485) fail"
+  }
   return $ret
 }
 proc ocu {} {OpenComUut}
@@ -66,7 +66,7 @@ proc CloseComUut {} {
   catch {RLCom::Close $gaSet(comDut)}
   catch {RLCom::Close $gaSet(comSer1)}
 #   catch {RLCom::Close $gaSet(comSer2)}
-#   catch {RLCom::Close $gaSet(comSer485)}
+  catch {RLCom::Close $gaSet(comSer485)}
   return {}
 }
 
@@ -273,7 +273,12 @@ proc Send {com sent {expected stamm} {timeOut 8}} {
     
   }
   #set cmd [list RLSerial::Send $com $sent buffer $expected $timeOut]
-  set cmd [list RLCom::Send $com $sent buffer $expected $timeOut]
+  #set cmd [list RLCom::Send $com $sent buffer $expected $timeOut]
+  if $::sendSlow {
+    set cmd [list RLCom::SendSlow $com $sent 20 buffer $expected $timeOut]
+  } else {
+    set cmd [list RLCom::Send $com $sent buffer $expected $timeOut]
+  }
   if {$gaSet(act)==0} {return -2}
   set tt "[expr {[lindex [time {set ret [eval $cmd]}] 0]/1000000.0}]sec"
   set ::buff $buffer
@@ -594,6 +599,10 @@ proc mparray {a {pattern *}} {
 # ***************************************************************************
 proc GetDbrName {} {
   global gaSet gaGui
+  
+  set gaSet(relDebMode) Release
+  $gaGui(labRelDebMode) configure -text $gaSet(relDebMode) -bg SystemButtonFace
+  
   Status "Please wait for retriving DBR's parameters"
   set barcode [set gaSet(entDUT) [string toupper $gaSet(entDUT)]] ; update
   
@@ -777,7 +786,9 @@ proc RetriveDutFam {{dutInitName ""}} {
     set gaSet(dutFam.serPort) 2RSM
   } elseif {[string match *\.1RS\.* $dutInitName]} {
     set gaSet(dutFam.serPort) 1RS
-	} else {
+	} elseif {[string match *\.2RMI\.* $dutInitName]} {
+    set gaSet(dutFam.serPort) 2RMI
+  } else {
     set gaSet(dutFam.serPort) 0
   }
   if {[string match *\.CSP\.* $dutInitName]} {
@@ -1469,11 +1480,12 @@ proc OpenTeraTerm {comName} {
     puts "no teraterm installed"
     return {}
   }
-  if {[string match *Dut* $comName] || [string match *Gen* $comName] || [string match *Ser* $comName]} {
-    set baud 115200
-  } else {
-    set baud 9600
-  }
+  # if {[string match *Dut* $comName] || [string match *Gen* $comName] || [string match *Ser* $comName]} {
+    # set baud 115200
+  # } else {
+    # set baud 9600
+  # }
+  set baud 115200
   regexp {com(\w+)} $comName ma val
   set val Tester-$gaSet(pair).[string toupper $val]  
   exec $path /c=[set $comName] /baud=$baud /W="$val" &
