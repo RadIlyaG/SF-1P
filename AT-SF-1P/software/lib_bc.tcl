@@ -246,6 +246,13 @@ proc CheckBcOk {readTrace} {
       set gaSet(useExistBarcode) 0
       return -1
     }
+    set barcode $gaSet(1.barcode1)
+    if ![info exists gaSet(logTime)] {
+      set gaSet(logTime) [clock format [clock seconds] -format  "%Y.%m.%d-%H.%M.%S"]
+    }
+    set gaSet(log.$gaSet(pair)) c:/logs/${gaSet(logTime)}-$barcode.txt
+    AddToPairLog $gaSet(pair) "$gaSet(DutFullName)"
+    AddToPairLog $gaSet(pair) "UUT - $barcode"
     set gaSet(useExistBarcode) 0
     return 0
   }

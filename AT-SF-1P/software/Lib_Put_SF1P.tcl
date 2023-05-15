@@ -1023,23 +1023,24 @@ proc IDPerf {mode} {
     return -1
   } 
   set uutModel [string trim $uutModel]
-  puts "uutModel:$uutModel"
+  puts "uutModel:<$uutModel>"
   
   # 10:39 11/05/2023
   #regsub {_} $uutModel / uutModel
   #puts "uutModel:$uutModel"
-  if {($gaSet(dutFam.wanPorts) == "4U2S" || $gaSet(dutFam.wanPorts) == "5U1S") && $uutModel != "SF-1P superset"} {
-	  if {[string match *R06* $gaSet(DutInitName)] && $uutModel != "SF-1P superset CP_2"} {
-      set gaSet(fail) "The Model is \'$uutModel\'. Should be \'SF-1P superset CP_2\'" 
-    } else {
-      set gaSet(fail) "The Model is \'$uutModel\'. Should be \'SF-1P superset\'" 
-    }
+  if {($gaSet(dutFam.wanPorts) == "4U2S" || $gaSet(dutFam.wanPorts) == "5U1S") && \
+	      ![string match *R06* $gaSet(DutInitName)] &&  $uutModel != "SF-1P superset"} {
+	  set gaSet(fail) "The Model is \'$uutModel\'. Should be \'SF-1P superset\'" 
     return -1
   } elseif {$gaSet(dutFam.wanPorts) == "2U" && $uutModel != "SF-1P"} {
 	  set gaSet(fail) "The Model is \'$uutModel\'. Should be \'SF-1P\'" 
     return -1
   } elseif {$gaSet(dutFam.wanPorts) == "1SFP1UTP" && $uutModel != "ETX-1P"} {
 	  set gaSet(fail) "The Model is \'$uutModel\'. Should be \'ETX-1P\'" 
+    return -1
+  } elseif {($gaSet(dutFam.wanPorts) == "4U2S" || $gaSet(dutFam.wanPorts) == "5U1S") && \
+	      [string match *R06* $gaSet(DutInitName)] && $uutModel != "SF-1P superset CP_2"} {
+      set gaSet(fail) "The Model is \'$uutModel\'. Should be \'SF-1P superset CP_2\'" 
     return -1
   }
   
@@ -1901,7 +1902,6 @@ proc WifiPerf {baud locWifiReport} {
     if {$ret!=0} {return $ret}
     set ret [Send $com "radio-mode 802.11na\r" "(2)"]
     if {$ret!=0} {return $ret}
-    # 07:29 12/12/2022 set ret [Send $com "channel 34\r" "(2)"]
     set ret [Send $com "channel 36\r" "(2)"]
   }
   if {$ret!=0} {return $ret}
@@ -1909,12 +1909,7 @@ proc WifiPerf {baud locWifiReport} {
   if {$ret!=0} {return $ret}
   set ret [Send $com "ssid RAD_TST1_$gaSet(wifiNet)\r" "(1)"]
   if {$ret!=0} {return $ret}
-  # if {$gaSet(dutFam.box) == "ETX-1P"} {
-    # set ret [Send $com "password \"RAD_TST1\"\r" "(1)"]
-  # } else {
-    # set ret [Send $com "password \"RAD_TST1\" hash\r" "(1)"]
-  # }
-  set ret [Send $com "password \"RAD_TST1\"\r" "(1)"]
+  set ret [Send $com "password \"RAD_TST1\" hash\r" "(1)"]
   if {$ret!=0} {return $ret}
   set ret [Send $com "max-clients 8\r" "(1)"]
   if {$ret!=0} {return $ret}
@@ -2936,8 +2931,14 @@ proc UsbStartTreePerform {} {
   
   if {$gaSet(dutFam.cell) != 0 && $gaSet(dutFam.wifi) == 0} {
     ## LTE only
-    set bus0devs 2
-    set 2vendorSpec 12
+    if [string match *L450* $gaSet(dutFam.cell)] {
+      ## L450A or L450B
+      set bus0devs 1
+      set 2vendorSpec NA
+    } else {
+      set bus0devs 2
+      set 2vendorSpec 12
+    }
   } elseif {($gaSet(dutFam.cell) != 0 && $gaSet(dutFam.wifi) != 0)} {
     ## LTE and WiFi
     set bus0devs 2
@@ -3070,6 +3071,8 @@ proc SocFlashMemPerform {} {
     return -1
   }
   
+  Send $com "mmc info\r" "PCPE" 1
+  after 500
   set ret [Send $com "mmc info\r" "PCPE"]
   if {$ret!=0} {
     set gaSet(fail) "\'mmc info\' fail"
@@ -3302,6 +3305,8 @@ proc MicroSDPerform {} {
   puts "\n[MyTime] MicroSDPerform"; update
   set com $gaSet(comDut)
   
+  Send $com "mmc dev 0:1\r" "PCPE" 1
+  after 500
   set ret [Send $com "mmc dev 0:1\r" "PCPE"]
   if {$ret!=0} {
     set gaSet(fail) "\'mmc dev 0:1\' fail"
@@ -3324,13 +3329,20 @@ proc MicroSDPerform {} {
     }
   }
   
+  Send $com "mmc info\r" "PCPE" 1
+  after 500
   set ret [Send $com "mmc info\r" "PCPE"]
   if {$ret!=0} {
     set gaSet(fail) "\'mmc info\' fail"
     return -1
   }
-  if ![string match {*Bus Width: 4-bit*} $buffer] {
-    set gaSet(fail) "\'Bus Width: 4-bit\' does not exist"
+  # 14:15 15/05/2023
+  # if ![string match {*Bus Width: 4-bit*} $buffer] {
+    # set gaSet(fail) "\'Bus Width: 4-bit\' does not exist"
+    # return -1
+  # }
+  if ![string match {*Capacity: 29.7 GiB*} $buffer] {
+    set gaSet(fail) "\'Capacity: 29.7 GiB\' does not exist"
     return -1
   }
   
