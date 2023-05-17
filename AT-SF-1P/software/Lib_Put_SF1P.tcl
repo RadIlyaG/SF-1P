@@ -1029,7 +1029,7 @@ proc IDPerf {mode} {
   #regsub {_} $uutModel / uutModel
   #puts "uutModel:$uutModel"
   if {($gaSet(dutFam.wanPorts) == "4U2S" || $gaSet(dutFam.wanPorts) == "5U1S") && \
-	      ![string match *R06* $gaSet(DutInitName)] &&  $uutModel != "SF-1P superset"} {
+	      $gaSet(mainHW) < 0.6 &&  $uutModel != "SF-1P superset"} {
 	  set gaSet(fail) "The Model is \'$uutModel\'. Should be \'SF-1P superset\'" 
     return -1
   } elseif {$gaSet(dutFam.wanPorts) == "2U" && $uutModel != "SF-1P"} {
@@ -1039,7 +1039,7 @@ proc IDPerf {mode} {
 	  set gaSet(fail) "The Model is \'$uutModel\'. Should be \'ETX-1P\'" 
     return -1
   } elseif {($gaSet(dutFam.wanPorts) == "4U2S" || $gaSet(dutFam.wanPorts) == "5U1S") && \
-	      [string match *R06* $gaSet(DutInitName)] && $uutModel != "SF-1P superset CP_2"} {
+	      $gaSet(mainHW) >= 0.6 && $uutModel != "SF-1P superset CP_2"} {
       set gaSet(fail) "The Model is \'$uutModel\'. Should be \'SF-1P superset CP_2\'" 
     return -1
   }
