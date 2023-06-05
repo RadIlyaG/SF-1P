@@ -47,9 +47,11 @@ proc OpenComUut {} {
 #   if {$ret!=0} {
 #     set gaSet(fail) "Open COM $gaSet(comSer2) fail"
 #   }
-  set ret [RLCom::Open $gaSet(comSer485) 115200 8 NONE 1]
-  if {$ret!=0} {
-    set gaSet(fail) "Open COM $gaSet(comSer485) fail"
+  if {$gaSet(pair)==1} {
+    set ret [RLCom::Open $gaSet(comSer485) 115200 8 NONE 1]
+    if {$ret!=0} {
+      set gaSet(fail) "Open COM $gaSet(comSer485) fail"
+    }
   }
   return $ret
 }
