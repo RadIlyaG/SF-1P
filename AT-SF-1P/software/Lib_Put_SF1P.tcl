@@ -1774,33 +1774,69 @@ proc ReadImei {} {
 #           set gaSet(fail) "Set modem $mdm power-down fail"
 #           return $ret 
 #         }
-      set ret [Send $com "cellular modem $mdm power-up\r" "SecFlow-1v#" 30]
+       
+      Send $com "exit all\r" "-1p"
+      set ret [Send $com "configure port cellular lte-$mdm\r" "lte-$mdm"]
       if {$ret!=0} {
         set gaSet(fail) "Set modem $mdm power-up fail"
         return $ret 
       }
-      set ret [Send $com "cellular modem $mdm get iccid\r" "SecFlow-1v#"]
+      set ret [Send $com "no shutdown\r" "lte-$mdm"]
       if {$ret!=0} {
-        set gaSet(fail) "Set modem $mdm get iccid fail"
+        set gaSet(fail) "Read LTE-$mdm No Shutdown fail"
         return $ret 
       }
-      regexp {ICCID:\s+(\w+)\s} $buffer ma icc
-      puts "icc.$mdm : <$icc>"
-      if {[string length $icc]>"4"} {
-        set gaSet(fail) "The SIM SIM-$mdm is not empty" 
-        return -1
-      }
-    
-      set ret [Send $com "cellular modem $mdm get imei\r" "SecFlow-1v#"]
+      for {set i 1} {$i<=10} {incr i} {
+        if {$gaSet(act)==0} {set ret -2; break}
+        Status "Read LTE-$mdm status ($i)"
+        set b ""
+        set ret [Send $com "show status\r" "more"]
+        append b $buffer
+        set ret [Send $com "\r" "(lte-$mdm)" 1]
+        append b $buffer
+        
+        if [string match *more* $buffer] {
+          set ret [Send $com "\r" "(lte-$mdm)" 2]
+          append b $buffer
+        }
+        if [string match *more* $buffer] {
+          set ret [Send $com "\r" "(lte-$mdm)" 2]
+          append b $buffer
+        }
+        if [string match *more* $buffer] {
+          set ret [Send $com "\r" "(lte-$mdm)" 2]
+          append b $buffer
+        }
+        if {$ret!=0} {
+          set gaSet(fail) "LTE-$mdm Show Status fail"
+          return $ret 
+        }
+        set buffer $b
+        set ret -1; set val ""
+        set gaSet(fail) "Read IMEI fail"
+        set res [regexp {IMEI\s+:\s+(\d+)} $buffer ma val]
+        if {$res==1} {
+          set ret 0
+          break
+        } else {
+          after 3000
+        }
+      }   
       if {$ret!=0} {
-        set gaSet(fail) "Read modem $mdm get imei fail"
-        return $ret 
-      }
-      regexp {IMEI:\s+(\w+)\s} $buffer ma val
-      set gaSet(1.imei$mdm) $val      
+        return $ret
+      } 
+      if {[string is double $val] && [string length $val]=="15"} {
+        set gaSet(1.imei$mdm) $val
+      } else {
+        set gaSet(fail) "The IMEI \'$val\' is wrong"
+        set ret -1
+      }      
     } 
   }
-  Send $com "exit all\r" "#"
+  Send $com "exit all\r" "-1p"
+  puts ""
+  parray gaSet *imei*
+  puts ""
   return $ret
 }
   
@@ -3358,7 +3394,7 @@ proc ConfigDryContact {} {
   #Send $com "stty icrnl \r" stam 0.1
   
   #Send $com "cat > dry2in2out.sh\r" stam 0.25
-  set id [open dry2in2out.sh r]
+  set id [open dry2in2out.2021.sh r]
     while {[gets $id line]>=0} {
       if {[string length $line]>0} {
         Send $com "$line\r" stam 0.1
@@ -4008,6 +4044,304 @@ proc CellularModemPerf_RadOS_Sim12 {actSim disSim l4} {
   }
   return $ret
 }  
+
+# ***************************************************************************
+# CellularLte_RadOS_Sim12_Dual
+# ***************************************************************************
+proc CellularLte_RadOS_Sim12_Dual {} {
+  global gaSet buffer
+  puts "[MyTime] CellularLte_RadOS_Sim12_Dual"
+  if {[string index $gaSet(dutFam.cell) 2]=="4"} {
+    set L4 1
+  } else {
+    set L4 0
+  }
+  puts "CellularLte_RadOS_Sim12_Dual L4:<$L4>"
+  
+  set com $gaSet(comDut)
+  set ret [Login]
+  if {$ret!=0} {return $ret}
+  set gaSet(fail) "Configuration Cellular Lte fail"
+  
+  Status "Configuration Cellular"
+  set ret [Send $com "exit all\r" "-1p"]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "configure\r" "-1p"]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "port\r" "-1p"]
+  if {$ret!=0} {return $ret}
+  
+  set prmpt "(lte)"
+  set ret [Send $com "cellular lte-1\r" "lte-1"]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "sim 1\r" "(1)"]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "apn-name \"statreal\"\r" "(1)"]
+  if {$ret!=0} {return $ret}
+  if $L4 {
+    set ret [Send $com "pdp-type relayed-ppp\r" "(1)"]
+    if {$ret!=0} {return $ret}
+  }
+  set ret [Send $com "exit\r" "lte-1"]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "no shutdown\r" "lte-1"]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "exit\r" "-1"]
+  if {$ret!=0} {return $ret}
+  
+  set ret [Send $com "cellular lte-2\r" "lte-2"]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "sim 1\r" "(1)"]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "apn-name \"statreal\"\r" "(1)"]
+  if {$ret!=0} {return $ret}
+  if $L4 {
+    set ret [Send $com "pdp-type relayed-ppp\r" "(2)"]
+    if {$ret!=0} {return $ret}
+  }
+  set ret [Send $com "exit\r" "lte-2"]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "no shutdown\r" "lte-2"]
+  
+  set ret [Send $com "exit all\r" "-1p"]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "configure\r" "config"]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "router 1\r" "(1)"]
+  if {$ret!=0} {return $ret}
+  
+  set ret [Send $com "interface 1\r" "(1)"]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "shutdown\r" "(1)"]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "bind cellular lte-1\r" "(1)"]
+  if {$ret!=0} {return $ret}
+  if $L4 {
+    set ret [Send $com "no shutdown\r" "(1)"]
+  } elseif !$L4 {
+    set ret [Send $com "dhcp\r" "(1)"]
+    if {$ret!=0} {return $ret}
+    set ret [Send $com "dhcp-client\r" "(1)"]
+    if {$ret!=0} {return $ret}
+    set ret [Send $com "client-id mac\r" "(1)"]
+    if {$ret!=0} {return $ret}
+    set ret [Send $com "exit\r" "-1p"]
+    set ret [Send $com "no shutdown\r" "-1p"]
+  }
+  set ret [Send $com "exit\r" "(1)"]
+  if {$ret!=0} {return $ret}
+  
+  set ret [Send $com "interface 2\r" "(2)"]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "shutdown\r" "(2)"]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "bind cellular lte-2\r" "(2)"]
+  if {$ret!=0} {return $ret}
+  if $L4 {
+    set ret [Send $com "no shutdown\r" "(1)"]
+  } elseif !$L4 {
+    set ret [Send $com "dhcp\r" "(2)"]
+    if {$ret!=0} {return $ret}
+    set ret [Send $com "dhcp-client\r" "(2)"]
+    if {$ret!=0} {return $ret}
+    set ret [Send $com "client-id mac\r" "(2)"]
+    if {$ret!=0} {return $ret}
+    set ret [Send $com "exit\r" "-1p"]
+    set ret [Send $com "no shutdown\r" "-1p"]
+  }
+  
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "exit all\r" "-1p"]
+  return $ret
+}
+
+# ***************************************************************************
+# CellularModemPerf_RadOS_Sim12_Dual
+# ***************************************************************************
+proc CellularModemPerf_RadOS_Sim12_Dual {actLte l4} {
+  global gaSet buffer
+  puts "\n[MyTime] CellularModemPerf_RadOS_Sim12_Dual $actLte  $l4"
+  
+  set com $gaSet(comDut)
+  set ret [Login]
+  if {$ret!=0} {return $ret}
+  
+  set gaSet(fail) "Config Mode to LTE-$actLte fail"
+  Status "Config Mode to LTE-$actLte"
+  set ret [Send $com "exit all\r" "-1p"]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "configure\r" "-1p"]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "port\r" "-1p"]
+  if {$ret!=0} {return $ret}
+ 
+  
+  set prmpt "-$actLte"
+  set ret [Send $com "cellular lte-$actLte\r" $prmpt]
+  if {$ret!=0} {return $ret}
+  # set ret [Send $com "shutdown\r" $prmpt]
+  # if {$ret!=0} {return $ret}
+  # Wait "Wait for LTE shutdown" 10
+  # set ret [Send $com "mode sim $actSim\r" $prmpt]
+  # if {$ret!=0} {return $ret}
+  # set ret [Send $com "no shutdown\r" $prmpt]
+  # if {$ret!=0} {return $ret}
+  
+  set gaSet(fail) "Read LTE-$actLte status fail"
+  for {set i 1} {$i<=35} {incr i} {
+    if {$gaSet(act)==0} {set ret -2; break}
+    Status "Read LTE-$actLte status ($i)"
+    set ret [Send $com "show status\r" "stam" 2]
+    set buf $buffer
+    set ret [Send $com "\r" "stam" 2]
+    append buf $buffer
+    set ret [Send $com "\r" "stam" 2]
+    append buf $buffer
+    set ret [Send $com "\r" "stam" 2]
+    append buf $buffer
+    set ret [Send $com "\r" $prmpt]
+    append buf $buffer
+    if {$ret!=0} {return $ret}
+    
+    set buffer $buf
+    
+    set gaSet(fail) "Read Operational Status of LTE-$actLte fail"
+    set res [regexp {Operationa?l? Status\s+:\s+(\w+)} $buffer ma val1]
+    if {$res==0} {return -1}
+    puts "Operational Status of LTE-$actLte i:<$i> val1:<$val1>"; update
+    
+    set gaSet(fail) "Read Mode fail"
+    set val2 ""
+    set res [regexp {Mode\s+:\s+(sim-1)} $buffer ma val2]  
+    if {$res==0} {return -1} 
+    puts "Mode ma:<$ma> val2:<$val2>"; update 
+  
+    
+    set gaSet(fail) "Read Cellular network connection of LTE-$actLte fail"
+    set val3 ""
+    set res [regexp {Cellular network connection\s+:\s+(\w+)} $buffer ma val3]  
+    if {$res==0} {return -1}  
+    puts "Cellular network connection ma:<$ma> val3:<$val3>"; update 
+    
+    if {$val1=="Up" && $val2=="sim-1" && $val3=="Connected"} {
+      set ret 0
+      break
+    } else {
+      after 3000
+    }
+  }  
+  
+  if {$val1!="Up"} {
+    set gaSet(fail) "Operational Status of LTE-$actLte is \'$val1\'. Should be \'Up\'"
+    return -1
+  }
+  if {$val2!="sim-1"} {
+    set gaSet(fail) "Mode is \'$val2\'. Should be \'sim-1\'"
+    return -1
+  }
+  if {$val3!="Connected"} {
+    set gaSet(fail) "Cellular network connection of LTE-$actLte is \'$val3\'. Should be \'Connected\'"
+    return -1
+  }
+  
+  set gaSet(fail) "Read Administrative Status of LTE-$actLte fail"
+  set res [regexp {Administrative Status\s+:\s+(\w+)} $buffer ma val1]
+  if {$res==0} {return -1}
+  puts "Administrative Status of LTE-$actLte i:<$i> val1:<$val1>"; update
+  set ret 0
+  
+  if {$ret==0} {  
+    set gaSet(fail) "Read RSSI of LTE-$actLte fail"
+    set res [regexp {RSSI \(dBm\)\s+:\s+([\-\d]+)} $buffer ma val]  
+    if {$res==0} {return -1}  
+    puts "ReadRSSI ma:<$ma> val:<$val>"; update  
+    AddToPairLog $gaSet(pair) "RSSI of LTE-$actLte: $val dBm"  
+    if {$val<"-75" || $val>"-51"} {
+      set gaSet(fail) "RSSI of LTE-$actLte is \'$val\'. Should be between -75 to -51"  
+      return -1
+    }
+    
+    set gaSet(fail) "Read Cellular network connection of LTE-$actLte fail"
+    set val ""
+    set res [regexp {Cellular network connection\s+:\s+(\w+)} $buffer ma val]  
+    if {$res==0} {return -1}  
+    puts "Cellular network connection ma:<$ma> val:<$val>"; update  
+    AddToPairLog $gaSet(pair) "Cellular network connection of LTE-$actLte: $val"  
+    if {$val!="Connected"} {
+      set gaSet(fail) "Cellular network connection of LTE-$actLte is not \'Connected\'"  
+      return -1
+    }
+    
+    set gaSet(fail) "Read SIM Status fail"
+    set val ""
+    set res [regexp {SIM Status\s+:\s+(\w+)} $buffer ma val]  
+    if {$res==0} {return -1}  
+    puts "SIM Status ma:<$ma> val:<$val>"; update  
+    AddToPairLog $gaSet(pair) "SIM Status of LTE-$actLte: $val"  
+    if {$val!="ready"} {
+      set gaSet(fail) "SIM Status of LTE-$actLte is not \'ready\'"  
+      return -1
+    }
+    
+    set gaSet(fail) "Read Firmware fail"
+    set val ""
+    set res [regexp {Firmware : Revision:\s+(\w+)} $buffer ma val]  
+    if {$res==0} {
+      set res [set res [regexp {Firmware :\s+([\w\._/]+)} $buffer ma val]]  
+      if {$res==0} {return -1}  
+    }  
+    puts "Firmware ma:<$ma> val:<$val>"; update  
+    AddToPairLog $gaSet(pair) "Firmware of LTE-$actLte: $val"  
+    set cell [string range $gaSet(dutFam.cell) 1 end]
+    set fw $gaSet([set cell].fwL) 
+    if {$val!=$fw} {
+      set gaSet(fail) "Firmware of LTE-$actLte is  \'$val\'. Should be \'$fw\'"  
+      return -1
+    }
+    
+  }
+  
+  if {$ret!=0} {return $ret} 
+
+  
+  if {$ret==0} {
+    set w 5; Wait "Wait $w seconds for Network" $w
+    for {set i 1} {$i<=5} {incr i} {
+      puts "Ping $i"  
+      set gaSet(fail) "Send ping to 8.8.8.8 from LTE-$actLte fail"     
+      set ret [Send $com "ping 8.8.8.8\r" "-1p" 25]
+      if {$ret!=0} {return -1}
+      set ret -1  
+      if {[string match {*5 packets transmitted. 5 packets received, 0% packet loss*} $buffer]} {
+        set ret 0
+        break
+      } else {
+        set gaSet(fail) "Ping to 8.8.8.8 from LTE-$actLte fail" 
+      }
+    }
+  }
+  
+  if {$ret==0 && $actLte==2} {
+    set ret [Login2Linux]
+    if {$ret!=0} {return $ret}
+    set w 5; Wait "Wait $w seconds for Network" $w
+    for {set i 1} {$i<=5} {incr i} {
+      puts "Ping $i"  
+      set gaSet(fail) "Send ping to 8.8.8.8 from wwan0 fail"     
+      set ret [Send $com "ping 8.8.8.8 -I wwan0 -c 5\r" "\]#" 25]
+      if {$ret!=0} {return -1}
+      set ret -1  
+      if {[string match {*5 packets transmitted, 5 received, 0% packet loss*} $buffer]} {
+        set ret 0
+        break
+      } else {
+        set gaSet(fail) "Ping to 8.8.8.8 from wwan0 fail" 
+      }
+    }
+  }
+  return $ret
+}  
+
 
 # ***************************************************************************
 # BootLedsPerf

@@ -741,9 +741,15 @@ proc CellularModem_SIM1 {run} {
     set ret [CellularModemPerf_RadOS lte lte-2 notL4] 
   } else {
     ## if gaSet(SWver) > "5.0.3.33", then vcompare = 1
-    set ret [CellularLte_RadOS_Sim12] 
-    if {$ret!=0} {return -1}
-    set ret [CellularModemPerf_RadOS_Sim12 1 2 notL4] 
+    if {[string index $gaSet(dutFam.cell) 0]=="1"} {
+      set ret [CellularLte_RadOS_Sim12]
+      if {$ret!=0} {return -1}
+      set ret [CellularModemPerf_RadOS_Sim12 1 2 notL4] 
+    } elseif {[string index $gaSet(dutFam.cell) 0]=="2"} {
+      set ret [CellularLte_RadOS_Sim12_Dual] 
+      if {$ret!=0} {return -1}
+      set ret [CellularModemPerf_RadOS_Sim12_Dual 1 notL4]
+    }   
   }  
   return $ret
 } 
@@ -761,9 +767,15 @@ proc CellularModem_SIM2 {run} {
     set ret [CellularModemPerf_RadOS lte-2 lte notL4] 
   } else {
     ## if gaSet(SWver) > "5.0.3.33", then vcompare = 1
-    set ret [CellularLte_RadOS_Sim12] 
-    if {$ret!=0} {return -1}
-    set ret [CellularModemPerf_RadOS_Sim12 2 1 notL4] 
+    if {[string index $gaSet(dutFam.cell) 0]=="1"} {
+      set ret [CellularLte_RadOS_Sim12]
+      if {$ret!=0} {return -1}
+      set ret [CellularModemPerf_RadOS_Sim12 2 1 notL4] 
+    } elseif {[string index $gaSet(dutFam.cell) 0]=="2"} {
+      set ret [CellularLte_RadOS_Sim12_Dual] 
+      if {$ret!=0} {return -1}
+      set ret [CellularModemPerf_RadOS_Sim12_Dual 2 notL4] 
+    }
   }
   return $ret
 }
