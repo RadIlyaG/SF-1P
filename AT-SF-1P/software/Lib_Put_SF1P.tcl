@@ -3394,7 +3394,16 @@ proc ConfigDryContact {} {
   #Send $com "stty icrnl \r" stam 0.1
   
   #Send $com "cat > dry2in2out.sh\r" stam 0.25
-  set id [open dry2in2out.2021.sh r]
+  
+  if {[package vcompare $gaSet(SWver) "5.4.0.0"]=="-1"} {
+    ## if gaSet(SWver) < "5.4.0.0", then vcompare = -1
+    set scr dry2in2out.2021.sh
+  } elseif {[package vcompare $gaSet(SWver) "5.4.0.0"]=="1"} {
+    ## if gaSet(SWver) > "5.4.0.0", then vcompare = 1
+    set scr dry2in2out.sh
+  }  
+  puts "ConfigDryContact $scr"
+  set id [open $scr r]
     while {[gets $id line]>=0} {
       if {[string length $line]>0} {
         Send $com "$line\r" stam 0.1
