@@ -3242,7 +3242,7 @@ proc ReadBootParams {} {
     if {$ret!=0} {return $ret}
   
     # set res [string match {*U-Boot 2017.03.VER1.0.2-armada-17.10.2*} $gaSet(loginBuffer)]
-    set res [string match *VER$gaSet(dbrBootSwVer)* $gaSet(loginBuffer)]
+    set res [string match *VER$dbrBootSwVer* $gaSet(loginBuffer)]
     if {$res == 0} {
       # set gaSet(fail) "No \'U-Boot 2017.03-armada-17.10.2\' in Boot"
       set gaSet(fail) "No \'$gaSet(dbrBootSwVer)\' in Boot"
