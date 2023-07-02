@@ -1998,11 +1998,11 @@ proc WifiPerf {baud locWifiReport} {
   
   for {set try 1} {$try <= 3} {incr try} {
     for {set adrr $maxAddr} {$adrr > 0} {incr adrr -1} {
-	  Status "Ping to [set gaSet(WifiNet)].5[PcNum].[UutNum][set adrr]"
-	  set ret [Ping2Cellular WiFi [set gaSet(WifiNet)].5[PcNum].[UutNum][set adrr]]   
-	  puts "[MyTime] ping res: $ret at try $try" 
-	  if {$ret==0} {break}
-	}
+	    Status "Ping to [set gaSet(WifiNet)].5[PcNum].[UutNum][set adrr]"
+	    set ret [Ping2Cellular WiFi [set gaSet(WifiNet)].5[PcNum].[UutNum][set adrr]]   
+	    puts "[MyTime] ping res: $ret at try $try" 
+	    if {$ret==0} {break}
+	  }
     # set ret [Ping2Cellular WiFi [set gaSet(WifiNet)].5[PcNum].[UutNum]3]   
     # puts "[MyTime] ping res: $ret at try $try" 
     # if {$ret==0} {break}
@@ -2040,7 +2040,8 @@ proc WifiPerf {baud locWifiReport} {
     regexp {result: (-?1) } $res ma ret
     
     RLSound::Play information
-    set txt "Disconnect Antenna from WiFi MAIN"
+    # 16:13 29/06/2023 set txt "Disconnect Antenna from WiFi MAIN"
+    set txt "Disconnect WiFi Antennas"
     set ret [DialogBox -title "WiFi $baud Test" -type "OK Cancel" -icon images/info -text $txt] 
     if {$ret=="Cancel"} {
       set gaSet(fail) "WiFi $baud fail"
@@ -2057,11 +2058,14 @@ proc WifiPerf {baud locWifiReport} {
       if {$ret!=0} {return $ret}
     
       set ret [WiFiReport $locWifiReport $baud off]
+      set wifiRet $ret
+      puts "wifiRet:<$wifiRet>"; update
       if {$ret!=0} {
         #FtpDeleteFile  [string tolower wifireport_$gaSet(wifiNet).txt]
         catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt} res
         puts "FtpDeleteFile <$res>"
       
+        set wifiRet $ret
         set ret [FtpVerifyNoReport]
         if {$ret!=0} {return $ret}
       } else {
@@ -2074,8 +2078,10 @@ proc WifiPerf {baud locWifiReport} {
 #     
 #       set ret [WiFiReport $locWifiReport $baud off]
 #       if {$ret!=0} {return $ret}
-    }  
-   
+    } 
+    if {$wifiRet != 0} {
+      set ret $wifiRet
+    }          
   }
  
  

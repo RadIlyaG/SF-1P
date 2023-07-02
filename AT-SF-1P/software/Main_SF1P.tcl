@@ -94,7 +94,7 @@ proc BuildTests {} {
   }
   
   if {$gaSet(dutFam.wifi)!="0"} {
-    lappend lTestNames WiFi_2G  WiFi_5G
+    lappend lTestNames WiFi_2G  ; ## 16:12 29/06/2023 WiFi_5G
   }
   
   if {$gaSet(dutFam.lora)!="0"} {
