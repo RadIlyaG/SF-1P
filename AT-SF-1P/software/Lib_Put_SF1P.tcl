@@ -3322,10 +3322,12 @@ proc ReadWanLanStatus {} {
     }    
   }
   foreach port $sfpPorts {
-    ShutDown $port "no shutdown"
+    set ret [ShutDown $port "no shutdown"]
+    if {$ret != 0} {return $ret}
   }
   foreach port $utpPorts {
-    ShutDown $port "no shutdown"
+    set ret [ShutDown $port "no shutdown"]
+    if {$ret != 0} {return $ret}
   }
   
   Status "Stop Generators"
