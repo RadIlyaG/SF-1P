@@ -757,7 +757,7 @@ proc RetriveDutFam {{dutInitName ""}} {
   
   regexp {([A-Z0-9\-\_]+)\.E?} $dutInitName ma gaSet(dutFam.sf)
   switch -exact -- $gaSet(dutFam.sf) {
-    SF-1P  - ETX-1P {set gaSet(appPrompt) "-1p#"}
+    SF-1P - ETX-1P - SF-1P_ICE {set gaSet(appPrompt) "-1p#"}
     VB-101V {set gaSet(appPrompt) "VB101V#"}
   }
   
@@ -765,7 +765,7 @@ proc RetriveDutFam {{dutInitName ""}} {
     set gaSet(dutFam.box) "ETX-1P"
     regexp {1P\.([A-Z0-9]+)\.} $dutInitName ma gaSet(dutFam.ps)
   } else {
-    regexp {P\.(E\d)\.} $dutInitName ma gaSet(dutFam.box)  
+    regexp {P[_A-Z]*\.(E\d)\.} $dutInitName ma gaSet(dutFam.box)  
     regexp {E\d\.([A-Z0-9]+)\.} $dutInitName ma gaSet(dutFam.ps)
   }  
 

@@ -3418,16 +3418,27 @@ proc ConfigDryContact {} {
     ## if gaSet(SWver) > "5.4.0.0", then vcompare = 1
     set scr dry2in2out.sh
   }  
+  # set scr dry2in2out.2021.sh
   puts "ConfigDryContact $scr"
+  set ret 0
   set id [open $scr r]
     while {[gets $id line]>=0} {
       if {[string length $line]>0} {
         Send $com "$line\r" stam 0.1
+        if {[string match {*write error*} $buffer]} {
+          set gaSet(fail) "\'write error\' during Config DryContact"
+          set ret -1
+          break
+        }
       }
     }
   close $id
-  Send $com "$line\r" stam 0.25
-  set ret 0; # [Send $com "\4\r" "\]#"]
+  if {$ret!=0} {
+    return $ret
+  }
+  # 11:53 01/08/2023 Send $com "$line\r" stam 0.25
+  Send $com "\r" stam 0.25
+  # 11:53 01/08/2023 set ret 0; # [Send $com "\4\r" "\]#"]
   return $ret
   
   
