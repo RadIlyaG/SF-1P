@@ -1955,6 +1955,10 @@ proc WifiPerf {baud locWifiReport} {
   if {$ret!=0} {return $ret}
   set ret [Send $com "password \"RAD_TST1\" hash\r" "(1)"]
   if {$ret!=0} {return $ret}
+  if [string match {*Illegal encrypted password *} $buffer] {
+    set ret [Send $com "password \"RAD_TST1\"\r" "(1)"]
+    if {$ret!=0} {return $ret}  
+  }
   set ret [Send $com "max-clients 8\r" "(1)"]
   if {$ret!=0} {return $ret}
    set ret [Send $com "no shutdown\r" "(1)" 30]
