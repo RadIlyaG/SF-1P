@@ -46,11 +46,11 @@ proc SQliteAddLine {} {
   }
   if {[string match *skip* $barcode]} {
     ## do not include skipped in stats
-    # 10:41 04/10/2023 return 0
+    return 0
   }
   if {$gaSet(1.barcode1.IdMacLink)!="noLink"} {
     #puts "do not report about passed unit"
-    return 0
+    # 10:41 04/10/2023 return 0
   }
   set uut $gaSet(DutFullName)
   set hostDescription $gaSet(hostDescription)
