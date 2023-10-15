@@ -24,7 +24,7 @@ set ::RadAppsPath c:/RLFiles/Tools/RadApps
       set gaSet(radNet) 1
     }  
   }
-if 1 {
+if 0 {
  
   if {$gaSet(radNet)} {
     set mTimeTds [file mtime //prod-svm1/tds/install/ateinstall/jate_team/autosyncapp/rlautosync.tcl]
@@ -146,11 +146,12 @@ source LibEmail.tcl
 source LibIPRelay.tcl
 source lib_SQlite.tcl
 source lib_Ftp_SF1P.tcl
-if [file exists uutInits/$gaSet(DutInitName)] {
-  source uutInits/$gaSet(DutInitName)
-} else {
-  source [lindex [glob uutInits/SF-1P*.tcl] 0]
-}
+# 11:46 09/10/2023
+# if [file exists uutInits/$gaSet(DutInitName)] {
+  # source uutInits/$gaSet(DutInitName)
+# } else {
+  # source [lindex [glob uutInits/SF-1P*.tcl] 0]
+# }
 update
 source lib_SQlite.tcl
 source LibUrl.tcl
@@ -194,11 +195,11 @@ if ![info exists gaSet(hwAdd)] {
 
 
 #puts "$gaSet(DutFullName)"
-ToggleComDut
+# 11:48 09/10/2023  ToggleComDut
 LoadNoTraceFile
 
 GUI
-BuildTests
+# 11:51 09/10/2023 BuildTests
 update
 
 wm deiconify .

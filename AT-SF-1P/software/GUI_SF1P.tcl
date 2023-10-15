@@ -4,7 +4,8 @@
 proc GUI {} {
   global gaSet gaGui glTests  
   
-  wm title . "$gaSet(pair) : $gaSet(DutFullName)"
+  #  wm title . "$gaSet(pair) : $gaSet(DutFullName)"
+  wm title . "$gaSet(pair) : "
   if {![info exists gaSet(eraseTitle)]} {
     set gaSet(eraseTitle) 1
   }
@@ -47,11 +48,8 @@ proc GUI {} {
       {command "E&xit" exit "Exit" {Alt x} -command {Quit}}
     }
     "&Tools" tools tools 0 {	  
-      {command "Inventory" init {} {} -command {GuiInventory}}
-      {command "Load Init File" init {} {} -command {GetInitFile; GuiInventory}}
-      {separator}  
-      {command "Options" init {} {} -command {GuiOpts}}
-      {separator}  
+
+       
       {cascad "Power" {} pwr 0 {
         {command "PS-1 & PS-2 ON" {} "" {} -command {GuiPower $gaSet(pair) 1}} 
         {command "PS-1 & PS-2 OFF" {} "" {} -command {GuiPower $gaSet(pair) 0}}  
@@ -101,6 +99,11 @@ proc GUI {} {
   }
   # {command "Update INIT and UserDefault files on all the Testers" {} "Exit" {} -command {UpdateInitsToTesters}}
       # {separator}
+  #    {command "Inventory" init {} {} -command {GuiInventory}}    
+  #    {command "Load Init File" init {} {} -command {GetInitFile; GuiInventory}}
+  #    {separator}  
+  #    {command "Options" init {} {} -command {GuiOpts}}
+  #    {separator} 
       
 
   set mainframe [MainFrame .mainframe -menu $descmenu]
@@ -609,7 +612,7 @@ proc ButRun {} {
   LoadModemFiles
   LoadNoTraceFile
   
-  ToggleComDut
+  
   
   
   set gaSet(1.barcode1.IdMacLink) ""
@@ -625,7 +628,7 @@ proc ButRun {} {
   set ret 0
   puts "[wm title .]"
   if {[wm title .]=="$gaSet(pair) : "} {
-    set ret -1
+    set ret -2
     set gaSet(fail) "Please scan the UUT's barcode"
   }
 
@@ -636,9 +639,11 @@ proc ButRun {} {
  
   set gRelayState red
   IPRelay-LoopRed
-  set ret [GuiReadOperator]
-  parray gaSet *arco*
-  parray gaSet *rato*
+  if {$ret==0} {
+    set ret [GuiReadOperator]
+    parray gaSet *arco*
+    parray gaSet *rato*
+  }
   if {$ret!=0} {
     set ret -3
   } elseif {$ret==0} {
@@ -653,17 +658,17 @@ proc ButRun {} {
 #   }
   }
     
-  if {$ret==0} {
-    if {![file exists uutInits/$gaSet(DutInitName)]} {
-      set txt "Init file for \'$gaSet(DutFullName)\' is absent"
-      Status  $txt
-      set gaSet(fail) $txt
-      set gaSet(curTest) $gaSet(startFrom)
-      set ret -1
-  #     AddToLog $gaSet(fail)
-      AddToPairLog $gaSet(pair) $gaSet(fail)
-    }
-  }
+  # 08:59 11/10/2023  
+  # if {$ret==0} {
+    # if {![file exists uutInits/$gaSet(DutInitName)]} {
+      # set txt "Init file for \'$gaSet(DutFullName)\' is absent"
+      # Status  $txt
+      # set gaSet(fail) $txt
+      # set gaSet(curTest) $gaSet(startFrom)
+      # set ret -1
+      # AddToPairLog $gaSet(pair) $gaSet(fail)
+    # }
+  # }
   
   
   if {$ret==0} {
@@ -712,6 +717,39 @@ proc ButRun {} {
     }
   }
   
+  if {$ret==0} {
+    ToggleComDut 
+   
+    set IdBarcode $gaSet(1.barcode1)
+    set traceId $gaSet(1.traceId)
+    puts "\n ButRun IdBarcode:<$IdBarcode> traceId:<$traceId>"
+    set ret [RetriveIdTraceData $IdBarcode CSLByBarcode]
+    puts "ButRun CSLret:<$ret>"
+    if {$ret!="-1"} {
+      set gaSet(csl) $ret
+      AddToPairLog $gaSet(pair) "CSL: $ret"
+      set ret 0
+    } else {
+      set gaSet(fail) "Fail to get CSL for $IdBarcode"
+    }
+    if {$ret==0} {
+      set ret [RetriveIdTraceData $traceId PCBTraceabilityIDData]
+      puts "ButRun PCBret:<$ret>"
+      if {$ret!="-1"} {
+        set gaSet(mainPcbId) $ret
+        AddToPairLog $gaSet(pair) "MainPcb: $ret"
+        set  res [regexp {REV([\d\.]+)[A-Z]} $gaSet(mainPcbId)  ma gaSet(mainHW)]
+        if {$res==1} {
+          set ret 0
+        } else {
+          set ret -1
+          set gaSet(fail) "Fail to retrive mainHW from mainPcbId"
+        }  
+      } else {
+        set gaSet(fail) "Fail to get PCB_Data for $traceId"
+      }  
+    }
+  }
   if {$ret==0} {
     IPRelay-Green
     Status ""
@@ -793,13 +831,15 @@ proc ButRun {} {
 	  $gaSet(runTime) configure -text ""
 	  RLSound::Play fail
 	  Status "Test FAIL"  red
-	  file rename -force $gaSet(log.$gaSet(pair)) [file rootname $gaSet(log.$gaSet(pair))]-Fail.txt   
-    set log [file rootname $gaSet(log.$gaSet(pair))]-Fail.txt   
+    if [info exists gaSet(log.$gaSet(pair))] {
+	    file rename -force $gaSet(log.$gaSet(pair)) [file rootname $gaSet(log.$gaSet(pair))]-Fail.txt   
+      set log [file rootname $gaSet(log.$gaSet(pair))]-Fail.txt 
+    }    
     
     set gaSet(startFrom) $gaSet(curTest)
     update
   }
-  if {$gaSet(dutFam.dryCon)=="GO"} {
+  if {[info exists log] && $gaSet(dutFam.dryCon)=="GO"} {
     if ![file exists c:/logs/GO] {
       file mkdir c:/logs/GO
     }

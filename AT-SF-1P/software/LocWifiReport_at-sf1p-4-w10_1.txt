@@ -1,0 +1,8 @@
+    Name                   : Wi-Fi 7
+    Description            : TP-Link Wireless USB Adapter #6
+    GUID                   : 026c1c43-46c4-4b69-8009-5597d56b7cf9
+    Physical address       : 7c:c2:c6:1c:5d:10
+    Interface type         : Primary
+    State                  : associating
+    Radio status           : Hardware On
+                             Software On

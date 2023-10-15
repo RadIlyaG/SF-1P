@@ -3428,7 +3428,8 @@ proc ConfigDryContact {} {
   } else {
     set scr dry2in2out.sh
   }
-  puts "ConfigDryContact $scr"
+  #set scr dry2in2out.sh
+  puts "\n[MyTime]ConfigDryContact $scr"
   set ret 0
   set id [open $scr r]
     while {[gets $id line]>=0} {

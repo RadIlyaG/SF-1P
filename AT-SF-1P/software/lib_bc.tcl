@@ -246,6 +246,12 @@ proc CheckBcOk {readTrace} {
       set gaSet(useExistBarcode) 0
       return -1
     }
+    if ![info exists gaSet(1.traceId)] {
+      set gaSet(useExistBarcode) 0
+      return -1
+    }
+    
+    
     set barcode $gaSet(1.barcode1)
     if ![info exists gaSet(logTime)] {
       set gaSet(logTime) [clock format [clock seconds] -format  "%Y.%m.%d-%H.%M.%S"]
@@ -253,6 +259,8 @@ proc CheckBcOk {readTrace} {
     set gaSet(log.$gaSet(pair)) c:/logs/${gaSet(logTime)}-$barcode.txt
     AddToPairLog $gaSet(pair) "$gaSet(DutFullName)"
     AddToPairLog $gaSet(pair) "UUT - $barcode"
+    AddToPairLog $gaSet(pair) "MainBoard TraceID - $gaSet(1.traceId)"
+    
     set gaSet(useExistBarcode) 0
     return 0
   }
@@ -269,13 +277,14 @@ proc ReadBarcode {} {
   if {[lsearch $gaSet(noTraceL) $gaSet(DutFullName)]!="-1"} {
     set readTrace 0
   } else {
-    if {[lsearch $glTests *BrdEeprom*]!="-1"} {
-      set readTrace 1
-    } else {
-      set readTrace 0
-    }    
+    # if {[lsearch $glTests *BrdEeprom*]!="-1"} {
+      # set readTrace 1
+    # } else {
+      # set readTrace 0
+    # } 
+    set readTrace 1    
   }
-  set readTrace 0
+  #set readTrace 1
   
   while {$ret != "0" } {
     set ret [CheckBcOk $readTrace]

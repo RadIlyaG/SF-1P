@@ -658,7 +658,7 @@ proc GetDbrName {} {
   #file mkdir [regsub -all / $res .]
   
   if {[file exists uutInits/$gaSet(DutInitName)]} {
-    source uutInits/$gaSet(DutInitName)  
+    #source uutInits/$gaSet(DutInitName)  
     #UpdateAppsHelpText  
   } else {
     ## if the init file doesn't exist, fill the parameters by ? signs
@@ -1333,46 +1333,73 @@ proc GetDbrSW {barcode} {
 #   puts dbrUbootSWver:<$dbrUbootSWver>
 #   set gaSet(dbrUbootSWver) $dbrUbootSWver
 
-  if ![info exists gaSet(dbrBootSwNum)] {
-    set gaSet(dbrBootSwNum) ""
-  }
-  set dbrBootSwNumIndx [lsearch $b $gaSet(dbrBootSwNum)]  
-  if {$dbrBootSwNumIndx<0} {
-    set gaSet(fail) "There is no Boot for $gaSet(dbrBootSwNum) ID:$barcode. Verify the Barcode."
-    RLSound::Play fail
-	  Status "Test FAIL"  red
-    DialogBox -aspect 2000 -type Ok -message $gaSet(fail) -icon images/error
-    pack $gaGui(frFailStatus)  -anchor w
-	  $gaSet(runTime) configure -text ""
-  	return -1
-  }
-  set dbrBootSwVer [string trim [lindex $b [expr {1+$dbrBootSwNumIndx}]]]
-  puts dbrBootSwVer:<$dbrBootSwVer>
-  set gaSet(dbrBootSwVer) $dbrBootSwVer
+# 15:12 09/10/2023
+  # if ![info exists gaSet(dbrBootSwNum)] {
+    # set gaSet(dbrBootSwNum) ""
+  # }
+  # set dbrBootSwNumIndx [lsearch $b $gaSet(dbrBootSwNum)]  
+  # if {$dbrBootSwNumIndx<0} {
+    # set gaSet(fail) "There is no Boot for $gaSet(dbrBootSwNum) ID:$barcode. Verify the Barcode."
+    # RLSound::Play fail
+	  # Status "Test FAIL"  red
+    # DialogBox -aspect 2000 -type Ok -message $gaSet(fail) -icon images/error
+    # pack $gaGui(frFailStatus)  -anchor w
+	  # $gaSet(runTime) configure -text ""
+  	# return -1
+  # }
+  # set dbrBootSwVer [string trim [lindex $b [expr {1+$dbrBootSwNumIndx}]]]
+  # puts dbrBootSwVer:<$dbrBootSwVer>
+  # set gaSet(dbrBootSwVer) $dbrBootSwVer
   
-  if {$gaSet(uutSWfrom)=="fromDbr"} {
-    set dbrSWnumIndx [lsearch $b $gaSet(dbrSWnum)]  
-    if {$dbrSWnumIndx<0} {
-      set gaSet(fail) "There is no SW for $gaSet(dbrSWnum) ID:$barcode. Verify the Barcode."
-      RLSound::Play fail
-  	  Status "Test FAIL"  red
-      DialogBox -aspect 2000 -type Ok -message $gaSet(fail) -icon images/error
-      pack $gaGui(frFailStatus)  -anchor w
-  	  $gaSet(runTime) configure -text ""
-    	return -1
+  # if {$gaSet(uutSWfrom)=="fromDbr"} {
+    # set dbrSWnumIndx [lsearch $b $gaSet(dbrSWnum)]  
+    # if {$dbrSWnumIndx<0} {
+      # set gaSet(fail) "There is no SW for $gaSet(dbrSWnum) ID:$barcode. Verify the Barcode."
+      # RLSound::Play fail
+  	  # Status "Test FAIL"  red
+      # DialogBox -aspect 2000 -type Ok -message $gaSet(fail) -icon images/error
+      # pack $gaGui(frFailStatus)  -anchor w
+  	  # $gaSet(runTime) configure -text ""
+    	# return -1
+    # }
+    # set SWver [string trim [lindex $b [expr {1+$dbrSWnumIndx}]]]
+    # puts SWver:<$SWver>
+    # set gaSet(SWver) $SWver
+  # } elseif {$gaSet(uutSWfrom)=="manual"} {
+    # puts SWver:<$gaSet(SWver)>
+  # }
+  
+  puts "GetDbrSW barcode:<$barcode> b:<$b>" ; update
+  foreach pair [split $b \n] {
+    foreach {aa bb} $pair {      
+      if {[string range $aa 0 1]=="SW" && [string index $bb 0]!= "B"} {
+        puts "aa=$aa bb=$bb"; update
+        set sw $bb
+        #break
+      }
+      if {[string range $aa 0 1]=="SW" && [string index $bb 0] == "B"} {
+        puts "bo=$aa boo=$bb"; update
+        set boot [string range $bb 1 end]
+        #break
+      }
     }
-    set SWver [string trim [lindex $b [expr {1+$dbrSWnumIndx}]]]
-    puts SWver:<$SWver>
-    set gaSet(SWver) $SWver
-  } elseif {$gaSet(uutSWfrom)=="manual"} {
-    puts SWver:<$gaSet(SWver)>
+    #if {$sw} {break}
   }
+  #set gaSet(dbrSWver) $bb
+  
+  puts "GetDbrSW $barcode sw:<$sw> boot:<$boot>"
+  set gaSet(dbrBootSwVer) $boot
+  set gaSet(SWver) $sw
+  after 1000
+  
+  set swTxt [glob SW*_$barcode.txt]
+  catch {file delete -force $swTxt}
   update
   
   pack forget $gaGui(frFailStatus)
   
-  set swTxt [glob SW*_$barcode.txt]
-  catch {file delete -force $swTxt}
+  # set swTxt [glob SW*_$barcode.txt]
+  # catch {file delete -force $swTxt}
   
   Status ""
   update
