@@ -4509,7 +4509,7 @@ proc BootLedsPerf {} {
   catch {Send $com "mii write 1 0 0x9656\r" "PCPE"}
   RLSound::Play information
   set res [DialogBox -title "AUX Green Led Test" -type "Yes No" \
-      -message "Verify the AUX Green Led is ON" -icon images/info]
+      -message "Verify the AUX Green Led is ON, if exists" -icon images/info]
   if {$res=="No"} {
     set gaSet(fail) "AUX Green Led is not ON" 
     return -1
@@ -4520,6 +4520,10 @@ proc BootLedsPerf {} {
   # all ON
   catch {Send $com "mii write 2 1 0x80ff\r" "PCPE"}
   catch {Send $com "mii write 2 0 0x96b6\r" "PCPE"}  
+  if {$gaSet(dutFam.sf)=="ETX-1P"} {
+    # WAN2 led
+    catch {Send $com "mii write 2 0 0x9676\r" "PCPE"}  
+  } 
   foreach {reg1} {0x80ff 0x90ff} {
     foreach reg2 {0x9636 0x9656 0x9676 0x9696} {
       catch {Send $com "mii write 1 1 $reg1\r" "PCPE"}
@@ -4541,6 +4545,10 @@ proc BootLedsPerf {} {
   # all OFF
   catch {Send $com "mii write 2 1 0x80ee\r" "PCPE"}
   catch {Send $com "mii write 2 0 0x96b6\r" "PCPE"}
+  if {$gaSet(dutFam.sf)=="ETX-1P"} {
+    # WAN2 led
+    catch {Send $com "mii write 2 0 0x9676\r" "PCPE"}  
+  }
   foreach {reg1} {0x80ee 0x90ee} {
     foreach reg2 {0x9636 0x9656 0x9676 0x9696} {
       catch {Send $com "mii write 1 1 $reg1\r" "PCPE"}

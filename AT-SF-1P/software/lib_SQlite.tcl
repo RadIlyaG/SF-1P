@@ -233,6 +233,10 @@ proc ImeiSQliteAddLine {} {
   global gaSet
   set Barcode $gaSet(1.barcode1)
   puts "ImeiSQliteAddLine Barcode:<$Barcode>"
+  if {[string index $gaSet(dutFam.cell) 0] == 0 } {
+    puts "ImeiSQliteAddLine. No Cellular"  
+    return 0
+  }
   
   set RadName [RetriveIdTraceData $Barcode MKTItem4Barcode]
   puts "ImeiSQliteAddLine RadName:<$RadName>"
