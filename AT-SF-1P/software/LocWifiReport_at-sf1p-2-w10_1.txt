@@ -1,0 +1,8 @@
+    Name                   : Wi-Fi 8
+    Description            : TP-Link Wireless USB Adapter #7
+    GUID                   : 1e793e18-bfaf-4d22-9673-8eef4be300a0
+    Physical address       : 78:8c:b5:29:ce:b4
+    Interface type         : Primary
+    State                  : associating
+    Radio status           : Hardware On
+                             Software On

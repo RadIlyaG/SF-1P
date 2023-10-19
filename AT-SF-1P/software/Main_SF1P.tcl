@@ -34,7 +34,7 @@ proc BuildTests {} {
   lappend lTestNames SOC_Flash_Memory SOC_i2C 
   
   if {$gaSet(dutFam.sf)=="ETX-1P"} {
-    lappend lTestNames BrdEeprom
+    ## 15:52 18/10/2023 lappend lTestNames BrdEeprom
   }
   ## no BrdEeprom in SFP
   
@@ -433,6 +433,9 @@ proc Mac_BarCode {run} {
       if {$ret!=0} {return $ret}
     }  
   }
+  
+  set ret [ImeiSQliteAddLine]
+  if {$ret!=0} {return $ret}
   
   set ret [RegBC]    
   return $ret

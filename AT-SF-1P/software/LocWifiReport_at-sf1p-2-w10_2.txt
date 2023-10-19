@@ -1,0 +1,19 @@
+    Name                   : Wi-Fi 9
+    Description            : TP-Link Wireless USB Adapter #8
+    GUID                   : 1d0be156-3b55-47ce-8b28-ddc1d84c82a7
+    Physical address       : 78:8c:b5:29:d0:5c
+    Interface type         : Primary
+    State                  : connected
+    SSID                   : RAD_TST1_at-sf1p-2-w10_2
+    BSSID                  : ec:2e:98:61:aa:d0
+    Network type           : Infrastructure
+    Radio type             : 802.11g
+    Authentication         : Open
+    Cipher                 : None
+    Connection mode        : Profile
+    Band                   : 2.4 GHz
+    Channel                : 4
+    Receive rate (Mbps)    : 24
+    Transmit rate (Mbps)   : 24
+    Signal                 : 47% 
+    Profile                : RAD_TST1_at-sf1p-2-w10_2 
