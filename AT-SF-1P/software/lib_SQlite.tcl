@@ -245,11 +245,11 @@ proc ImeiSQliteAddLine {} {
     SF-1V/E2/12v/4U1S/2RSM/L4/G/GO    {set AttName SF-1V/E2/12v/4U1S/2RSM/L4/G/GO;     set DevId BI006387}
     SF-1P/E1/DC/4U2S/2RSM/L4/G/LRA/2R {set AttName SF-1P/E1/DC/4U2S/2RSM/L4/G/LRA/2R ; set DevId BI006054}
     ETX-203AX-T/LTE/GE30/2SFP/3UTP/L4 {set AttName ETX-203AX-T;                        set DevId BI003495}
-    default                           {set AttName $RadName;                           set DevId NoLog}
+    default                           {set AttName $RadName;                           set DevId -}
   }
   puts "ImeiSQliteAddLine AttName:<$AttName> DevId:<$DevId>"
-  if {$DevId=="NoLog"} {
-    return 0
+  if {$DevId=="-"} {
+    #return 0
   }
   
   set Sw $gaSet(SWver)

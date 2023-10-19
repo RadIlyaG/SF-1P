@@ -24,7 +24,7 @@ set ::RadAppsPath c:/RLFiles/Tools/RadApps
       set gaSet(radNet) 1
     }  
   }
-if 0 {
+if 1 {
  
   if {$gaSet(radNet)} {
     set mTimeTds [file mtime //prod-svm1/tds/install/ateinstall/jate_team/autosyncapp/rlautosync.tcl]
