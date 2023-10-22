@@ -319,9 +319,11 @@ proc ImeiSQliteAddLine {} {
       puts $id "$Barcode,$RadName,$AttName,$DevId,$Sw,$Imei,$date,$tim,$HostDescription,$Spare1,$Spare2,$Spare3,$Spare4,$Spare5,$Spare6  res:<$res>"   
       close $id
     }
+    set gaSet(fail) "Update IMEI DB fail"
+    return -1
+  } else {
+    return 0
   }
-  
-  return 0
 }
 # ***************************************************************************
 # ImeiSQliteClose
