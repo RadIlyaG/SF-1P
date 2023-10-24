@@ -396,35 +396,24 @@ proc ReadEthPortStatus {port} {
     return -1
   }
   
-  set res [regexp {Manufacturer Part Number :\s([\w\-\s]+)Typical} $bu - val]
-  if {$res==0} {
-    set res [regexp {Manufacturer Part Number :\s([\w\-\s]+)SFP Manufacture Date} $bu - val]
+  if {[package vcompare $gaSet(SWver) "5.0.1.229.5"] == "0"} {
+    ## SWver "5.0.1.229.5" doesn't support SFP's details
+  } else {  
+    set res [regexp {Manufacturer Part Number :\s([\w\-\s]+)Typical} $bu - val]
     if {$res==0} {
-      set gaSet(fail) "Read Manufacturer Part Number of SFP in port $port fail"
-      return -1
-    } 
+      set res [regexp {Manufacturer Part Number :\s([\w\-\s]+)SFP Manufacture Date} $bu - val]
+      if {$res==0} {
+        set gaSet(fail) "Read Manufacturer Part Number of SFP in port $port fail"
+        return -1
+      } 
+    }
+    set val [string trim $val]
+    puts "val:<$val>" ; update
+    if {[lsearch {"SFP-9G"} $val]=="-1"} {
+      set gaSet(fail) "The Manufacturer Part Number of SFP in port $port is \'$val\'"
+      return -1  
+    }
   }
-  set val [string trim $val]
-  puts "val:<$val>" ; update
-  if {[lsearch {"SFP-9G"} $val]=="-1"} {
-    set gaSet(fail) "The Manufacturer Part Number of SFP in port $port is \'$val\'"
-    return -1  
-  }
-  
-#   set res [regexp {Manufacturer Part Number :\s([\w\-\s]+)Typical} $bu - val]
-#   if {$res==0} {
-#     set res [regexp {Manufacturer Part Number :\s([\w\-\s]+)SFP Manufacture Date} $bu - val]
-#     if {$res==0} {
-#       set gaSet(fail) "Read Manufacturer Part Number of SFP in port $port fail"
-#       return -1
-#     } 
-#   }
-#   set val [string trim $val]
-#   puts "val:<$val> glSFPs:<$glSFPs>" ; update
-#   if {[lsearch $glSFPs $val]=="-1"} {
-#     set gaSet(fail) "The Manufacturer Part Number of SFP in port $port is \'$val\'"
-#     return -1  
-#   }
   
   return 0
 }
@@ -988,15 +977,20 @@ proc IDPerf {mode} {
     return -1
   }
   
-  set res  [regexp {Hw:\s+([\d\.]+)\s?} $buffer ma uutHw]
+  set res  [regexp {Hw:\s+([\w\/\.]+)\s?} $buffer ma uutHw]
   if {$res==0} {
     set gaSet(fail) "Read Hw fail"
     return -1
   } 
   set uutHw [string trim $uutHw]
   puts "gaSet(mainHW):$gaSet(mainHW) uutHw:$uutHw"
-  if {$uutHw!=$gaSet(mainHW)} {
-    set gaSet(fail) "The HW is \'$uutHw\'. Should be \'$gaSet(mainHW)\'" 
+  if {[package vcompare $gaSet(SWver) "5.0.1.229.5"] == "0"} {
+    set gaSetMainHw "1.0/a"
+  } else {
+    set gaSetMainHw $gaSet(mainHW)
+  }
+  if {$uutHw!=$gaSetMainHw} {
+    set gaSet(fail) "The HW is \'$uutHw\'. Should be \'$gaSetMainHw\'" 
     return -1
   }
   
@@ -4520,7 +4514,7 @@ proc BootLedsPerf {} {
   # all ON
   catch {Send $com "mii write 2 1 0x80ff\r" "PCPE"}
   catch {Send $com "mii write 2 0 0x96b6\r" "PCPE"}  
-  if {$gaSet(dutFam.sf)=="ETX-1P"} {
+  if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC"} {
     # WAN2 led
     catch {Send $com "mii write 2 0 0x9676\r" "PCPE"}  
   } 
@@ -4545,7 +4539,7 @@ proc BootLedsPerf {} {
   # all OFF
   catch {Send $com "mii write 2 1 0x80ee\r" "PCPE"}
   catch {Send $com "mii write 2 0 0x96b6\r" "PCPE"}
-  if {$gaSet(dutFam.sf)=="ETX-1P"} {
+  if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC"} {
     # WAN2 led
     catch {Send $com "mii write 2 0 0x9676\r" "PCPE"}  
   }
@@ -4829,5 +4823,224 @@ proc LoraPerf {data} {
     set gaSet(fail) "Log File for $gaSet(ChirpStackIPGW) doesn't exist"
     return $ret
   }
+  return $ret
+}
+# ***************************************************************************
+# CellularLte
+# ***************************************************************************
+proc CellularLte {} {
+  global gaSet buffer
+  set com $gaSet(comDut)
+  set ret [Login]
+  if {$ret!=0} {return $ret}
+  Status "Cellular Lte"
+  
+  set ret [Send $com "exit all\r" "#"]
+  if {$ret!=0} {
+    set gaSet(fail) "Exit All fail"
+    return $ret
+  }
+  set ret [Send $com "configure port cellular lte\r" "(lte)"]
+  if {$ret!=0} {
+    set gaSet(fail) "Configure LTE fail"
+    return $ret
+  }
+  set ret [Send $com "shutdown\r" "(lte)"]
+  if {$ret!=0} {
+    set gaSet(fail) "Shutdown LTE fail"
+    return $ret
+  }
+  set ret [Send $com "no shutdown\r" "(lte)"]
+  if {$ret!=0} {
+    set gaSet(fail) "No Shutdown LTE fail"
+    return $ret
+  }
+  set ret [Send $com "exit all\r" "#"]
+  if {$ret!=0} {
+    set gaSet(fail) "Exit All fail"
+    return $ret
+  }
+  set ret [Send $com "configure router 1 interface 1\r" "(1)"]
+  if {$ret!=0} {
+    set gaSet(fail) "Configure Router fail"
+    return $ret
+  }
+  set ret [Send $com "shutdown\r" "(1)"]
+  if {$ret!=0} {
+    set gaSet(fail) "Shutdown Router fail"
+    return $ret
+  }
+  set ret [Send $com "dhcp\r" "(1)"]
+  if {$ret!=0} {
+    set gaSet(fail) "Configure DHCP fail"
+    return $ret
+  }
+  set ret [Send $com "bind cellular lte\r" "(1)"]
+  if {$ret!=0} {
+    set gaSet(fail) "Bind Cellular LTE fail"
+    return $ret
+  }
+  set ret [Send $com "no shutdown\r" "(1)"]
+  if {$ret!=0} {
+    set gaSet(fail) "No Shutdown Router fail"
+    return $ret
+  }
+  return $ret
+}
+# ***************************************************************************
+# CellularModemPerf
+# ***************************************************************************
+proc CellularModemPerf {slot l4} {
+  global gaSet buffer
+  puts "[MyTime] CellularModemPerf $slot $l4"
+  
+  set com $gaSet(comDut)
+  set ret [Login]
+  if {$ret!=0} {return $ret}
+  set ret [Login2Linux]
+  if {$ret!=0} {return $ret}
+  
+  set gaSet(fail) "Configuration modem of SIM-$slot fail" 
+  set ret [Send $com "echo \"0\" > /sys/class/gpio/gpio500/value\r" "\]#"]
+  if {$ret!=0} {return -1}
+  after 2000
+#   set ret [Send $com "echo \"487\" > /sys/class/gpio/export\r" "\]#"]
+#   if {$ret!=0} {return -1}
+  set ret [Send $com "echo \"out\" > /sys/class/gpio/gpio487/direction\r" "\]#"]
+  if {$ret!=0} {return -1}
+#   set ret [Send $com "echo \"500\" > /sys/class/gpio/export\r" "\]#"]
+#   if {$ret!=0} {return -1}
+  set ret [Send $com "echo \"out\" > /sys/class/gpio/gpio500/direction\r" "\]#"]
+  if {$ret!=0} {return -1}
+  
+  set w 5; Wait "Wait $w seconds for GPIO init" $w
+  
+  set ret [Send $com "echo \"1\" > /sys/class/gpio/gpio500/value\r" "\]#"]
+  if {$ret!=0} {return -1}
+  
+  set w 10; Wait "Wait $w seconds for modem OFF" $w
+  
+  set ret [Send $com "echo \"0\" > /sys/class/gpio/gpio500/value\r" "\]#"]
+  if {$ret!=0} {return -1}
+  
+  if {$slot==1} {
+    set ret [Send $com "echo \"1\" > /sys/class/gpio/gpio487/value\r" "\]#"]
+  } elseif {$slot==2} {
+    set ret [Send $com "echo \"0\" > /sys/class/gpio/gpio487/value\r" "\]#"]
+  }
+  if {$ret!=0} {return -1}
+  set ret [Send $com "echo \"1\" > /sys/class/gpio/gpio500/value\r" "\]#"]
+  if {$ret!=0} {return -1}
+  
+  set w 10; Wait "Wait $w seconds for modem ON" $w
+  
+  set res1 [set res2 [set res3 [set res4 0]]]
+  for {set i 1} {$i<=7} {incr i} {
+    Status "Connecting to Cellular Network ($i)"
+    after 2000
+    puts "Slot:$slot i:$i res1:$res1 res2:$res2 res3:$res3 res4:$res4"
+    set ret [Send $com "/usr/sbin/quectel-CM -s internetg \&\r" "add wwan0" ]
+    set ::buff $buffer
+#     if {$ret==0} {}
+    if 1 {
+      set res [regexp {SIMStatus:\s+([\w\_\-]+)\s} $buffer ma simSta]
+      puts "res of SIMStatus = $res"
+      if {$res==0} {
+        set gaSet(fail) "Read SIMStatus of SIM-$slot fail"
+        set ret -1
+        continue
+      }
+      AddToPairLog $gaSet(pair) "SIMStatus of SIM-$slot is \'$simSta\'"
+      if {$simSta!="SIM_READY"} {
+        set gaSet(fail) "SIMStatus of SIM-$slot is \'$simSta\'. Should be \'SIM_READY\'"
+        set ret -1
+        if {$simSta=="SIM_ABSENT"} {
+          break
+        } else {
+          continue
+        }
+      } else {
+        set res1 1
+      }
+      
+      set res [regexp {requestBaseBandVersion\s+([\w\_\-]+)\s} $buffer ma bandVer]
+      puts "res of BaseBandVersion = $res"
+      if {$res==0} {
+        set gaSet(fail) "Read BaseBandVersion of SIM-$slot fail"
+        set ret -1
+        continue
+      }
+      AddToPairLog $gaSet(pair) "BaseBandVersion of SIM-$slot is \'$bandVer\'"
+      set cell [string range $gaSet(dutFam.cell) 1 end]
+      set fw $gaSet([set cell].fwL) 
+      if {$bandVer!=$fw} {
+        set gaSet(fail) "BaseBandVersion of SIM-$slot is \'$bandVer\'. Should be \'$fw\'"
+        set ret -1
+        continue
+      } else {
+        set res2 1
+      }
+      
+      set res [regexp -all {DataCap:\s+([\w]+)\s} $buffer ma dataCap]
+      puts "res of DataCap = $res"
+      if {$res==0} {
+        set gaSet(fail) "Read DataCap of SIM-$slot fail"
+        set ret -1
+        continue
+      }
+      AddToPairLog $gaSet(pair) "DataCap of SIM-$slot is \'$dataCap\'"
+      if {$dataCap!="LTE"} {
+        set gaSet(fail) "DataCap of SIM-$slot is \'$dataCap\'. Should be \'LTE\'"
+        set ret -1
+        continue
+      } else {   
+        set res3 1
+      }
+        
+      set res [regexp -all {IPv4ConnectionStatus:\s+([\w\s]+)\s} $buffer ma ipv4ConSta]
+      puts "res of IPv4ConnectionStatus = $res"
+      if {$res==0} {
+        set gaSet(fail) "Read IPv4ConnectionStatus of SIM-$slot fail"
+        set ret -1
+        continue
+      }
+      AddToPairLog $gaSet(pair) "IPv4ConnectionStatus of SIM-$slot is \'$ipv4ConSta\'"
+      if {$ipv4ConSta!="CONNECTED"} {
+        set gaSet(fail) "IPv4ConnectionStatus of SIM-$slot is \'$ipv4ConSta\'. Should be \'CONNECTED\'"
+        set ret -1
+        continue
+      } else {
+        set res4 1
+      }
+      
+      if {$res1 && $res2 && $res3 && $res4} {
+        set ret 0
+        break
+      } 
+    }
+  }
+  
+  if {$ret!=0} {
+#     set gaSet(fail) "Cellular Test of SIM-$slot fail"
+    return -1
+  }
+  
+  if {$ret==0} {
+    set w 5; Wait "Wait $w seconds for Network" $w
+    for {set i 1} {$i<=5} {incr i} {
+      puts "Ping $i"  
+      set gaSet(fail) "Send ping to 8.8.8.8 from SIM-$slot fail"     
+      set ret [Send $com "ping 8.8.8.8 -c 5\r" "\]#" 15]
+      if {$ret!=0} {return -1}
+      set ret -1  
+      if {[string match {*5 packets transmitted, 5 received, 0% packet loss*} $buffer]} {
+        set ret 0
+        break
+      } else {
+        set gaSet(fail) "Ping to 8.8.8.8 from SIM-$slot fail" 
+      }
+    }
+  }
+  
   return $ret
 }

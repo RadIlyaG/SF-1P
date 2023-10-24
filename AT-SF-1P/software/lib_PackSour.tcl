@@ -65,7 +65,7 @@ if 1 {
   
   set ret [RLAutoSync::AutoSync "$s1 $d1" \
       -noCheckFiles {init*.tcl skipped.txt eeprom*.cnt EthTest* *ifiReport.txt startMea*  *.db} \
-      -noCheckDirs {temp tmpFiles OLD old} -jarLocation  $::RadAppsPath \
+      -noCheckDirs {temp tmpFiles OLD old uutInits} -jarLocation  $::RadAppsPath \
       -javaLocation $gaSet(javaLocation) -emailL $emailL -putsCmd 1 -radNet $gaSet(radNet)]
   #console show
   puts "ret:<$ret>"
