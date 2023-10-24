@@ -674,21 +674,23 @@ proc GetDbrName {} {
   pack forget $gaGui(frFailStatus)
   #Status ""
   update
-  BuildTests
+  #BuildTests
   
   set ret 0
   if 1 {
-  set ret [GetDbrSW $barcode]
-  puts "GetDbrName ret of GetDbrSW:$ret" ; update
-  if {$ret!=0} {
-    RLSound::Play fail
-	  Status "Test FAIL"  red
-    DialogBox -aspect 2000 -type Ok -message $gaSet(fail) -icon images/error
-    pack $gaGui(frFailStatus)  -anchor w
-	  $gaSet(runTime) configure -text ""
-  }  
+    set ret [GetDbrSW $barcode]
+    puts "GetDbrName ret of GetDbrSW:$ret" ; update
+    if {$ret!=0} {
+      RLSound::Play fail
+      Status "Test FAIL"  red
+      DialogBox -aspect 2000 -type Ok -message $gaSet(fail) -icon images/error
+      pack $gaGui(frFailStatus)  -anchor w
+      $gaSet(runTime) configure -text ""
+    }  
   }
   puts ""
+  
+  BuildTests
   
   focus -force $gaGui(tbrun)
   if {$ret==0} {
@@ -757,19 +759,21 @@ proc RetriveDutFam {{dutInitName ""}} {
   
   regexp {([A-Z0-9\-\_]+)\.E?} $dutInitName ma gaSet(dutFam.sf)
   switch -exact -- $gaSet(dutFam.sf) {
-    SF-1P - ETX-1P - SF-1P_ICE {set gaSet(appPrompt) "-1p#"}
+    SF-1P - ETX-1P - SF-1P_ICE - ETX-1P_SFC {set gaSet(appPrompt) "-1p#"}
     VB-101V {set gaSet(appPrompt) "VB101V#"}
   }
   
-  if {$gaSet(dutFam.sf)=="ETX-1P"} {
+  if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC"} {
     set gaSet(dutFam.box) "ETX-1P"
-    regexp {1P\.([A-Z0-9]+)\.} $dutInitName ma gaSet(dutFam.ps)
+    if ![regexp {1P\.([A-Z0-9]+)\.} $dutInitName ma gaSet(dutFam.ps)] {
+      regexp {1P_SFC\.([A-Z0-9]+)\.} $dutInitName ma gaSet(dutFam.ps)
+    }
   } else {
     regexp {P[_A-Z]*\.(E\d)\.} $dutInitName ma gaSet(dutFam.box)  
     regexp {E\d\.([A-Z0-9]+)\.} $dutInitName ma gaSet(dutFam.ps)
   }  
 
-  if {$gaSet(dutFam.sf)=="ETX-1P"} {
+  if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC"} {
     set gaSet(dutFam.wanPorts)  "1SFP1UTP"
     set gaSet(dutFam.lanPorts)  "4UTP"
   } else {

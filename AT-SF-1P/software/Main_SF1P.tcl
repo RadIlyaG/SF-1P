@@ -24,7 +24,7 @@ proc BuildTests {} {
   if [string match *.HL.*  $gaSet(DutInitName)] {
     ## HL option doesn't have MicroSD
   } else {
-    if {$gaSet(dutFam.sf)=="ETX-1P"} {
+    if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC"} {
       ## no CD card Contact
     } else {  
       lappend lTestNames MicroSD  
@@ -33,32 +33,33 @@ proc BuildTests {} {
   }
   lappend lTestNames SOC_Flash_Memory SOC_i2C 
   
-  if {$gaSet(dutFam.sf)=="ETX-1P"} {
+  if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC"} {
     ## 15:52 18/10/2023 lappend lTestNames BrdEeprom
   }
   ## no BrdEeprom in SFP
   
-  if {$gaSet(dutFam.sf)=="ETX-1P"} {
+  if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC"} {
     ## no DRY Contact
   } else {  
     lappend lTestNames  DryContactAlarm 
   }
   lappend lTestNames   ID
   
-  if 0 {
-  if {[string index $gaSet(dutFam.cell) 0]=="1"} {
-    if {[string index $gaSet(dutFam.cell) 2]=="4"} {
-      lappend lTestNames CellularModemL4
-    } else {
-      lappend lTestNames CellularModem
-    } 
-  } elseif {[string index $gaSet(dutFam.cell) 0]=="2"} {
-    if {[string index $gaSet(dutFam.cell) 2]=="4"} {
-      lappend lTestNames CellularDualModemL4
-    } else {
-      lappend lTestNames CellularDualModem
+  if {[package vcompare $gaSet(SWver) "5.0.1.229.5"] == "0"} {
+    ## if gaSet(SWver) = "5.0.1.229.5", then vcompare = 0 
+    if {[string index $gaSet(dutFam.cell) 0]=="1"} {
+      if {[string index $gaSet(dutFam.cell) 2]=="4"} {
+        lappend lTestNames CellularModemL4
+      } else {
+        lappend lTestNames CellularModem
+      } 
+    } elseif {[string index $gaSet(dutFam.cell) 0]=="2"} {
+      if {[string index $gaSet(dutFam.cell) 2]=="4"} {
+        lappend lTestNames CellularDualModemL4
+      } else {
+        lappend lTestNames CellularDualModem
+      }
     }
-  }
   } else {
     if {[string index $gaSet(dutFam.cell) 0]=="1"} {
       if {[string index $gaSet(dutFam.cell) 2]=="4"} {
@@ -790,3 +791,28 @@ proc PowerOffOn {run} {
   set ::sendSlow 0
   return [PowerOffOnPerf]
 }  
+
+# ***************************************************************************
+# CellularModem
+# ***************************************************************************
+proc CellularModem {run} {
+  MuxMngIO nc
+  set ::sendSlow 0
+  set ret [CellularLte] 
+  if {$ret!=0} {
+     return -1
+  }
+  set ret [CellularModemPerf 1 notL4] 
+  #CellularModemCloseGpio  
+  if {$ret!=0} {
+     return -1
+  }
+  set ret [CellularModemPerf 2 notL4]   
+  #CellularModemCloseGpio
+  if {$ret!=0} {
+    return -1
+  }  
+#   set ret [CellularFirmware]   
+#   if {$ret!=0} {return -1}
+  return $ret
+} 
