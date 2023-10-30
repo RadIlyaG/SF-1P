@@ -2063,6 +2063,8 @@ proc WifiPerf {baud locWifiReport} {
       set wifiRet $ret
       puts "wifiRet:<$wifiRet>"; update
       if {$ret!=0} {
+        catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)} res
+        puts "FtpDeleteFile <$res>"
         #FtpDeleteFile  [string tolower wifireport_$gaSet(wifiNet).txt]
         catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt} res
         puts "FtpDeleteFile <$res>"

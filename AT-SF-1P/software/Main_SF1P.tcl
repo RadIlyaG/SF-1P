@@ -471,7 +471,7 @@ proc WiFi_2G {run} {
   
   #set ret [FtpUploadFile startMeasurement_$gaSet(wifiNet)]
   catch {exec python.exe lib_sftp.py FtpUploadFile startMeasurement_$gaSet(wifiNet)} res
-  puts "FtpDeleteFile <$res>"
+  puts "FtpUploadFile <$res>"
   regexp {result: (-?1) } $res ma ret
   
   set ret [Login2App]
@@ -482,7 +482,7 @@ proc WiFi_2G {run} {
   if {$ret==0} { 
     #FtpDeleteFile  [string tolower startMeasurement_$gaSet(wifiNet)]
     #FtpDeleteFile [string tolower wifireport_$gaSet(wifiNet).txt]
-	catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)} res
+	  catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)} res
     puts "FtpDeleteFile <$res>"
     catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt} res
     puts "FtpDeleteFile <$res>"
