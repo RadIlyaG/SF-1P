@@ -1981,8 +1981,12 @@ proc WifiPerf {baud locWifiReport} {
   if {$ret!=0} {return $ret}
   set ret [Send $com "exit\r" "(1)"]
   if {$ret!=0} {return $ret}
-   set ret [Send $com "no shutdown\r" "(1)"]
-  if {$ret!=0} {return $ret}
+  set ret [Send $com "no shutdown\r" "(1)"]
+  if {$ret!=0} {
+    after 5000
+    set ret [Send $com "no shutdown\r" "(1)"]
+    if {$ret!=0} {return $ret}
+  }
   set ret [Send $com "exit all\r" "-1p"]
   if {$ret!=0} {return $ret}
   
