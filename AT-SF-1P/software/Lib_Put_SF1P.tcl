@@ -2038,7 +2038,7 @@ proc WifiPerf {baud locWifiReport} {
 
     #FtpUploadFile startMeasurement_$gaSet(wifiNet)
     catch {exec python.exe lib_sftp.py FtpUploadFile startMeasurement_$gaSet(wifiNet)} res
-    puts "FtpDeleteFile <$res>"
+    puts "FtpUploadFile <$res>"
     regexp {result: (-?1) } $res ma ret
     
     RLSound::Play information
@@ -2052,9 +2052,13 @@ proc WifiPerf {baud locWifiReport} {
     
     for {set i 1} {$i<=3} {incr i} {
       puts "[MyTime] Check for signal down when antenna off ($i)"; update
+      
+      catch {exec python.exe lib_sftp.py FtpUploadFile startMeasurement_$gaSet(wifiNet)} res
+      puts "FtpUploadFile <$res>"
+      
       set ret [Wait "Wait for WiFi signal down" 40]
       if {$ret!=0} {return -1}
-    
+       
       ## we start the measurement and wait upto 2 minutes to verify that wifireport will be created
       set ret [FtpVerifyReportExists]
       if {$ret!=0} {return $ret}
