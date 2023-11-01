@@ -4093,6 +4093,7 @@ proc CellularModemPerf_RadOS_Sim12 {actSim disSim l4} {
         break
       } else {
         set gaSet(fail) "Ping to 8.8.8.8 from SIM-$actSim fail" 
+        after 10000
       }
     }
   }
@@ -4371,6 +4372,7 @@ proc CellularModemPerf_RadOS_Sim12_Dual {actLte l4} {
         break
       } else {
         set gaSet(fail) "Ping to 8.8.8.8 from LTE-$actLte fail" 
+        after 10000
       }
     }
   }
