@@ -2107,6 +2107,7 @@ proc WiFiReport {locWifiReport baud ant} {
   
   Status "Looking for RAD_TST1"
   set ret -1
+  set ::signalWithAntenna 0
   for {set i 1} {$i <= 70} {incr i} {
     if {$gaSet(act)==0} {return -2}
     puts "i:<$i>"
@@ -2220,7 +2221,8 @@ proc WiFiReadReport {locWifiReport baud ant tr} {
     return "TryAgain" 
   }
   AddToPairLog $gaSet(pair) "Signal: $val"  
-  puts "WiFiReadReport Antena:<$ant> val:<$val>"
+  puts "WiFiReadReport Antena:<$ant> val:<$val> ::signalWithAntenna:<$::signalWithAntenna>"
+  
   set minSignal 30
   if {$ant=="on" && $val<="$minSignal"} {
     set gaSet(fail) "Signal is ${val}%. Should be more then ${minSignal}%"
@@ -2229,21 +2231,23 @@ proc WiFiReadReport {locWifiReport baud ant tr} {
     } else {
       return "TryAgain"
     }
-  } elseif {$ant=="off" && $val>"$minSignal"} {
-    set gaSet(fail) "Signal is ${val}%. Should be less then ${minSignal}%"
+  } elseif {$ant=="off" && $val>=$::signalWithAntenna} {
+    set gaSet(fail) "Signal is ${val}%. Should be less then ${::signalWithAntenna}%"
     if {$tr<6} {
       return "-1"
     } else {
       return "TryAgain"
     }
   } else {
+    if {$ant=="on"} {
+      set ::signalWithAntenna $val
+    }
     set gaSet(fail) ""
     return 0
   }
   if {$ret eq "0"} {
     set gaSet(fail) ""
   }
-  
   return $ret
 }
 
