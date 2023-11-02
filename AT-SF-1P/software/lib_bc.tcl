@@ -359,3 +359,18 @@ proc ReadBarcode {} {
   return $ret
 }
 
+# ***************************************************************************
+# UnregIdBarcode
+# ***************************************************************************
+proc UnregIdBarcode {} {
+  global gaSet
+  set barcode $gaSet(1.barcode1)
+  Status "Unreg ID Barcode $barcode"
+  set ret 0
+  
+  puts "\nUnreg ID Barcode $barcode ret:<$ret>\n"
+  AddToPairLog $gaSet(pair) "Unreg ID Barcode $barcode ret:<$ret>"
+  
+  return $ret
+}
+

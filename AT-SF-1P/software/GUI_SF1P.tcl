@@ -827,6 +827,9 @@ proc ButRun {} {
 	    ## do not include No Operator fail in statistics
       set gaSet(runStatus) ""  
 	  }
+    if {$gaSet(runStatus)!=""} {
+      UnregIdBarcode
+    }
 	  pack $gaGui(frFailStatus)  -anchor w
 	  $gaSet(runTime) configure -text ""
 	  RLSound::Play fail
@@ -834,8 +837,8 @@ proc ButRun {} {
     if [info exists gaSet(log.$gaSet(pair))] {
 	    file rename -force $gaSet(log.$gaSet(pair)) [file rootname $gaSet(log.$gaSet(pair))]-Fail.txt   
       set log [file rootname $gaSet(log.$gaSet(pair))]-Fail.txt 
-    }    
-    
+    }  
+
     set gaSet(startFrom) $gaSet(curTest)
     update
   }
