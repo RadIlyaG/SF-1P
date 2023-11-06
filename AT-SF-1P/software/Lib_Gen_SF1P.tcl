@@ -2198,7 +2198,7 @@ proc RetrivePcbId {traceID} {
 proc RetriveIdTraceData {args} {
   global gaSet
   set gaSet(fail) ""
-  puts "RetriveIdTaceData $args"
+  puts "RetriveIdTraceData $args"
   set barc [format %.11s [lindex $args 0]]
   
   set command [lindex $args 1]
