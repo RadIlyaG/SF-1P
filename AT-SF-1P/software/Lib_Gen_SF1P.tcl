@@ -830,6 +830,8 @@ proc RetriveDutFam {{dutInitName ""}} {
   
   if {[string match *\.WF\.* $dutInitName]} {
     set gaSet(dutFam.wifi) WF
+  } elseif {[string match *\.WFH\.* $dutInitName] || [string match *\.WH\.* $dutInitName]} {
+    set gaSet(dutFam.wifi) WH
   } else {
     set gaSet(dutFam.wifi) 0
   }
