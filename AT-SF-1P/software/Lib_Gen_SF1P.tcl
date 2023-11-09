@@ -814,7 +814,7 @@ proc RetriveDutFam {{dutInitName ""}} {
   }
   
   set gaSet(dutFam.cell) 0
-  foreach cell [list HSP L1 L2 L3 L4 L450A L450B 5G] {
+  foreach cell [list HSP L1 L2 L3 L4 L450A L450B 5G L4P] {
     set qty [llength [lsearch -all [split $dutInitName .] $cell]]
     if $qty {
       set gaSet(dutFam.cell) $qty$cell
@@ -1668,6 +1668,7 @@ proc LoadModem {mdm} {
   set mdm [string toupper $mdm]
   puts "[MyTime] LoadModem $mdm"
   if ![file exists $mdm.txt]  {
+    set gaSet(fail) "$mdm.txt file doesn't exist"
     return -1
   }
   
@@ -1688,7 +1689,7 @@ proc LoadModem {mdm} {
 # LoadModemFiles
 # ***************************************************************************
 proc LoadModemFiles {} {
-  foreach mdm [list HSP L1 L2 L3 L4 L450A L450B 5G] {
+  foreach mdm [list HSP L1 L2 L3 L4 L450A L450B 5G L4P] {
     set ret [LoadModem $mdm]
     if {$ret!=0} {return $ret}
   }  

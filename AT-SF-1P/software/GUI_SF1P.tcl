@@ -609,10 +609,6 @@ proc ButRun {} {
   set gaSet(prompt) "SF-1V"
   set ::wastedSecs 0
   
-  LoadModemFiles
-  LoadNoTraceFile
-  
-  
   
   
   set gaSet(1.barcode1.IdMacLink) ""
@@ -636,7 +632,9 @@ proc ButRun {} {
     file mkdir c:/logs
   }
   
- 
+  set ret [LoadModemFiles]
+  LoadNoTraceFile
+  
   set gRelayState red
   IPRelay-LoopRed
   if {$ret==0} {
