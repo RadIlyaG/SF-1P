@@ -5,13 +5,22 @@ proc GUI {} {
   global gaSet gaGui glTests  
   
   #  wm title . "$gaSet(pair) : $gaSet(DutFullName)"
-  wm title . "$gaSet(pair) : "
+  # wm title . "$gaSet(pair) : "
+  if $gaSet(demo) {
+    wm title . "DEMO!!! $gaSet(pair)"
+  } else {
+    wm title . "$gaSet(pair) : "
+  }
   if {![info exists gaSet(eraseTitle)]} {
     set gaSet(eraseTitle) 1
   }
   set gaSet(eraseTitleGui) $gaSet(eraseTitle)
   if {$gaSet(eraseTitle)==1} {
-    wm title . "$gaSet(pair) : "
+    if $gaSet(demo) {
+      wm title . "DEMO!!! $gaSet(pair)"
+    } else {
+      wm title . "$gaSet(pair) : "
+    }
   }
   
   wm protocol . WM_DELETE_WINDOW {Quit}
@@ -513,7 +522,12 @@ proc ButOkInventory {} {
         set gaSet(DutInitName) $fil1.tcl
         set gaSet(DutFullName) $fil1
         #set gaSet(entDUT) $fil1
-        wm title . "$gaSet(pair) : $gaSet(DutFullName)"
+        #wm title . "$gaSet(pair) : $gaSet(DutFullName)"
+        if $gaSet(demo) {
+          wm title . "DEMO!!! $gaSet(pair) : $gaSet(DutFullName)"
+        } else {
+          wm title . "$gaSet(pair) : $gaSet(DutFullName)"
+        }
         #SaveUutInit $fil
         update
       }
@@ -621,7 +635,7 @@ proc ButRun {} {
   
   set ret 0
   puts "[wm title .]"
-  if {[wm title .]=="$gaSet(pair) : "} {
+  if {[wm title .]=="$gaSet(pair) : " || [wm title .]=="DEMO!!! $gaSet(pair)"} {
     set ret -2
     set gaSet(fail) "Please scan the UUT's barcode"
   }
@@ -720,7 +734,12 @@ proc ButRun {} {
     set IdBarcode $gaSet(1.barcode1)
     set traceId $gaSet(1.traceId)
     puts "\n ButRun IdBarcode:<$IdBarcode> traceId:<$traceId>"
-    set ret [RetriveIdTraceData $IdBarcode CSLByBarcode]
+    if {$gaSet(manualCSL)=="0"} {
+      set ret [RetriveIdTraceData  $IdBarcode CSLByBarcode]
+    } else {
+      set ret $gaSet(manualCSL)
+    }
+    #set ret [RetriveIdTraceData $IdBarcode CSLByBarcode]
     puts "ButRun CSLret:<$ret>"
     if {$ret!="-1"} {
       set gaSet(csl) $ret
@@ -856,7 +875,12 @@ proc ButRun {} {
   $gaGui(tbpaus) configure -relief sunken -state disabled
   
   if {$gaSet(eraseTitle)==1} {
-    wm title . "$gaSet(pair) : "
+    #wm title . "$gaSet(pair) : "
+    if $gaSet(demo) {
+      wm title . "DEMO!!! $gaSet(pair)"
+    } else {
+      wm title . "$gaSet(pair) : "
+    }
   }
   
   update

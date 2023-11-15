@@ -611,7 +611,12 @@ proc GetDbrName {} {
   if [file exists MarkNam_$barcode.txt] {
     file delete -force MarkNam_$barcode.txt
   }
-  wm title . "$gaSet(pair) : "
+  #wm title . "$gaSet(pair) : "
+  if $gaSet(demo) {
+    wm title . "DEMO!!! $gaSet(pair)"
+  } else {
+    wm title . "$gaSet(pair) : "
+  }
   after 500
   
   if 1 {
@@ -670,7 +675,11 @@ proc GetDbrName {} {
       set gaSet($v) 0
     } 
   } 
-  wm title . "$gaSet(pair) : $gaSet(DutFullName)"
+  if $gaSet(demo) {
+    wm title . "DEMO!!! $gaSet(pair) : $gaSet(DutFullName)"
+  } else {
+    wm title . "$gaSet(pair) : $gaSet(DutFullName)"
+  }
   pack forget $gaGui(frFailStatus)
   #Status ""
   update
@@ -686,6 +695,7 @@ proc GetDbrName {} {
       DialogBox -aspect 2000 -type Ok -message $gaSet(fail) -icon images/error
       pack $gaGui(frFailStatus)  -anchor w
       $gaSet(runTime) configure -text ""
+      return $ret
     }  
   }
   puts ""
@@ -723,7 +733,12 @@ proc GetInitFile {} {
       set gaSet(DutFullName) $a
     }
     
-    wm title . "$gaSet(pair) : $gaSet(DutFullName)"
+    #wm title . "$gaSet(pair) : $gaSet(DutFullName)"
+    if $gaSet(demo) {
+      wm title . "DEMO!!! $gaSet(pair) : $gaSet(DutFullName)"
+    } else {
+      wm title . "$gaSet(pair) : $gaSet(DutFullName)"
+    }
     #UpdateAppsHelpText
     pack forget $gaGui(frFailStatus)
     Status ""
@@ -1310,17 +1325,20 @@ proc SplitString2Paires {str} {
 
 # ***************************************************************************
 # GetDbrSW
+# DC1002307101 5.4.0.127.28 B1.0.4 SF-1P/E1/DC/4U2S/2RSM/L1/G/L1/2R
 # ***************************************************************************
 proc GetDbrSW {barcode} {
-  global gaSet gaGui
+  global gaSet gaGui gaDBox
   set gaSet(dbrSW) ""
   if {![file exist $gaSet(javaLocation)]} {
     set gaSet(fail) "Java application is missing"
     return -1
   }
   
+  set sw 0
+  set gaSet(manualMrktName) 0
+  set gaSet(manualCSL) 0
   catch {exec $gaSet(javaLocation)\\java -jar $::RadAppsPath/SWVersions4IDnumber.jar $barcode} b
-  puts "GetDbrSW b:<$b>" ; update
   after 1000
 #   if ![info exists gaSet(dbrUbootSWnum)] {
 #     set gaSet(dbrUbootSWnum) ""
@@ -1376,21 +1394,43 @@ proc GetDbrSW {barcode} {
   # }
   
   puts "GetDbrSW barcode:<$barcode> b:<$b>" ; update
-  foreach pair [split $b \n] {
-    foreach {aa bb} $pair {      
-      if {[string range $aa 0 1]=="SW" && [string index $bb 0]!= "B"} {
-        puts "aa=$aa bb=$bb"; update
-        set sw $bb
-        #break
-      }
-      if {[string range $aa 0 1]=="SW" && [string index $bb 0] == "B"} {
-        puts "bo=$aa boo=$bb"; update
-        set boot [string range $bb 1 end]
-        #break
-      }
+  
+  if $gaSet(demo) {
+    set ret [DialogBox -width 39 -title "Manual Definitions" -text "Please define details" -type "Ok Cancel" \
+      -entQty 4  -DotEn 1 -DashEn 1 -NoNumEn 1\
+      -entLab {"SW Version, like 5.4.0.127.28" "Boot Version, like B1.0.4" "Marketing Name, like SF-1P/E1/DC/4U2S/2RS/2R" "CSL, like A"}]  
+    if {$ret=="Cancel"} {
+      set gaSet(fail) "User stop"
+      return -2
     }
-    #if {$sw} {break}
-  }
+    set sw [string trim $gaDBox(entVal1)]
+    set boot [string toupper [string trim $gaDBox(entVal2)]]
+    if {[string index $boot 0]=="B"} {
+      set boot [string range $boot 1 end]
+    }
+    set gaSet(manualMrktName) [string trim $gaDBox(entVal3)]
+    set gaSet(manualCSL) [string toupper [string trim $gaDBox(entVal4)]]
+  } else {
+    if {[lindex $b end] == $barcode} {
+      set gaSet(fail) "No SW definition in IDbarcode"
+      return -2
+    }
+    foreach pair [split $b \n] {
+      foreach {aa bb} $pair {      
+        if {[string range $aa 0 1]=="SW" && [string index $bb 0]!= "B"} {
+          puts "aa=$aa bb=$bb"; update
+          set sw $bb
+          #break
+        }
+        if {[string range $aa 0 1]=="SW" && [string index $bb 0] == "B"} {
+          puts "bo=$aa boo=$bb"; update
+          set boot [string range $bb 1 end]
+          #break
+        }
+      }
+      #if {$sw} {break}
+    }
+  }  
   #set gaSet(dbrSWver) $bb
   
   puts "GetDbrSW $barcode sw:<$sw> boot:<$boot>"

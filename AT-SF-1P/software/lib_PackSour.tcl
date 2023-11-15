@@ -192,7 +192,9 @@ if ![file exist startMeasurement_$gaSet(wifiNet)] {
 if ![info exists gaSet(hwAdd)] {
   set gaSet(hwAdd) A
 }
-
+if ![info exists gaSet(demo)] {
+  set gaSet(demo) 0
+}
 
 #puts "$gaSet(DutFullName)"
 # 11:48 09/10/2023  ToggleComDut

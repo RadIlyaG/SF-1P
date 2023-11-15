@@ -113,7 +113,10 @@ proc BuildTests {} {
     lappend lTestNames LteLeds
   }
   lappend lTestNames  FrontPanelLeds 
-  lappend lTestNames  Factory_Settings SSH Mac_BarCode
+  lappend lTestNames  Factory_Settings SSH
+  if !$gaSet(demo) {
+    lappend lTestNames Mac_BarCode
+  }
 
   
   eval lappend lTestsAllTests $lTestNames

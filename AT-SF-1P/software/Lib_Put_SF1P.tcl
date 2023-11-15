@@ -1082,7 +1082,13 @@ proc IDPerf {mode} {
     # set gaSet(fail) "The FW Ver is \'$val\'. Should be \'$gaSet(DutFullName)\'"
     # return -1 
   # }
-  set market_name [RetriveIdTraceData $gaSet(1.barcode1) MKTItem4Barcode]
+  
+  if {$gaSet(manualMrktName)=="0"} {
+    set market_name [RetriveIdTraceData $gaSet(1.barcode1) MKTItem4Barcode]
+  } else {
+    set market_name $gaSet(manualMrktName)
+  }
+  # set market_name [RetriveIdTraceData $gaSet(1.barcode1) MKTItem4Barcode]
   puts "IDperf val:<$val>  market_name:<$market_name>"
   if {$market_name != $val} {
     set gaSet(fail) "The FW Ver is \'$val\'. Should be \'$market_name\'"
