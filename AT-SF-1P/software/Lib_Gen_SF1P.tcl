@@ -1666,7 +1666,7 @@ proc SameContent {file1 file2} {
 proc LoadModem {mdm} {
   global gaSet
   set mdm [string toupper $mdm]
-  puts "[MyTime] LoadModem $mdm"
+  puts "[MyTime] LoadModem $mdm [file exists $mdm.txt]"
   if ![file exists $mdm.txt]  {
     set gaSet(fail) "$mdm.txt file doesn't exist"
     return -1
@@ -1692,7 +1692,8 @@ proc LoadModemFiles {} {
   foreach mdm [list HSP L1 L2 L3 L4 L450A L450B 5G L4P] {
     set ret [LoadModem $mdm]
     if {$ret!=0} {return $ret}
-  }  
+  } 
+ return $ret  
 }
 
 # ***************************************************************************

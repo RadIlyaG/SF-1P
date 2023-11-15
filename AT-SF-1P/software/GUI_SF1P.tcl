@@ -609,8 +609,6 @@ proc ButRun {} {
   set gaSet(prompt) "SF-1V"
   set ::wastedSecs 0
   
-  
-  
   set gaSet(1.barcode1.IdMacLink) ""
   
   set gaSet(act) 1
@@ -633,6 +631,7 @@ proc ButRun {} {
   }
   
   set ret [LoadModemFiles]
+  puts "ButRun ret after LoadModemFiles ret:<$ret>"
   LoadNoTraceFile
   
   set gRelayState red
