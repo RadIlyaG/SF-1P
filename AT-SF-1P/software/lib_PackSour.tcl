@@ -132,6 +132,7 @@ package require http
 package require tls
 package require base64
 ::http::register https 8445 ::tls::socket
+::http::register https 8443 ::tls::socket
   
 
 source Gui_SF1P.tcl
