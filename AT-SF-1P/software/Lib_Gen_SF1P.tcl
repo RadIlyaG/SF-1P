@@ -1403,6 +1403,7 @@ proc GetDbrSW {barcode} {
       set gaSet(fail) "User stop"
       return -2
     }
+    UnregIdBarcode $barcode
     set sw [string trim $gaDBox(entVal1)]
     set boot [string toupper [string trim $gaDBox(entVal2)]]
     if {[string index $boot 0]=="B"} {
