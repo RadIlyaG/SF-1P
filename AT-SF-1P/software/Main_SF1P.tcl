@@ -194,7 +194,7 @@ proc Testing {} {
     }
     AddToPairLog $gaSet(pair) "Test \'$testName\' $retTxt"
        
-    puts "\n **** Test $numberedTest finish;  ret of $numberedTest is: $ret;  [MyTime]\n" 
+    puts "\n[MyTime] **** Test $numberedTest finish;  ret of $numberedTest is: $ret, fail:<$gaSet(fail)>\n" 
     update
     if {$ret!=0} {
       break
@@ -212,7 +212,7 @@ proc Testing {} {
   } 
 
   AddToPairLog $gaSet(pair) "WS: $::wastedSecs"
-  puts "RunTests4 ret:$ret gaSet(startFrom):$gaSet(startFrom)"   
+  puts "RunTests4 ret:$ret gaSet(startFrom):$gaSet(startFrom) fail:<$gaSet(fail)>"   
   return $ret
 }
 # ***************************************************************************
@@ -346,12 +346,13 @@ proc DataTransmission {run} {
   set ret [Wait "Data is running" 10 white]
   if {$ret!=0} {return $ret}
   set ret [Etx204Check]
+  puts "\nAfter Etx204Check 10: ret:<$ret> fail:<$gaSet(fail)>"
   if {$ret!=0} {return $ret}
   
   set ret [Wait "Data is running" 60 white]
-  if {$ret!=0} {return $ret}
-  
+  if {$ret!=0} {return $ret}  
   set ret [Etx204Check]
+  puts "\nAfter Etx204Check 60: ret:<$ret> fail:<$gaSet(fail)>"
   if {$ret!=0} {return $ret}
   
   RLEtxGen::PortsConfig $gaSet(idGen1) -updGen all -admStatus down

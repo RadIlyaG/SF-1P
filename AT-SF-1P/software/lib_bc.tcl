@@ -366,7 +366,6 @@ proc ReadBarcode {} {
 # ***************************************************************************
 proc UnregIdBarcode {barcode {mac {}}} {
   global gaSet
-  set gaSet(fail) ""
   Status "Unreg ID Barcode $barcode"
   set res [UnregIdMac $barcode $mac]
     
