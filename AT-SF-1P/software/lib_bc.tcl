@@ -366,7 +366,6 @@ proc ReadBarcode {} {
 # ***************************************************************************
 proc UnregIdBarcode {barcode {mac {}}} {
   global gaSet
-  #set barcode $gaSet(1.barcode1)
   set gaSet(fail) ""
   Status "Unreg ID Barcode $barcode"
   set res [UnregIdMac $barcode $mac]
@@ -377,8 +376,7 @@ proc UnregIdBarcode {barcode {mac {}}} {
   } else {
     set ret $res
   }
-  #AddToPairLog $gaSet(pair) "Unreg ID Barcode $barcode res:<$res> ret:<$ret>"
-  
+  AddToPairLog $gaSet(pair) "Unreg ID Barcode $barcode mac:<$mac> res:<$res> ret:<$ret>"
   return $ret
 }
 
