@@ -7,6 +7,16 @@ proc GUI {} {
   #  wm title . "$gaSet(pair) : $gaSet(DutFullName)"
   # wm title . "$gaSet(pair) : "
   if $gaSet(demo) {
+    wm deiconify .
+  wm geometry . $gaGui(xy)
+  update
+    RLSound::Play information
+    set txt "You are working with ATE's DEMO version\n\n
+Please confirm you know that products should not be released to the customer with this version"
+    set res [DialogBox -icon images/info -type "OK Abort" -text $txt -default 1 -aspect 2000 -title "DEMO version"]
+    if {$res=="Abort"} {
+      exit
+    } 
     wm title . "DEMO!!! $gaSet(pair)"
   } else {
     wm title . "$gaSet(pair) : "
