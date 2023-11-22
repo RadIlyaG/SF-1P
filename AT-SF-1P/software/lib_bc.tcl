@@ -375,7 +375,9 @@ proc UnregIdBarcode {barcode {mac {}}} {
   } else {
     set ret $res
   }
-  AddToPairLog $gaSet(pair) "Unreg ID Barcode $barcode mac:<$mac> res:<$res> ret:<$ret>"
+  if [info exists gaSet(logFile.$gaSet(pair))] {
+    AddToPairLog $gaSet(pair) "Unreg ID Barcode $barcode mac:<$mac> res:<$res> ret:<$ret>"
+  }
   return $ret
 }
 
