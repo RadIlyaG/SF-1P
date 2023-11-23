@@ -2011,24 +2011,17 @@ proc WifiPerf {baud locWifiReport} {
 	    puts "[MyTime] ping res: $ret at try $try" 
 	    if {$ret==0} {break}
 	  }
-    # set ret [Ping2Cellular WiFi [set gaSet(WifiNet)].5[PcNum].[UutNum]3]   
-    # puts "[MyTime] ping res: $ret at try $try" 
-    # if {$ret==0} {break}
-	# set ret [Ping2Cellular WiFi [set gaSet(WifiNet)].5[PcNum].[UutNum]2]   
-    # puts "[MyTime] ping res: $ret at try $try" 
-    # if {$ret==0} {break}
-    # set ret [Ping2Cellular WiFi [set gaSet(WifiNet)].5[PcNum].[UutNum]1]   
-    # puts "[MyTime] ping res: $ret at try $try" 
     if {$ret==0} {break}
     after 10000
   }
   if {$ret!=0} {
-    #FtpDeleteFile [string tolower startMeasurement_$gaSet(wifiNet)]
     catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)} res
     puts "FtpDeleteFile <$res>"
     return $ret
   }
   
+  ## 08:04 23/11/2023
+  if 0 {
   if {$baud=="2.4"} {
   
     ## we stop the measurement and wait upto 2 minutes to verify that wifireport will be deleted
@@ -2097,7 +2090,7 @@ proc WifiPerf {baud locWifiReport} {
       set ret $wifiRet
     }          
   }
- 
+  } 
  
   return $ret
 }
@@ -4411,6 +4404,15 @@ proc CellularModemPerf_RadOS_Sim12_Dual {actLte l4} {
 proc BootLedsPerf {} {
   global gaSet buffer
   set com $gaSet(comDut)
+  
+  if {$gaSet(dutFam.sf)=="ETX-1P_SFC"} {
+    Power all off
+    Status "Power OFF"
+    after 4000
+    Power all on
+    Status "Power ON"
+    after 1000
+  }
   
   RLSound::Play information
   set txt "Please disconnect all ETH cables\n\

@@ -20,7 +20,9 @@ proc BuildTests {} {
   ## 14:15 28/12/2022
   lappend lTestNames PowerOffOn
   
-  lappend lTestNames UsbTree
+  ##08:06 23/11/2023
+  ## lappend lTestNames UsbTree
+  
   if [string match *.HL.*  $gaSet(DutInitName)] {
     ## HL option doesn't have MicroSD
   } else {
@@ -118,7 +120,6 @@ proc BuildTests {} {
     lappend lTestNames Mac_BarCode
   }
 
-  
   eval lappend lTestsAllTests $lTestNames
   
   set glTests ""
@@ -459,8 +460,6 @@ proc WiFi_2G {run} {
   
   Wait "Wait for up" 15
   
-  #FtpDeleteFile  [string tolower startMeasurement_$gaSet(wifiNet)]
-  #FtpDeleteFile  [string tolower wifireport_$gaSet(wifiNet).txt]
   catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)} res
   puts "FtpDeleteFile <$res>"
   catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt} res
@@ -473,7 +472,6 @@ proc WiFi_2G {run} {
   set ret [FtpVerifyNoReport]
   if {$ret!=0} {return $ret}
   
-  #set ret [FtpUploadFile startMeasurement_$gaSet(wifiNet)]
   catch {exec python.exe lib_sftp.py FtpUploadFile startMeasurement_$gaSet(wifiNet)} res
   puts "FtpUploadFile <$res>"
   regexp {result: (-?1) } $res ma ret
@@ -484,9 +482,7 @@ proc WiFi_2G {run} {
   set ret [WifiPerf 2.4 $locWifiReport]
   
   if {$ret==0} { 
-    #FtpDeleteFile  [string tolower startMeasurement_$gaSet(wifiNet)]
-    #FtpDeleteFile [string tolower wifireport_$gaSet(wifiNet).txt]
-	  catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)} res
+    catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)} res
     puts "FtpDeleteFile <$res>"
     catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt} res
     puts "FtpDeleteFile <$res>"
@@ -734,6 +730,11 @@ proc SSH {run} {
       set ret [SshPerform]
     }
   }  
+  if {$gaSet(dutFam.sf)=="ETX-1P_SFC" && $ret==0} {
+    RLSound::Play information
+    set txt "Remove the J21 JUMPER"
+    DialogBox -title "SSH Test for Safaricom" -type "OK" -message $txt -icon images/info
+  }
   return $ret
 }
 # ***************************************************************************

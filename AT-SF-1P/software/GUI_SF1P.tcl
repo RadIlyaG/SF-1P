@@ -257,7 +257,7 @@ Please confirm you know products should not be released to the customer with thi
   if $::NoATP {
     RLStatus::Show -msg atp
   }
-  RLStatus::Show -msg fti
+  #RLStatus::Show -msg fti
   set gaSet(entDUT) ""
   focus -force $gaGui(entDUT)
   
