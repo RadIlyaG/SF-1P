@@ -782,6 +782,11 @@ proc CellularModem_SIM2 {run} {
       if {$ret!=0} {return -1}
       set ret [CellularModemPerf_RadOS_Sim12 2 1 notL4] 
     } elseif {[string index $gaSet(dutFam.cell) 0]=="2"} {
+    
+      ## 07:15 14/12/2023
+      set gaSet(fail) "Bad FTI for this option" 
+      return -1
+      
       set ret [CellularLte_RadOS_Sim12_Dual] 
       if {$ret!=0} {return -1}
       set ret [CellularModemPerf_RadOS_Sim12_Dual 2 notL4] 
