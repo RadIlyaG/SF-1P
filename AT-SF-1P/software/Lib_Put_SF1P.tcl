@@ -5068,3 +5068,139 @@ proc CellularModemPerf {slot l4} {
   
   return $ret
 }
+
+# ***************************************************************************
+# CheckSimOut
+# ***************************************************************************
+proc CheckSimOut {} {
+ global gaSet buffer
+  puts "[MyTime] CheckSimOut"
+  
+  set com $gaSet(comDut)
+  set ret [Login]
+  if {$ret!=0} {return $ret}
+  
+  Send $com "exit all\r" "#"
+  set cellQty [string index $gaSet(dutFam.cell) 0]
+  if {$cellQty==1} {
+    Status "Read SIM status"
+    set ret [Send $com "configure port cellular lte\r" "(lte)#"]
+    if {$ret!=0} {
+      set gaSet(fail) "Configure cellular lte fail"
+      return $ret 
+    }
+    foreach sim {1 2} {
+      set ret [Send $com "shutdown\r" "(lte)#"]
+      set ret [Send $com "mode sim $sim\r" "(lte)#"]
+      if {$ret!=0} {
+        set gaSet(fail) "Configure mode sim-$sim fail"
+        return $ret 
+      }
+      set ret [Send $com "no shutdown\r" "(lte)#"]
+    
+      for {set i 1} {$i<=10} {incr i} {
+        if {$gaSet(act)==0} {set ret -2; break}
+        Status "Read LTE status ($i)"
+        set b ""
+        set ret [Send $com "show status\r" "more"]
+        append b $buffer
+        set ret [Send $com "\r" "(lte)#" 1]
+        append b $buffer
+        
+        if [string match *more* $buffer] {
+          set ret [Send $com "\r" "(lte)#" 1]
+          append b $buffer
+        }
+        if [string match *more* $buffer] {
+          set ret [Send $com "\r" "(lte)#" 1]
+          append b $buffer
+        }
+        if {$ret!=0} {
+          set gaSet(fail) "LTE Show Status fail"
+          return $ret 
+        }
+        set buffer $b
+        puts "\nbuffer:<$buffer>\n"
+        set gaSet(fail) "Read SIM Status fail"
+        set res [regexp {SIM Status\s+:\s+([\w\-]+)} $buffer ma val]
+        if {$res==1} {
+          set ret 0
+          break
+        } else {
+          after 2000
+        }
+      }
+      if {$ret!=0} {
+        return $ret
+      } 
+      puts "val:<$val>" 
+      if {$val=="ready"} {
+        set gaSet(fail) "The SIM-$sim is not pulled out"
+        set ret -1
+        return $ret
+      }
+    }  
+   
+  } elseif {$cellQty==2} {
+    foreach mdm {1 2} {
+      Status "Read Cellular parameters of modem-$mdm"
+       
+      Send $com "exit all\r" "-1p"
+      set ret [Send $com "configure port cellular lte-$mdm\r" "lte-$mdm"]
+      if {$ret!=0} {
+        set gaSet(fail) "Set modem $mdm power-up fail"
+        return $ret 
+      }
+      for {set i 1} {$i<=10} {incr i} {
+        if {$gaSet(act)==0} {set ret -2; break}
+        Status "Read LTE-$mdm status ($i)"
+        set b ""
+        set ret [Send $com "show status\r" "more"]
+        append b $buffer
+        set ret [Send $com "\r" "(lte-$mdm)" 1]
+        append b $buffer
+        
+        if [string match *more* $buffer] {
+          set ret [Send $com "\r" "(lte-$mdm)" 2]
+          append b $buffer
+        }
+        if [string match *more* $buffer] {
+          set ret [Send $com "\r" "(lte-$mdm)" 2]
+          append b $buffer
+        }
+        if [string match *more* $buffer] {
+          set ret [Send $com "\r" "(lte-$mdm)" 2]
+          append b $buffer
+        }
+        if {$ret!=0} {
+          set gaSet(fail) "LTE-$mdm Show Status fail"
+          return $ret 
+        }
+        set buffer $b
+        set ret -1; set val ""
+        puts "\nbuffer:<$buffer>\n"
+        set gaSet(fail) "Read SIM of lte-$mdm fail"
+        set res [regexp {SIM Status\s+:\s+([\w\-]+)} $buffer ma val]
+        if {$res==1} {
+          set ret 0
+          break
+        } else {
+          after 2000
+        }
+      }   
+      if {$ret!=0} {
+        return $ret
+      } 
+      puts "val:<$val>" 
+      if {$val=="ready"} {
+        set gaSet(fail) "The SIM of lte-$mdm is not pulled out"
+        set ret -1
+        break
+      }   
+    } 
+  }
+  Send $com "exit all\r" "-1p"
+  puts ""
+  return $ret
+  
+}

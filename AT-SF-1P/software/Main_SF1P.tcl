@@ -397,8 +397,22 @@ proc GPS {run} {
 # Factory_Settings
 # ***************************************************************************
 proc Factory_Settings {run} {
+  global gaSet
   set ::sendSlow 0
   set ret [ReadImei]
+  if {$ret!=0} {return $ret}
+  set ret [CheckSimOut]
+  if [string match {*pulled out*} $gaSet(fail)] {
+    RLSound::Play information
+    set res [DialogBox -title "SIM inside" -text "Pull out SIM/s and press OK" \
+      -type "Ok Stop" -icon /images/error]
+    if {$res=="Stop"} {
+      set ret -2
+    } else {
+      PowerOffOnPerf
+      set ret [CheckSimOut]
+    }    
+  }
   if {$ret!=0} {return $ret}
   set ret [FactorySettingsPerf]
   Wait "Wait for reset" 30
