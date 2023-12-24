@@ -207,7 +207,7 @@ proc ImeiSQliteOpen {} {
   global gaSet
   puts "[MyTime] ImeiSQliteOpen" ; update 
   if {$gaSet(radNet)} {  
-    set dbFile \\\\prod-svm1\\tds\\temp\\SQLiteDB\\Imei\\Imei.db
+    set dbFile \\\\prod-svm1\\tds\\temp\\SQLiteDB\\Imei.db
     if ![file exists $dbFile] {
       set gaSet(fail) "No Imei.db file or it's not reachable"
       return -1
