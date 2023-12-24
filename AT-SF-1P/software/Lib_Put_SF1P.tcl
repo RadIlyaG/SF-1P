@@ -4069,6 +4069,11 @@ proc CellularModemPerf_RadOS_Sim12 {actSim disSim l4} {
     AddToPairLog $gaSet(pair) "Firmware of SIM-${actSim}: $val"  
     set cell [string range $gaSet(dutFam.cell) 1 end]
     set fw $gaSet([set cell].fwL) 
+    puts "Firmware cell:<$cell> fw:<$fw>"; update  
+    if {$cell=="L450B"} {
+      set gaSet(fail) "Bad FTI for this option"
+      return -1      
+    }
     if {$val!=$fw} {
       set gaSet(fail) "Firmware of SIM-${actSim} is  \'$val\'. Should be \'$fw\'"  
       return -1
@@ -4348,6 +4353,11 @@ proc CellularModemPerf_RadOS_Sim12_Dual {actLte l4} {
     AddToPairLog $gaSet(pair) "Firmware of LTE-$actLte: $val"  
     set cell [string range $gaSet(dutFam.cell) 1 end]
     set fw $gaSet([set cell].fwL) 
+    puts "Firmware cell:<$cell> fw:<$fw>"; update  
+    if {$cell=="L450B"} {
+      set gaSet(fail) "Bad FTI for this option"
+      return -1      
+    }
     if {$val!=$fw} {
       set gaSet(fail) "Firmware of LTE-$actLte is  \'$val\'. Should be \'$fw\'"  
       return -1
