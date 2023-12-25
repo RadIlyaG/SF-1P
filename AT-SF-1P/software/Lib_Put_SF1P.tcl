@@ -5100,6 +5100,7 @@ proc CheckSimOut {} {
       return $ret 
     }
     foreach sim {1 2} {
+    
       set ret [Send $com "shutdown\r" "(lte)#"]
       set ret [Send $com "mode sim $sim\r" "(lte)#"]
       if {$ret!=0} {
@@ -5107,10 +5108,14 @@ proc CheckSimOut {} {
         return $ret 
       }
       set ret [Send $com "no shutdown\r" "(lte)#"]
+      if {$sim=="2"} {
+        Wait "Wait for SIM-2 activation" 60 white
+      }  
     
-      for {set i 1} {$i<=10} {incr i} {
+      for {set i 1} {$i<=40} {incr i} {
         if {$gaSet(act)==0} {set ret -2; break}
-        Status "Read LTE status ($i)"
+        after 2000
+        Status "Read LTE status of SIM-$sim ($i)"
         set b ""
         set ret [Send $com "show status\r" "more"]
         append b $buffer
@@ -5131,6 +5136,17 @@ proc CheckSimOut {} {
         }
         set buffer $b
         puts "\nbuffer:<$buffer>\n"
+        
+        set gaSet(fail) "Read SIM Status fail"
+        set res [regexp {SIM Information[\s\-]+SIM([\w\s\d\:]+)Status} $buffer ma val]
+        puts "simInfo res<$res>  ma<$ma> val<$val> sim:<$sim>"
+        if {$sim=="1" && [string match {*SIM 2*} $val]} {
+          continue
+        }
+        if {$sim=="2" && [string match {*SIM 1*} $val]} {
+          continue
+        }
+        
         set gaSet(fail) "Read SIM Status fail"
         set res [regexp {SIM Status\s+:\s+([\w\-]+)} $buffer ma val]
         if {$res==1} {

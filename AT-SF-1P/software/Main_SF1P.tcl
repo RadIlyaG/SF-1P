@@ -401,6 +401,8 @@ proc Factory_Settings {run} {
   set ::sendSlow 0
   set ret [ReadImei]
   if {$ret!=0} {return $ret}
+  set ret [CellularLte_RadOS_Sim12]
+  if {$ret!=0} {return $ret}
   set ret [CheckSimOut]
   if [string match {*pulled out*} $gaSet(fail)] {
     RLSound::Play information
@@ -410,6 +412,8 @@ proc Factory_Settings {run} {
       set ret -2
     } else {
       PowerOffOnPerf
+      set ret [CellularLte_RadOS_Sim12]
+      if {$ret!=0} {return $ret}
       set ret [CheckSimOut]
     }    
   }
