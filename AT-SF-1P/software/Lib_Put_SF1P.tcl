@@ -5093,6 +5093,8 @@ proc CheckSimOut {} {
   Send $com "exit all\r" "#"
   set cellQty [string index $gaSet(dutFam.cell) 0]
   if {$cellQty==1} {
+    set ret [CellularLte_RadOS_Sim12]
+    if {$ret!=0} {return $ret}
     Status "Read SIM status"
     set ret [Send $com "configure port cellular lte\r" "(lte)#"]
     if {$ret!=0} {
@@ -5168,6 +5170,8 @@ proc CheckSimOut {} {
     }  
    
   } elseif {$cellQty==2} {
+    set [CellularLte_RadOS_Sim12_Dual]
+    if {$ret!=0} {return $ret}
     foreach mdm {1 2} {
       Status "Read Cellular parameters of modem-$mdm"
        
