@@ -804,8 +804,11 @@ proc RetriveDutFam {{dutInitName ""}} {
     } elseif {[string match *\.5U1S\.* $dutInitName]} {
       set gaSet(dutFam.wanPorts)  "5U1S"
     }
+    set gaSet(dutFam.lanPorts)  "NotExists"
   }
   set idx [lsearch $fieldsL $gaSet(dutFam.wanPorts)]
+  set fieldsL [lreplace $fieldsL $idx $idx]
+  set idx [lsearch $fieldsL $gaSet(dutFam.lanPorts)]
   set fieldsL [lreplace $fieldsL $idx $idx]
   
   if {[string match *\.2RS\.* $dutInitName]} {
