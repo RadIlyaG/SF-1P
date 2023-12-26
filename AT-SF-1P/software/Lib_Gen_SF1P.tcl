@@ -854,6 +854,7 @@ proc RetriveDutFam {{dutInitName ""}} {
       break
     }  
   }
+  # twice, since 2 modems can be installed
   set idx [lsearch $fieldsL [string range $gaSet(dutFam.cell) 1 end]]
   set fieldsL [lreplace $fieldsL $idx $idx]
   set idx [lsearch $fieldsL [string range $gaSet(dutFam.cell) 1 end]]
