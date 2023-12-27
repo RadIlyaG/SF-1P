@@ -10,7 +10,13 @@ proc BuildTests {} {
   }
   puts "\n[MyTime] BuildTests DutInitName:$gaSet(DutInitName)\n"
   
-  RetriveDutFam   
+  set ret [RetriveDutFam]
+  if {$ret!=0} {
+    set glTests [list] 
+    set gaSet(startFrom) ""
+    $gaGui(startFrom) configure -values $glTests
+    return -1
+  }
   
   set lTestsAllTests [list]
   set lTestNames [list]

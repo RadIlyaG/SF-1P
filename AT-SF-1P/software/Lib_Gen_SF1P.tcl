@@ -943,8 +943,10 @@ proc RetriveDutFam {{dutInitName ""}} {
     RLSound::Play fail
     set res [DialogBox -title "Unknown option" -message "The following is unknown:\n\n$fieldsL"\
       -type OK -icon /images/error]
+    set ::gMessage $fieldsL
+    return -1
   }
-
+  return 0
 }  
 
 # ***************************************************************************

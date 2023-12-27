@@ -625,6 +625,14 @@ proc CaptureConsole {} {
 proc ButRun {} {
   global gaSet gaGui glTests gRelayState
   
+  if ![llength $glTests] {
+    RLSound::Play fail
+    set txt "No test to perform"
+    DialogBox -icon /images/error -text $txt -title "Wrong Tests definition"
+    set gaSet(fail) $txt
+    return -2
+  }
+  
   pack forget $gaGui(frFailStatus)
   set gaSet(ButRunTime) [clock seconds]
   Status ""
