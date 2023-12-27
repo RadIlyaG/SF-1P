@@ -47,6 +47,10 @@ proc BuildTests {} {
   }
   lappend lTestNames   ID
   
+  if [string match *.HL.*  $gaSet(DutInitName)] {
+    lappend lTestNames HL_Security
+  }
+  
   if {[package vcompare $gaSet(SWver) "5.0.1.229.5"] == "0"} {
     ## if gaSet(SWver) = "5.0.1.229.5", then vcompare = 0 
     if {[string index $gaSet(dutFam.cell) 0]=="1"} {
@@ -707,6 +711,11 @@ proc SOC_i2C {run} {
 proc MicroSD {run} {
   set ::sendSlow 1
   global gaSet buffer
+  if {[string match *.HL.*  $gaSet(DutInitName)] && $gaSet(mainHW)<"0.6"} {
+    AddToPairLog $gaSet(pair) "HL: mainHW:$gaSet(mainHW), no MicroSD Test"
+    return 0
+  }  
+  
   set com $gaSet(comDut)
   Send $com "\r" stam 0.25
   Send $com "\r" stam 0.25
@@ -842,3 +851,12 @@ proc CellularModem {run} {
 #   if {$ret!=0} {return -1}
   return $ret
 } 
+
+# ***************************************************************************
+# HL_Security
+# ***************************************************************************
+proc HL_Security {run} {
+  global gaSet
+  set gaSet(fail) "No Test Instruction"
+  return -1
+}
