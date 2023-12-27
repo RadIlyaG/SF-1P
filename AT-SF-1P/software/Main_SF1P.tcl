@@ -23,15 +23,19 @@ proc BuildTests {} {
   ##08:06 23/11/2023
   ## lappend lTestNames UsbTree
   
-  if [string match *.HL.*  $gaSet(DutInitName)] {
-    ## HL option doesn't have MicroSD
-  } else {
-    if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC"} {
-      ## no CD card Contact
-    } else {  
-      lappend lTestNames MicroSD  
-    }
-    
+  # if [string match *.HL.*  $gaSet(DutInitName)] {
+    # ## HL option doesn't have MicroSD
+  # } else {
+    # if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC"} {
+      # ## no CD card Contact
+    # } else {  
+      # lappend lTestNames MicroSD  
+    # }
+  # }
+  if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC"} {
+    ## no CD card Contact
+  } else {  
+    lappend lTestNames MicroSD  
   }
   lappend lTestNames SOC_Flash_Memory SOC_i2C 
   

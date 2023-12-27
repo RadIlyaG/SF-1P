@@ -771,6 +771,9 @@ proc RetriveDutFam {{dutInitName ""}} {
   puts "[MyTime] RetriveDutFam $dutInitName"
   set fieldsL [lrange [split $dutInitName .] 0 end-1] ; # remove tcl
   
+  set idx [lsearch $fieldsL "HL"]
+  set fieldsL [lreplace $fieldsL $idx $idx]
+  
   regexp {([A-Z0-9\-\_]+)\.E?} $dutInitName ma gaSet(dutFam.sf)
   switch -exact -- $gaSet(dutFam.sf) {
     SF-1P - ETX-1P - SF-1P_ICE - ETX-1P_SFC - SF-1P_ANG {set gaSet(appPrompt) "-1p#"}
