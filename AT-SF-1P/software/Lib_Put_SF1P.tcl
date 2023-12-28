@@ -277,8 +277,13 @@ proc Login2Linux {} {
   set ret [LogonDebug $com]
   if {$ret!=0} {return $ret}
   
-  set ret [Send $com "debug shell\r\r" "/\]#"]
-  set ret [Send $com "\r\r" "/\]#"]
+  set ret [Send $com "debug shell\r\r" localhost]
+  if [string match *:/#* $buffer] {
+    set gaSet(linuxPrompt) /#
+  } elseif [string match */\]* $buffer] {
+    set gaSet(linuxPrompt) /\]
+  }
+  set ret [Send $com "\r\r" $gaSet(linuxPrompt)]
   return $ret
 }
 
@@ -594,7 +599,7 @@ proc DryContactAlarmcheck {mode} {
   puts "\n[MyTime] DryContactAlarmcheck $mode"; update
   set com $gaSet(comDut)
   
-  set ret [Send $com "\r\r" "\]#" 1]
+  set ret [Send $com "\r\r" $gaSet(linuxPrompt) 1]
   if {$ret!=0} {
     set ret [Login]
     if {$ret!=0} {return $ret}
@@ -631,7 +636,7 @@ proc DryContactAlarmcheck {mode} {
       break
     }
   }
-  set ret [Send $com "\r\r" "\]#" 1]
+  set ret [Send $com "\r\r" $gaSet(linuxPrompt) 1]
   set ret $res
   return $ret
 } 
@@ -710,19 +715,19 @@ proc BrdEepromPerf {} {
 
   Status "Read EEPROM"
   puts "\n[MyTime]eeprom before erase"
-  set ret [Send $com "cat /sys/class/i2c-adapter/i2c-0/0-0052/eeprom\r" "\]#"]  
+  set ret [Send $com "cat /sys/class/i2c-adapter/i2c-0/0-0052/eeprom\r" $gaSet(linuxPrompt)]  
   if {$ret!=0} {return $ret} 
   puts "\n[MyTime]"
 
   Status "Remove current_platform.json"
-  set ret [Send $com "rm -f /opt/info/current_platform.json\r" "\]#"]  
+  set ret [Send $com "rm -f /opt/info/current_platform.json\r" $gaSet(linuxPrompt)]  
   if {$ret!=0} {
     set gaSet(fail) "Remove current_platform.json fail"
     return $ret
   }
   
   Status "Remove USERFS/eeprom"
-  set ret [Send $com "sudo rm -r /USERFS/eeprom/*\r" "\]#"] 
+  set ret [Send $com "sudo rm -r /USERFS/eeprom/*\r" $gaSet(linuxPrompt)] 
   if {$ret!=0} {
     set gaSet(fail) "Remove USERFS_eeprom fail"
     return $ret
@@ -740,14 +745,14 @@ proc BrdEepromPerf {} {
   set eepromString "echo \""
   append eepromString $line
   append eepromString "\"  > /sys/class/i2c-adapter/i2c-0/0-0052/eeprom"
-  set ret [Send $com "$eepromString\r" "\]#"]  
+  set ret [Send $com "$eepromString\r" $gaSet(linuxPrompt)]  
   if {$ret!=0} {return $ret}
   
-  set ret [Send $com "systemctl restart eeprom-parser\r" "\]#"]  
+  set ret [Send $com "systemctl restart eeprom-parser\r" $gaSet(linuxPrompt)]  
   if {$ret!=0} {return $ret} 
   
   Status "Read EEPROM"
-  set ret [Send $com "cat /sys/class/i2c-adapter/i2c-0/0-0052/eeprom\r" "\]#"]  
+  set ret [Send $com "cat /sys/class/i2c-adapter/i2c-0/0-0052/eeprom\r" $gaSet(linuxPrompt)]  
   if {$ret!=0} {return $ret} 
   
   set res [regexp {MAC_ADDRESS=([0-9A-F\:]+),} $buffer ma sysMac]
@@ -761,7 +766,7 @@ proc BrdEepromPerf {} {
     return -1
   }
   
-  set ret [Send $com "cat /USERFS/eeprom/MAC_ADDRESS\r" "\]#"]  
+  set ret [Send $com "cat /USERFS/eeprom/MAC_ADDRESS\r" $gaSet(linuxPrompt)]  
   if {$ret!=0} {return $ret} 
   
   set res [regexp {MAC_ADDRESS\s+([0-9A-F\:]+)} $buffer ma userMac]
@@ -771,7 +776,7 @@ proc BrdEepromPerf {} {
   }
   puts "gaSet(eeprom.mac):$gaSet(eeprom.mac) userMac:$userMac"
   
-  set ret [Send $com "cat /USERFS/eeprom/PART_NUMBER\r" "\]#"]  
+  set ret [Send $com "cat /USERFS/eeprom/PART_NUMBER\r" $gaSet(linuxPrompt)]  
   if {$ret!=0} {return $ret} 
 
   set res [regexp {_NUMBER\s+([0-9A-Z\/\-]+) } $buffer ma val]
@@ -785,12 +790,12 @@ proc BrdEepromPerf {} {
       $gaSet(DutFullName) != $val} {
     puts "\n[MyTime] SYSTEMCTL RESTART EEPROM-PARSER AGAIN! gaSet(eeprom.mac):<$gaSet(eeprom.mac)> userMac:<$userMac> gaSet(DutFullName):$gaSet(DutFullName) val:$val"
     set restartEepromParser 1
-    set ret [Send $com "sudo rm -r /USERFS/eeprom/*\r" "\]#"]  
+    set ret [Send $com "sudo rm -r /USERFS/eeprom/*\r" $gaSet(linuxPrompt)]  
     if {$ret!=0} {return $ret} 
-    set ret [Send $com "systemctl restart eeprom-parser\r" "\]#"]  
+    set ret [Send $com "systemctl restart eeprom-parser\r" $gaSet(linuxPrompt)]  
     if {$ret!=0} {return $ret} 
-    set ret [Send $com "\r" "\]#"]  
-    set ret [Send $com "cat /USERFS/eeprom/MAC_ADDRESS\r" "\]#"]  
+    set ret [Send $com "\r" $gaSet(linuxPrompt)]  
+    set ret [Send $com "cat /USERFS/eeprom/MAC_ADDRESS\r" $gaSet(linuxPrompt)]  
     if {$ret!=0} {return $ret} 
   
     set res [regexp {MAC_ADDRESS\s+([0-9A-F\:]+)} $buffer ma userMac]
@@ -806,7 +811,7 @@ proc BrdEepromPerf {} {
       set ret 0
     }
     
-    set ret [Send $com "cat /USERFS/eeprom/PART_NUMBER\r" "\]#"]  
+    set ret [Send $com "cat /USERFS/eeprom/PART_NUMBER\r" $gaSet(linuxPrompt)]  
     if {$ret!=0} {return $ret} 
   
     set res [regexp {_NUMBER\s+([0-9A-Z\/\-]+) } $buffer ma val]
@@ -830,14 +835,14 @@ proc BrdEepromPerf {} {
       ## in Safari dont remove the file
     } else {
       if {$restartEepromParser ==1} {
-        set ret [Send $com "rm -f /opt/info/current_platform.json\r" "\]#"]  
+        set ret [Send $com "rm -f /opt/info/current_platform.json\r" $gaSet(linuxPrompt)]  
         if {$ret!=0} {
           set gaSet(fail) "Remove current_platform.json fail"
           return $ret
         }
       }  
     }
-    set ret [Send $com "sync\r" "\]#"]  
+    set ret [Send $com "sync\r" $gaSet(linuxPrompt)]  
     if {$ret!=0} {
       set gaSet(fail) "Sync after Eeprom Set fail"
       return $ret
@@ -909,10 +914,10 @@ proc IDPerf {mode} {
   set ret [Login2Linux]
   if {$ret!=0} {return $ret}
   set ret [Send $com "\r" "/\]\#"] 
-  set ret [Send $com "cat /USERFS/eeprom/MAC_ADDRESS\r" "/\]\#"]  
+  set ret [Send $com "cat /USERFS/eeprom/MAC_ADDRESS\r" $gaSet(linuxPrompt)]  
   if {$ret!=0} {return $ret}
   if {[string match {*command not found*} $buffer]} {
-    set ret [Send $com "cat /USERFS/eeprom/MAC_ADDRESS\r" "/\]\#"]  
+    set ret [Send $com "cat /USERFS/eeprom/MAC_ADDRESS\r" $gaSet(linuxPrompt)]  
     if {$ret!=0} {return $ret}
   }
   set macLink ""  
@@ -1110,7 +1115,7 @@ proc CellularModemCloseGpio {} {
 #   if {$ret!=0} {return $ret}
 #   set ret [Login2Linux]
 #   if {$ret!=0} {return $ret}
-  set ret [Send $com "echo \"0\" > /sys/class/gpio/gpio500/value\r" "\]#"]
+  set ret [Send $com "echo \"0\" > /sys/class/gpio/gpio500/value\r" $gaSet(linuxPrompt)]
   return $ret
 }
 
@@ -1167,7 +1172,7 @@ proc SerialPortsPerf {} {
     set comSer1 $gaSet(comSer1)
   }
   
-  set ret [Send $com "\r\r" "\]#" 1]
+  set ret [Send $com "\r\r" $gaSet(linuxPrompt) 1]
   if {$ret!=0} {
     set ret [Login]
     if {$ret!=0} {return $ret}
@@ -2381,48 +2386,48 @@ proc DataTransmissionSetup {} {
   set gaSet(fail) "Configuratin for DATA fail"
   
   for {set i 1} {$i <= 5} {incr i} {
-    set ret [Send $com "\r" "\]#" 2]
+    set ret [Send $com "\r" $gaSet(linuxPrompt) 2]
     if {$ret==0} {break}
   }
   if {$ret!=0} {return $ret}
-  set ret [Send $com "brctl addbr br0\r" "\]#"]
+  set ret [Send $com "brctl addbr br0\r" $gaSet(linuxPrompt)]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "brctl addif br0 wan1\r" "\]#"]
+  set ret [Send $com "brctl addif br0 wan1\r" $gaSet(linuxPrompt)]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "brctl addif br0 wan2\r" "\]#"]
+  set ret [Send $com "brctl addif br0 wan2\r" $gaSet(linuxPrompt)]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "ifconfig wan1 up\r" "\]#"]
+  set ret [Send $com "ifconfig wan1 up\r" $gaSet(linuxPrompt)]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "ifconfig wan2 up\r" "\]#"]
+  set ret [Send $com "ifconfig wan2 up\r" $gaSet(linuxPrompt)]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "ifconfig br0 up\r" "\]#"]
+  set ret [Send $com "ifconfig br0 up\r" $gaSet(linuxPrompt)]
   if {$ret!=0} {return $ret}
   
 
 
-  set ret [Send $com "brctl addbr br1\r" "\]#"]
+  set ret [Send $com "brctl addbr br1\r" $gaSet(linuxPrompt)]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "brctl addif br1 lan0\r" "\]#"]
+  set ret [Send $com "brctl addif br1 lan0\r" $gaSet(linuxPrompt)]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "brctl addif br1 lan1\r" "\]#"]
+  set ret [Send $com "brctl addif br1 lan1\r" $gaSet(linuxPrompt)]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "ifconfig lan0 up\r" "\]#"]
+  set ret [Send $com "ifconfig lan0 up\r" $gaSet(linuxPrompt)]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "ifconfig lan1 up\r" "\]#"]
+  set ret [Send $com "ifconfig lan1 up\r" $gaSet(linuxPrompt)]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "ifconfig br1 up\r" "\]#"]
+  set ret [Send $com "ifconfig br1 up\r" $gaSet(linuxPrompt)]
 
-  set ret [Send $com "brctl addbr br2\r" "\]#"]
+  set ret [Send $com "brctl addbr br2\r" $gaSet(linuxPrompt)]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "brctl addif br2 lan3\r" "\]#"]
+  set ret [Send $com "brctl addif br2 lan3\r" $gaSet(linuxPrompt)]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "brctl addif br2 lan2\r" "\]#"]
+  set ret [Send $com "brctl addif br2 lan2\r" $gaSet(linuxPrompt)]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "ifconfig lan2 up\r" "\]#"]
+  set ret [Send $com "ifconfig lan2 up\r" $gaSet(linuxPrompt)]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "ifconfig lan3 up\r" "\]#"]
+  set ret [Send $com "ifconfig lan3 up\r" $gaSet(linuxPrompt)]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "ifconfig br2 up\r" "\]#"]
+  set ret [Send $com "ifconfig br2 up\r" $gaSet(linuxPrompt)]
   if {$ret!=0} {return $ret}
 
   return $ret
@@ -2545,7 +2550,7 @@ proc LinuxLedsPerf {} {
   global gaSet buffer
   set com $gaSet(comDut)
   
-  set ret [Send $com "\r\r" "\]#" 1]
+  set ret [Send $com "\r\r" $gaSet(linuxPrompt) 1]
   if {$ret!=0} {
     set ret [Login]
     if {$ret!=0} {return $ret}
@@ -2635,7 +2640,7 @@ proc LinuxLedsPerf {} {
     all OFF -> 1 and 3 -> 2 and 4 -> all ON -> all OFF"
     while 1 {
     
-      set ret [Send $com "\r\r" "\]#" 1]
+      set ret [Send $com "\r\r" $gaSet(linuxPrompt) 1]
       if {$ret!=0} {
         set ret [Login]
         if {$ret!=0} {return $ret}
@@ -2645,15 +2650,15 @@ proc LinuxLedsPerf {} {
       RLSound::Play information
       set res [DialogBox -title "CellBar Test" -type "OK" -message $txt -icon images/info]
       
-      Send $com "./lte_ledtest.sh 0\r" "\]#" 
+      Send $com "./lte_ledtest.sh 0\r" $gaSet(linuxPrompt) 
       after 250
-      Send $com "./lte_ledtest.sh 5\r" "\]#" 
+      Send $com "./lte_ledtest.sh 5\r" $gaSet(linuxPrompt) 
       after 250
-      Send $com "./lte_ledtest.sh 10\r" "\]#" 
+      Send $com "./lte_ledtest.sh 10\r" $gaSet(linuxPrompt) 
       after 250
-      Send $com "./lte_ledtest.sh 15\r" "\]#" 
+      Send $com "./lte_ledtest.sh 15\r" $gaSet(linuxPrompt)
       after 250
-      Send $com "./lte_ledtest.sh 0\r" "\]#"
+      Send $com "./lte_ledtest.sh 0\r" $gaSet(linuxPrompt)
       
       RLSound::Play information
       set res [DialogBox -title "LTE Led Bar Test" -type "Yes No Repeat" \
@@ -2688,7 +2693,7 @@ proc Config4CellBar {} {
       }
     }
   close $id
-  set ret [Send $com "\4\r" "\]#"]
+  set ret [Send $com "\4\r" $gaSet(linuxPrompt)]
   if {$ret!=0} {return $ret}
   
   
@@ -2701,11 +2706,11 @@ proc Config4CellBar {} {
       }
     }
   close $id
-  set ret [Send $com "\4\r" "\]#"]
+  set ret [Send $com "\4\r" $gaSet(linuxPrompt)]
   if {$ret!=0} {return $ret}
    
-  Send $com "chmod 777 lte_ledtest.sh\r" "\]#"  
-  Send $com "chmod 777 lte_ledbar_test.sh\r" "\]#"  
+  Send $com "chmod 777 lte_ledtest.sh\r" $gaSet(linuxPrompt)  
+  Send $com "chmod 777 lte_ledbar_test.sh\r" $gaSet(linuxPrompt)
   
   #Send $com "./lte_ledbar_test.sh\r" "\]#" 
   return $ret
@@ -2726,7 +2731,7 @@ proc Login2Boot {} {
   Send $com "\r" stam 0.25
   append gaSet(loginBuffer) "$buffer"
   
-  if {[string match *\]#* $buffer]} {
+  if {[string match *#* $buffer]} {
     set ret 0
   }
   
@@ -4393,7 +4398,7 @@ proc CellularModemPerf_RadOS_Sim12_Dual {actLte l4} {
     for {set i 1} {$i<=5} {incr i} {
       puts "Ping $i"  
       set gaSet(fail) "Send ping to 8.8.8.8 from wwan0 fail"     
-      set ret [Send $com "ping 8.8.8.8 -I wwan0 -c 5\r" "\]#" 25]
+      set ret [Send $com "ping 8.8.8.8 -I wwan0 -c 5\r" $gaSet(linuxPrompt) 25]
       if {$ret!=0} {return -1}
       set ret -1  
       if {[string match {*5 packets transmitted, 5 received, 0% packet loss*} $buffer]} {
@@ -4935,35 +4940,35 @@ proc CellularModemPerf {slot l4} {
   if {$ret!=0} {return $ret}
   
   set gaSet(fail) "Configuration modem of SIM-$slot fail" 
-  set ret [Send $com "echo \"0\" > /sys/class/gpio/gpio500/value\r" "\]#"]
+  set ret [Send $com "echo \"0\" > /sys/class/gpio/gpio500/value\r" $gaSet(linuxPrompt)]
   if {$ret!=0} {return -1}
   after 2000
 #   set ret [Send $com "echo \"487\" > /sys/class/gpio/export\r" "\]#"]
 #   if {$ret!=0} {return -1}
-  set ret [Send $com "echo \"out\" > /sys/class/gpio/gpio487/direction\r" "\]#"]
+  set ret [Send $com "echo \"out\" > /sys/class/gpio/gpio487/direction\r" $gaSet(linuxPrompt)]
   if {$ret!=0} {return -1}
 #   set ret [Send $com "echo \"500\" > /sys/class/gpio/export\r" "\]#"]
 #   if {$ret!=0} {return -1}
-  set ret [Send $com "echo \"out\" > /sys/class/gpio/gpio500/direction\r" "\]#"]
+  set ret [Send $com "echo \"out\" > /sys/class/gpio/gpio500/direction\r" $gaSet(linuxPrompt)]
   if {$ret!=0} {return -1}
   
   set w 5; Wait "Wait $w seconds for GPIO init" $w
   
-  set ret [Send $com "echo \"1\" > /sys/class/gpio/gpio500/value\r" "\]#"]
+  set ret [Send $com "echo \"1\" > /sys/class/gpio/gpio500/value\r" $gaSet(linuxPrompt)]
   if {$ret!=0} {return -1}
   
   set w 10; Wait "Wait $w seconds for modem OFF" $w
   
-  set ret [Send $com "echo \"0\" > /sys/class/gpio/gpio500/value\r" "\]#"]
+  set ret [Send $com "echo \"0\" > /sys/class/gpio/gpio500/value\r" $gaSet(linuxPrompt)]
   if {$ret!=0} {return -1}
   
   if {$slot==1} {
-    set ret [Send $com "echo \"1\" > /sys/class/gpio/gpio487/value\r" "\]#"]
+    set ret [Send $com "echo \"1\" > /sys/class/gpio/gpio487/value\r" $gaSet(linuxPrompt)]
   } elseif {$slot==2} {
-    set ret [Send $com "echo \"0\" > /sys/class/gpio/gpio487/value\r" "\]#"]
+    set ret [Send $com "echo \"0\" > /sys/class/gpio/gpio487/value\r" $gaSet(linuxPrompt)]
   }
   if {$ret!=0} {return -1}
-  set ret [Send $com "echo \"1\" > /sys/class/gpio/gpio500/value\r" "\]#"]
+  set ret [Send $com "echo \"1\" > /sys/class/gpio/gpio500/value\r" $gaSet(linuxPrompt)]
   if {$ret!=0} {return -1}
   
   set w 10; Wait "Wait $w seconds for modem ON" $w
@@ -5064,7 +5069,7 @@ proc CellularModemPerf {slot l4} {
     for {set i 1} {$i<=5} {incr i} {
       puts "Ping $i"  
       set gaSet(fail) "Send ping to 8.8.8.8 from SIM-$slot fail"     
-      set ret [Send $com "ping 8.8.8.8 -c 5\r" "\]#" 15]
+      set ret [Send $com "ping 8.8.8.8 -c 5\r" $gaSet(linuxPrompt) 15]
       if {$ret!=0} {return -1}
       set ret -1  
       if {[string match {*5 packets transmitted, 5 received, 0% packet loss*} $buffer]} {

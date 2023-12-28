@@ -1306,11 +1306,11 @@ proc GetMac {qty} {
   set ret [Login2Linux]
   if {$ret!=0} {return $ret}
   set com $gaSet(comDut)
-  set ret [Send $com "\r" "/\]\#"]  
-  set ret [Send $com "cat /USERFS/eeprom/MAC_ADDRESS\r" "/\]\#"]  
+  set ret [Send $com "\r" $gaSet(linuxPrompt)]  
+  set ret [Send $com "cat /USERFS/eeprom/MAC_ADDRESS\r" $gaSet(linuxPrompt)]  
   if {$ret!=0} {return $ret}
   if {[string match {*command not found*} $buffer]} {
-    set ret [Send $com "cat /USERFS/eeprom/MAC_ADDRESS\r" "/\]\#"]  
+    set ret [Send $com "cat /USERFS/eeprom/MAC_ADDRESS\r" $gaSet(linuxPrompt)]  
     if {$ret!=0} {return $ret}
   }
   set res [regexp {ADDRESS\s+([0-9A-F\:]+) } $buffer ma macLink]
