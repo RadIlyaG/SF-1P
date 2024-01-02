@@ -599,7 +599,7 @@ proc DryContactAlarmcheck {mode} {
   puts "\n[MyTime] DryContactAlarmcheck $mode"; update
   set com $gaSet(comDut)
   
-  set ret [Send $com "\r\r" $gaSet(linuxPrompt) 1]
+  set ret ret ; #[Send $com "\r\r" $gaSet(linuxPrompt) 1]
   if {$ret!=0} {
     set ret [Login]
     if {$ret!=0} {return $ret}
@@ -1172,7 +1172,7 @@ proc SerialPortsPerf {} {
     set comSer1 $gaSet(comSer1)
   }
   
-  set ret [Send $com "\r\r" $gaSet(linuxPrompt) 1]
+  set ret ret ; #[Send $com "\r\r" $gaSet(linuxPrompt) 1]
   if {$ret!=0} {
     set ret [Login]
     if {$ret!=0} {return $ret}
@@ -2550,7 +2550,7 @@ proc LinuxLedsPerf {} {
   global gaSet buffer
   set com $gaSet(comDut)
   
-  set ret [Send $com "\r\r" $gaSet(linuxPrompt) 1]
+  set ret ret ; # [Send $com "\r\r" $gaSet(linuxPrompt) 1]
   if {$ret!=0} {
     set ret [Login]
     if {$ret!=0} {return $ret}
