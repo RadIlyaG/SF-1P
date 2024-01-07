@@ -18,7 +18,7 @@ switch -exact -- $gaSet(pair) {
       set gaSet(comGen2)    2; #2
       set gaSet(comDut) [set gaSet(comSer2) 5]
       set gaSet(comSer1)    1; #1
-      set gaSet(comSer485)  13; #9  
+      set gaSet(comSer485)  14; #13; #9  
       console eval {wm geometry . +150+200}
       console eval {wm title . "Con 2"} 
       set gaSet(pioBoxSerNum) FT1MSB37  
