@@ -57,7 +57,7 @@ if 1 {
     if {[string match *ilya-g* [info host]]} {
         set emailL [list]
       } else {
-        set emailL {meir_kas@rad.com}
+        set emailL {meir_ka@rad.com}
       }  
   } else {
     set emailL [list]
