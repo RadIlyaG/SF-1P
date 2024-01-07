@@ -5175,7 +5175,7 @@ proc CheckSimOut {} {
     }  
    
   } elseif {$cellQty==2} {
-    set [CellularLte_RadOS_Sim12_Dual]
+    set ret [CellularLte_RadOS_Sim12_Dual]
     if {$ret!=0} {return $ret}
     foreach mdm {1 2} {
       Status "Read Cellular parameters of modem-$mdm"
