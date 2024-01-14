@@ -822,6 +822,8 @@ proc RetriveDutFam {{dutInitName ""}} {
     set gaSet(dutFam.serPort) 1RS
 	} elseif {[string match *\.2RMI\.* $dutInitName]} {
     set gaSet(dutFam.serPort) 2RMI
+  } elseif {[string match *\.2RSI\.* $dutInitName]} {
+    set gaSet(dutFam.serPort) 2RSI
   } else {
     set gaSet(dutFam.serPort) 0
   }

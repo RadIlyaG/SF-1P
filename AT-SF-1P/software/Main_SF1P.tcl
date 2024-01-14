@@ -875,6 +875,8 @@ proc HL_Security {run} {
   global gaSet
   set gaSet(fail) "No Test Instruction"
   return -1
+  set ret [HL_SecurityPerf]
+  return $ret
 }
 # ***************************************************************************
 # HL_WiFi

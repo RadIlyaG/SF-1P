@@ -1234,7 +1234,7 @@ proc SerialPortsPerf {} {
 # ***************************************************************************
 proc SerialCloseBackGrPr {ser mode} {
   global gaSet buffer
-  if {$ser==2 && $gaSet(dutFam.serPort)=="2RS"} {
+  if {$ser==2 && ($gaSet(dutFam.serPort)=="2RS" ||  $gaSet(dutFam.serPort)=="2RSI")} {
     set ser 2
   } elseif {$ser==2 && $gaSet(dutFam.serPort)=="2RSM"} {
     set ser 485
@@ -4159,10 +4159,10 @@ proc CellularLte_RadOS_Sim12_Dual {} {
   if {$ret!=0} {return $ret}
   set ret [Send $com "apn-name \"statreal\"\r" "(1)"]
   if {$ret!=0} {return $ret}
-  if $L4 {
+  #if $L4 {}
     set ret [Send $com "pdp-type relayed-ppp\r" "(2)"]
     if {$ret!=0} {return $ret}
-  }
+  #{}
   set ret [Send $com "exit\r" "lte-2"]
   if {$ret!=0} {return $ret}
   set ret [Send $com "no shutdown\r" "lte-2"]
@@ -5239,6 +5239,35 @@ proc CheckSimOut {} {
   }
   Send $com "exit all\r" "-1p"
   puts ""
-  return $ret
+  return $ret 
+}
+
+# ***************************************************************************
+# HL_SecurityPerf
+# ***************************************************************************
+proc HL_SecurityPerf {} {
+  global buffer gaSet
+  puts "\n[MyTime] HL_SecurityPerf "; update
+  set com $gaSet(comDut)
   
+  set ret [Login]
+  if {$ret!=0} {return $ret}
+  set ret [Login2Linux]
+  if {$ret!=0} {return $ret}    
+  
+  set ret -1
+  set gaSet(fail) "Load Docker fail"
+  Send $com "cd /USERFS/docker/internal\r" stam 1
+  Send $com "commend\r" stam 1
+  Send $com "docker load -i gateway-mfr-rs.tar\r" stam 1
+  
+  set gaSet(fail) "HL_Security provision fail"
+  Send $com "docker run --rm -it --privileged gateway-mfr-rs:latest /gateway_mfr \
+  --device ecc://i2c-5:0xc0?slot=0 provision\r" stam 1
+  
+  set gaSet(fail) "HL_Security info fail"
+  Send $com "docker run --rm -it --privileged gateway-mfr-rs:latest /gateway_mfr \
+  --device ecc://i2c-5:0xc0?slot=0 info\r" stam 1
+  
+  return $ret
 }
