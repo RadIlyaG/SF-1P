@@ -59,6 +59,7 @@ proc BuildTests {} {
   
   if [string match *.HL.*  $gaSet(DutInitName)] {
     lappend lTestNames HL_Security
+    lappend lTestNames HL_WiFi
   }
   
   if {[package vcompare $gaSet(SWver) "5.0.1.229.5"] == "0"} {
@@ -79,14 +80,19 @@ proc BuildTests {} {
   } else {
     if {[string index $gaSet(dutFam.cell) 0]=="1"} {
       if {[string index $gaSet(dutFam.cell) 2]=="4"} {
+        # single L4
         lappend lTestNames CellularModem_SIM1 CellularModem_SIM2 ; #CellularModemL4_RadOS
       } else {
+        # single not L4
         lappend lTestNames CellularModem_SIM1 CellularModem_SIM2
       } 
     } elseif {[string index $gaSet(dutFam.cell) 0]=="2"} {
       if {[string index $gaSet(dutFam.cell) 2]=="4"} {
-        lappend lTestNames CellularDualModemL4_RadOS
+        # double L4
+        # 08:55 14/01/2024 lappend lTestNames CellularDualModemL4_RadOS
+        lappend lTestNames CellularModem_SIM1 CellularModem_SIM2
       } else {
+        # double not L4
         lappend lTestNames CellularModem_SIM1 CellularModem_SIM2 ; #CellularDualModem_RadOS
       }
     }
@@ -819,8 +825,8 @@ proc CellularModem_SIM2 {run} {
     } elseif {[string index $gaSet(dutFam.cell) 0]=="2"} {
     
       ## 07:15 14/12/2023
-      set gaSet(fail) "Bad FTI for this option" 
-      return -1
+      ## 08:51 14/01/2024 set gaSet(fail) "Bad FTI for this option" 
+      ## 08:51 14/01/2024 return -1
       
       set ret [CellularLte_RadOS_Sim12_Dual] 
       if {$ret!=0} {return -1}
@@ -866,6 +872,14 @@ proc CellularModem {run} {
 # HL_Security
 # ***************************************************************************
 proc HL_Security {run} {
+  global gaSet
+  set gaSet(fail) "No Test Instruction"
+  return -1
+}
+# ***************************************************************************
+# HL_WiFi
+# ***************************************************************************
+proc HL_WiFi {run} {
   global gaSet
   set gaSet(fail) "No Test Instruction"
   return -1

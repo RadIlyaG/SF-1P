@@ -4395,17 +4395,20 @@ proc CellularModemPerf_RadOS_Sim12_Dual {actLte l4} {
     set ret [Login2Linux]
     if {$ret!=0} {return $ret}
     set w 5; Wait "Wait $w seconds for Network" $w
-    for {set i 1} {$i<=5} {incr i} {
-      puts "Ping $i"  
-      set gaSet(fail) "Send ping to 8.8.8.8 from wwan0 fail"     
-      set ret [Send $com "ping 8.8.8.8 -I wwan0 -c 5\r" $gaSet(linuxPrompt) 25]
-      if {$ret!=0} {return -1}
-      set ret -1  
-      if {[string match {*5 packets transmitted, 5 received, 0% packet loss*} $buffer]} {
-        set ret 0
-        break
-      } else {
-        set gaSet(fail) "Ping to 8.8.8.8 from wwan0 fail" 
+    foreach wwan {wwan0 wwan1} {
+      for {set i 1} {$i<=5} {incr i} {
+        puts "Ping $i"  
+        set gaSet(fail) "Send ping to 8.8.8.8 from $wwan fail"     
+        set ret [Send $com "ping 8.8.8.8 -I $wwan -c 5\r" $gaSet(linuxPrompt) 25]
+        if {$ret!=0} {return -1}
+        set ret -1  
+        if {[string match {*5 packets transmitted, 5 received, 0% packet loss*} $buffer]} {
+          set ret 0
+          break
+        } else {
+          set gaSet(fail) "Ping to 8.8.8.8 from $wwan fail"
+          return -1          
+        }
       }
     }
   }
