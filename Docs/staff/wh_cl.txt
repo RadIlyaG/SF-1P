@@ -1,0 +1,46 @@
+configure router 1   (1)
+interface 10         (10)
+bind wifi-client     (10)
+address 192.168.172.30/24 (10)
+no shutdown          (10)
+exit              (1)
+static-route 0.0.0.0/ address 192.168.172.250 (1)
+exit              (config)
+port wifi-client  (client)
+ssid "HalowAP"    (HaloAP)
+security none     (HaloAP)
+no shutdown       (HaloAP)
+exit              (client)
+no shutdown       (client)
+
+exit all          (-1p#)
+config port wifi-client (client)
+show status (client)
+Client Status
+-----------------------------------------------------------------------------
+Admin Status       : Enabled
+Operational Status : Connected
+Last Change        : 20 March 2023 14:34:50
+Bound To           : router-interface 1/10
+IP Address         : 192.168.172.30/24
+MAC Address        : 1C-BC-EC-0A-65-6D
+
+Connected SSID                   : HalowAP
+Security                         : None
+Strength (dBm)                   : -12
+Channel                          : 161
+MAC Address                      : 1E-BC-EC-0A-65-70
+Line Speed (megabits per second) : 6
+
+
+ping 192.168.172.250 (client)
+Reply from 192.168.172.250: bytes = 32, packet number = 0, time <= 53 ms
+Reply from 192.168.172.250: bytes = 32, packet number = 1, time <= 19 ms
+Reply from 192.168.172.250: bytes = 32, packet number = 2, time <= 20 ms
+Reply from 192.168.172.250: bytes = 32, packet number = 3, time <= 20 ms
+Reply from 192.168.172.250: bytes = 32, packet number = 4, time <= 24 ms
+5 packets transmitted. 5 packets received, 0% packet loss
+round-trip (ms) min/avg/max = 19/27/53
+
+
+shutdown        (client)

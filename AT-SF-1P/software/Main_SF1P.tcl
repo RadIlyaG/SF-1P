@@ -78,24 +78,27 @@ proc BuildTests {} {
       }
     }
   } else {
-    if {[string index $gaSet(dutFam.cell) 0]=="1"} {
-      if {[string index $gaSet(dutFam.cell) 2]=="4"} {
-        # single L4
-        lappend lTestNames CellularModem_SIM1 CellularModem_SIM2 ; #CellularModemL4_RadOS
-      } else {
-        # single not L4
-        lappend lTestNames CellularModem_SIM1 CellularModem_SIM2
-      } 
-    } elseif {[string index $gaSet(dutFam.cell) 0]=="2"} {
-      if {[string index $gaSet(dutFam.cell) 2]=="4"} {
-        # double L4
-        # 08:55 14/01/2024 lappend lTestNames CellularDualModemL4_RadOS
-        lappend lTestNames CellularModem_SIM1 CellularModem_SIM2
-      } else {
-        # double not L4
-        lappend lTestNames CellularModem_SIM1 CellularModem_SIM2 ; #CellularDualModem_RadOS
-      }
-    }
+    lappend lTestNames CellularModem_SIM1 CellularModem_SIM2
+    
+    ## 08:33 15/01/2024
+    # if {[string index $gaSet(dutFam.cell) 0]=="1"} {
+      # if {[string index $gaSet(dutFam.cell) 2]=="4"} {
+        # # single L4
+        # lappend lTestNames CellularModem_SIM1 CellularModem_SIM2 ; #CellularModemL4_RadOS
+      # } else {
+        # # single not L4
+        # lappend lTestNames CellularModem_SIM1 CellularModem_SIM2
+      # } 
+    # } elseif {[string index $gaSet(dutFam.cell) 0]=="2"} {
+      # if {[string index $gaSet(dutFam.cell) 2]=="4"} {
+        # # double L4
+        # # 08:55 14/01/2024 lappend lTestNames CellularDualModemL4_RadOS
+        # lappend lTestNames CellularModem_SIM1 CellularModem_SIM2
+      # } else {
+        # # double not L4
+        # lappend lTestNames CellularModem_SIM1 CellularModem_SIM2 ; #CellularDualModem_RadOS
+      # }
+    # }
   }
   
   lappend lTestNames DataTransmissionConf DataTransmission
@@ -795,11 +798,11 @@ proc CellularModem_SIM1 {run} {
     if {[string index $gaSet(dutFam.cell) 0]=="1"} {
       set ret [CellularLte_RadOS_Sim12]
       if {$ret!=0} {return -1}
-      set ret [CellularModemPerf_RadOS_Sim12 1 2 notL4] 
+      set ret [CellularModemPerf_RadOS_Sim12 1 2] 
     } elseif {[string index $gaSet(dutFam.cell) 0]=="2"} {
       set ret [CellularLte_RadOS_Sim12_Dual] 
       if {$ret!=0} {return -1}
-      set ret [CellularModemPerf_RadOS_Sim12_Dual 1 notL4]
+      set ret [CellularModemPerf_RadOS_Sim12_Dual 1]
     }   
   }  
   return $ret
@@ -821,7 +824,7 @@ proc CellularModem_SIM2 {run} {
     if {[string index $gaSet(dutFam.cell) 0]=="1"} {
       set ret [CellularLte_RadOS_Sim12]
       if {$ret!=0} {return -1}
-      set ret [CellularModemPerf_RadOS_Sim12 2 1 notL4] 
+      set ret [CellularModemPerf_RadOS_Sim12 2 1] 
     } elseif {[string index $gaSet(dutFam.cell) 0]=="2"} {
     
       ## 07:15 14/12/2023
@@ -830,7 +833,7 @@ proc CellularModem_SIM2 {run} {
       
       set ret [CellularLte_RadOS_Sim12_Dual] 
       if {$ret!=0} {return -1}
-      set ret [CellularModemPerf_RadOS_Sim12_Dual 2 notL4] 
+      set ret [CellularModemPerf_RadOS_Sim12_Dual 2] 
     }
   }
   return $ret
@@ -883,6 +886,8 @@ proc HL_Security {run} {
 # ***************************************************************************
 proc HL_WiFi {run} {
   global gaSet
-  set gaSet(fail) "No Test Instruction"
-  return -1
+  #set gaSet(fail) "No Test Instruction"
+  #return -1
+  set ret [HL_WiFiPerf]
+  return $ret
 }
