@@ -4142,10 +4142,10 @@ proc CellularLte_RadOS_Sim12_Dual {} {
   if {$ret!=0} {return $ret}
   set ret [Send $com "apn-name \"statreal\"\r" "(1)"]
   if {$ret!=0} {return $ret}
-  if $L4 {
-    set ret [Send $com "pdp-type relayed-ppp\r" "(1)"]
-    if {$ret!=0} {return $ret}
-  }
+  # if $L4 {
+    # set ret [Send $com "pdp-type relayed-ppp\r" "(1)"]
+    # if {$ret!=0} {return $ret}
+  # }
   set ret [Send $com "exit\r" "lte-1"]
   if {$ret!=0} {return $ret}
   set ret [Send $com "no shutdown\r" "lte-1"]
@@ -4180,9 +4180,18 @@ proc CellularLte_RadOS_Sim12_Dual {} {
   if {$ret!=0} {return $ret}
   set ret [Send $com "bind cellular lte-1\r" "(1)"]
   if {$ret!=0} {return $ret}
-  if $L4 {
-    set ret [Send $com "no shutdown\r" "(1)"]
-  } elseif !$L4 {
+  # if $L4 {
+    # set ret [Send $com "no shutdown\r" "(1)"]
+  # } elseif !$L4 {
+    # set ret [Send $com "dhcp\r" "(1)"]
+    # if {$ret!=0} {return $ret}
+    # set ret [Send $com "dhcp-client\r" "(1)"]
+    # if {$ret!=0} {return $ret}
+    # set ret [Send $com "client-id mac\r" "(1)"]
+    # if {$ret!=0} {return $ret}
+    # set ret [Send $com "exit\r" "-1p"]
+    # set ret [Send $com "no shutdown\r" "-1p"]
+  # }
     set ret [Send $com "dhcp\r" "(1)"]
     if {$ret!=0} {return $ret}
     set ret [Send $com "dhcp-client\r" "(1)"]
@@ -4191,7 +4200,6 @@ proc CellularLte_RadOS_Sim12_Dual {} {
     if {$ret!=0} {return $ret}
     set ret [Send $com "exit\r" "-1p"]
     set ret [Send $com "no shutdown\r" "-1p"]
-  }
   set ret [Send $com "exit\r" "(1)"]
   if {$ret!=0} {return $ret}
   
@@ -4201,9 +4209,18 @@ proc CellularLte_RadOS_Sim12_Dual {} {
   if {$ret!=0} {return $ret}
   set ret [Send $com "bind cellular lte-2\r" "(2)"]
   if {$ret!=0} {return $ret}
-  if $L4 {
-    set ret [Send $com "no shutdown\r" "(1)"]
-  } elseif !$L4 {
+  # if $L4 {
+    # set ret [Send $com "no shutdown\r" "(1)"]
+  # } elseif !$L4 {
+    # set ret [Send $com "dhcp\r" "(2)"]
+    # if {$ret!=0} {return $ret}
+    # set ret [Send $com "dhcp-client\r" "(2)"]
+    # if {$ret!=0} {return $ret}
+    # set ret [Send $com "client-id mac\r" "(2)"]
+    # if {$ret!=0} {return $ret}
+    # set ret [Send $com "exit\r" "-1p"]
+    # set ret [Send $com "no shutdown\r" "-1p"]
+  # }
     set ret [Send $com "dhcp\r" "(2)"]
     if {$ret!=0} {return $ret}
     set ret [Send $com "dhcp-client\r" "(2)"]
@@ -4212,7 +4229,6 @@ proc CellularLte_RadOS_Sim12_Dual {} {
     if {$ret!=0} {return $ret}
     set ret [Send $com "exit\r" "-1p"]
     set ret [Send $com "no shutdown\r" "-1p"]
-  }
   
   if {$ret!=0} {return $ret}
   set ret [Send $com "exit all\r" "-1p"]
@@ -5338,6 +5354,8 @@ proc Halow_WiFiPerf {} {
   } else {
     set ret 0
   }
+  
+  ## shutdown to wifi-client for release the REF unit's MAC table
   Send $com "shutdown\r" client
   
   return $ret
