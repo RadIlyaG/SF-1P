@@ -59,7 +59,9 @@ proc BuildTests {} {
   
   if [string match *.HL.*  $gaSet(DutInitName)] {
     lappend lTestNames HL_Security
-    lappend lTestNames HL_WiFi
+  }
+  if [string match *.WH.*  $gaSet(DutInitName)] {
+    lappend lTestNames Halow_WiFi
   }
   
   if {[package vcompare $gaSet(SWver) "5.0.1.229.5"] == "0"} {
@@ -876,18 +878,20 @@ proc CellularModem {run} {
 # ***************************************************************************
 proc HL_Security {run} {
   global gaSet
+  set ::sendSlow 0
   set gaSet(fail) "No Test Instruction"
   return -1
   set ret [HL_SecurityPerf]
   return $ret
 }
 # ***************************************************************************
-# HL_WiFi
+# Halow_WiFi
 # ***************************************************************************
-proc HL_WiFi {run} {
+proc Halow_WiFi {run} {
   global gaSet
+  set ::sendSlow 0
   #set gaSet(fail) "No Test Instruction"
   #return -1
-  set ret [HL_WiFiPerf]
+  set ret [Halow_WiFiPerf]
   return $ret
 }

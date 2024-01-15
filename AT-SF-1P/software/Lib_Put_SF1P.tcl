@@ -5258,7 +5258,7 @@ proc HL_SecurityPerf {} {
   set ret -1
   set gaSet(fail) "Load Docker fail"
   Send $com "cd /USERFS/docker/internal\r" stam 1
-  Send $com "commend\r" stam 1
+  #Send $com "commend\r" stam 1
   Send $com "docker load -i gateway-mfr-rs.tar\r" stam 1
   
   set gaSet(fail) "HL_Security provision fail"
@@ -5272,17 +5272,17 @@ proc HL_SecurityPerf {} {
   return $ret
 }
 # ***************************************************************************
-# HL_WiFiPerf
+# Halow_WiFiPerf
 # ***************************************************************************
-proc HL_WiFiPerf {} {
+proc Halow_WiFiPerf {} {
   global buffer gaSet
-  puts "\n[MyTime] HL_WiFiPerf "; update
+  puts "\n[MyTime] Halow_WiFiPerf "; update
   set com $gaSet(comDut)
   
   set ret [Login]
   if {$ret!=0} {return $ret}
   
-  set gaSet(fail) "Config HW_WiFi Client fail"
+  set gaSet(fail) "Config Halow_WiFi Client fail"
   set ret [Send $com "configure router 1\r" (1)]
   if {$ret!=0} {return $ret}
   set ret [Send $com "interface 10\r"  (10)]
@@ -5306,19 +5306,19 @@ proc HL_WiFiPerf {} {
   if {$ret!=0} {return $ret}
   set ret [Send $com "port wifi-client\r" client]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "ssid \"HalowAP\"\r" HaloAP]
+  set ret [Send $com "ssid \"HalowAP\"\r" HalowAP]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "security none\r" HaloAP]
+  set ret [Send $com "security none\r" HalowAP]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "no shutdown\r" HaloAP]
+  set ret [Send $com "no shutdown\r" HalowAP]
   if {$ret!=0} {return $ret}
   set ret [Send $com "exit\r" client]
   if {$ret!=0} {return $ret}
   set ret [Send $com "no shutdown\r" client]
   if {$ret!=0} {return $ret}
   
-  set ret [HL_WiFi_ShowStatus]
-  puts "\n ret of HL_WiFi_ShowStatus: <$ret>"
+  set ret [Halow_WiFi_ShowStatus]
+  puts "\n ret of Halow_WiFi_ShowStatus: <$ret>"
   if {$ret!=0} {return $ret}
   
   set ret [Send $com "ping 192.168.172.250\r" client 20]
@@ -5326,7 +5326,7 @@ proc HL_WiFiPerf {} {
     set gaSet(fail) "Send ping to 192.168.172.250 fail"
     return $ret
   }
-  set res [regexp "(\d) packets transmitted. (\d) packets received, (\d)% packet loss" $buffer ma tp rp pl]
+  set res [regexp {(\d) packets transmitted. (\d) packets received, (\d)% packet loss} $buffer ma tp rp pl]
   if {$res==0} {
     set gaSet(fail) "Retrive ping results fail"
     return -1
@@ -5338,36 +5338,37 @@ proc HL_WiFiPerf {} {
   } else {
     set ret 0
   }
+  Send $com "shutdown\r" client
   
   return $ret
 }  
 # ***************************************************************************
-# HL_WiFi_ShowStatus
+# Halow_WiFi_ShowStatus
 # ***************************************************************************
-proc HL_WiFi_ShowStatus {} {
+proc Halow_WiFi_ShowStatus {} {
    global buffer gaSet
-  puts "\n[MyTime] HL_WiFi_ShowStatus "; update
+  puts "\n[MyTime] Halow_WiFi_ShowStatus "; update
   set com $gaSet(comDut)
   
-  set ret [Login]
-  if {$ret!=0} {return $ret}
+  #set ret [Login]
+  #if {$ret!=0} {return $ret}
   
   set gaSet(fail) "Show wifi-client status fail"
   for {set i 1} {$i<=10} {incr i} {
     if {$gaSet(act)==0} {return -2}
     Status "Show wifi-client status ($i)"
-    set ret [Send $com "exit all" -1p]
+    set ret [Send $com "exit all\r" -1p]
     if {$ret!=0} {return $ret}
-    set ret [Send $com "config port wifi-client" client]
+    set ret [Send $com "config port wifi-client\r" client]
     if {$ret!=0} {return $ret}
-    set ret [Send $com "show status" client]
+    set ret [Send $com "show status\r" client]
     if {$ret!=0} {return $ret}
-    set res [regexp "Admin Status[\s\:]+(\w+)\s" $buffer ma as]
+    set res [regexp {Admin Status[\s\:]+(\w+)\s} $buffer ma as]
     if {$res==0} {
       set gaSet(fail) "Read Admin Status fail"
       return -1
     }
-    set res [regexp "Operational Status[\s\:]+(\w+)\s" $buffer ma os]
+    set res [regexp {Operational Status[\s\:]+(\w+)\s} $buffer ma os]
     if {$res==0} {
       set gaSet(fail) "Read Operational Status fail"
       return -1
