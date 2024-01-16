@@ -1089,7 +1089,13 @@ proc IDPerf {mode} {
   # }
   
   if {$gaSet(manualMrktName)=="0"} {
-    set market_name [RetriveIdTraceData $gaSet(1.barcode1) MKTItem4Barcode]
+    set ret [RetriveIdTraceData $gaSet(1.barcode1) MKTItem4Barcode]
+    if {$ret!="-1"} {
+      set market_name [dict get $ret "MKT Item"]
+    } else {
+      set gaSet(fail) "Fail to get market_name for  $gaSet(1.barcode1)"
+      return -1 
+    }
   } else {
     set market_name $gaSet(manualMrktName)
   }

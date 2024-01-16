@@ -760,7 +760,7 @@ proc ButRun {} {
     #set ret [RetriveIdTraceData $IdBarcode CSLByBarcode]
     puts "ButRun CSLret:<$ret>"
     if {$ret!="-1"} {
-      set gaSet(csl) $ret
+      set gaSet(csl) [dict get $ret CSL]
       AddToPairLog $gaSet(pair) "CSL: $ret"
       set ret 0
     } else {
@@ -770,7 +770,7 @@ proc ButRun {} {
       set ret [RetriveIdTraceData $traceId PCBTraceabilityIDData]
       puts "ButRun PCBret:<$ret>"
       if {$ret!="-1"} {
-        set gaSet(mainPcbId) $ret
+        set gaSet(mainPcbId)  [dict get $ret pcb]
         AddToPairLog $gaSet(pair) "MainPcb: $ret"
         set  res [regexp {REV([\d\.]+)[A-Z]} $gaSet(mainPcbId)  ma gaSet(mainHW)]
         if {$res==1} {

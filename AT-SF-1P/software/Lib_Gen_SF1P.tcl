@@ -2297,10 +2297,10 @@ proc RetriveIdTraceData {args} {
   
   set command [lindex $args 1]
   switch -exact -- $command {
-    CSLByBarcode          {set barcode $barc  ; set traceabilityID null}
-    PCBTraceabilityIDData {set barcode null   ; set traceabilityID $barc}
-    MKTItem4Barcode       {set barcode $barc  ; set traceabilityID null}
-    OperationItem4Barcode {set barcode $barc  ; set traceabilityID null}
+    CSLByBarcode          {set barcode $barc  ; set traceabilityID null  ; set retPar "CSL"}
+    PCBTraceabilityIDData {set barcode null   ; set traceabilityID $barc ; set retPar "pcb"}
+    MKTItem4Barcode       {set barcode $barc  ; set traceabilityID null  ; set retPar "MKT Item"}
+    OperationItem4Barcode {set barcode $barc  ; set traceabilityID null  ; set retPar "item"}
     default {set gaSet(fail) "Wrong command: \'$command\'"; return -1}
   }
   set url "https://ws-proxy01.rad.com:8445/ATE_WS/ws/rest/"
@@ -2322,10 +2322,25 @@ proc RetriveIdTraceData {args} {
   set body $state(body)
   ::http::cleanup $tok
   
-  set re {[{}\[\]\,\t\:\"]}
-  set tt [regsub -all $re $body " "]
-  set ret [regsub -all {\s+}  $tt " "]
+  set asadict [::json::json2dict $body]
+  foreach {name whatis} $asadict {
+    foreach {par val} [lindex $whatis 0] {
+      puts "<$par> <$val>"
+      if {$val!="null"} {
+        dict set di $par $val
+      }  
+    }
+  }
+  if [info exist di] {
+    return $di ; #[dict get $di $retPar]
+  } else {
+    return -1
+  }
   
-  return [lindex $ret end]
+  # set re {[{}\[\]\,\t\:\"]}
+  # set tt [regsub -all $re $body " "]
+  # set ret [regsub -all {\s+}  $tt " "]
+  
+  # return [lindex $ret end]
 }
 
