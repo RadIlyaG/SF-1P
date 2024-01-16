@@ -5275,15 +5275,58 @@ proc HL_SecurityPerf {} {
   set gaSet(fail) "Load Docker fail"
   Send $com "cd /USERFS/docker/internal\r" stam 1
   #Send $com "commend\r" stam 1
-  Send $com "docker load -i gateway-mfr-rs.tar\r" stam 1
+  Send $com "docker load -i gateway-mfr-rs.tar\r" "Loaded image"
   
-  set gaSet(fail) "HL_Security provision fail"
-  Send $com "docker run --rm -it --privileged gateway-mfr-rs:latest /gateway_mfr \
-  --device ecc://i2c-5:0xc0?slot=0 provision\r" stam 1
+  Send $com "docker run --rm -it --privileged gateway-mfr-rs:latest /gateway_mfr --device ecc://i2c-5:0xc0?slot=0 provision\r" stam 3
+  if [string match *Error* $buffer] {
+    set gaSet(fail) "Provision returns Error"
+    AddToPairLog $gaSet(pair) "Provision:<Error>"
+    #return -1
+  }
   
-  set gaSet(fail) "HL_Security info fail"
-  Send $com "docker run --rm -it --privileged gateway-mfr-rs:latest /gateway_mfr \
-  --device ecc://i2c-5:0xc0?slot=0 info\r" stam 1
+  Send $com "docker run --rm -it --privileged gateway-mfr-rs:latest /gateway_mfr --device ecc://i2c-5:0xc0?slot=0 info\r" internal
+  if [string match *Error* $buffer] {
+    set gaSet(fail) "Check INFO returns Error"
+    return -1
+  }
+  #set infSer [lindex $buffer [lsearch $buffer info]+1]
+  #set infSerLst [regsub -all \[:,\"\] $infSer ""]
+  #foreach {aa info bb serial} $infSerLst {}
+  #puts "info:<$info> serial:<$serial>"
+  #AddToPairLog $gaSet(pair) "info:<$info> serial:<$serial>"
+  
+  set body [lrange $buffer [lsearch $buffer info]+1 end-2]
+  set asadict [::json::json2dict $body]
+  foreach {par val} $asadict {
+    dict set di $par $val
+  }
+  set info [dict get $di info]
+  set serial [dict get $di serial]
+  puts "info:<$info> serial:<$serial>"
+  AddToPairLog $gaSet(pair) "info:<$info> serial:<$serial>"
+  
+  Send $com "docker run --rm -it --privileged gateway-mfr-rs:latest /gateway_mfr --device ecc://i2c-5:0xc0?slot=0 test\r" internal
+  if [string match *Error* $buffer] {
+    set gaSet(fail) "Check TEST returns Error"
+    return -1
+  }
+  set body [lrange $buffer [lsearch $buffer test]+1 end]
+  set asadict [::json::json2dict $body]
+  set resQty 0
+  set passQty 0
+  foreach i [lindex $asadict end] {
+    puts $i
+    if [string match *result* $i] {incr resQty}
+    if [string match *pass* $i] {incr passQty}
+  }
+  puts "resQty:<$resQty> passQty:<$passQty>"
+  if {$resQty != $passQty} {
+    set gaSet(fail) "Not all $resQty results are \'pass\'"
+    return -1
+  } else {
+    set ret 0
+    set gaSet(fail) ""
+  }
   
   return $ret
 }

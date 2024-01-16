@@ -879,8 +879,8 @@ proc CellularModem {run} {
 proc HL_Security {run} {
   global gaSet
   set ::sendSlow 0
-  set gaSet(fail) "No Test Instruction"
-  return -1
+  #set gaSet(fail) "No Test Instruction"
+  #return -1
   set ret [HL_SecurityPerf]
   return $ret
 }
