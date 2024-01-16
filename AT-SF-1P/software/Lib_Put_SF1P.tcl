@@ -4160,7 +4160,7 @@ proc CellularLte_RadOS_Sim12_Dual {} {
   set ret [Send $com "apn-name \"statreal\"\r" "(1)"]
   if {$ret!=0} {return $ret}
   #if $L4 {}
-    set ret [Send $com "pdp-type relayed-ppp\r" "(2)"]
+    set ret [Send $com "pdp-type relayed-ppp\r" "(1)"]
     if {$ret!=0} {return $ret}
   #{}
   set ret [Send $com "exit\r" "lte-2"]
