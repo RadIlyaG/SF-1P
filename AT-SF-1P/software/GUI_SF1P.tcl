@@ -761,7 +761,7 @@ proc ButRun {} {
     puts "ButRun CSLret:<$ret>"
     if {$ret!="-1"} {
       set gaSet(csl) [dict get $ret CSL]
-      AddToPairLog $gaSet(pair) "CSL: $ret"
+      AddToPairLog $gaSet(pair) "CSL: $gaSet(csl)"
       set ret 0
     } else {
       set gaSet(fail) "Fail to get CSL for $IdBarcode"
@@ -771,7 +771,7 @@ proc ButRun {} {
       puts "ButRun PCBret:<$ret>"
       if {$ret!="-1"} {
         set gaSet(mainPcbId)  [dict get $ret pcb]
-        AddToPairLog $gaSet(pair) "MainPcb: $ret"
+        AddToPairLog $gaSet(pair) "MainPcb: $gaSet(mainPcbId)"
         set  res [regexp {REV([\d\.]+)[A-Z]} $gaSet(mainPcbId)  ma gaSet(mainHW)]
         if {$res==1} {
           set ret 0

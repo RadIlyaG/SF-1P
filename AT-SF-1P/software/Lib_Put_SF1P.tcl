@@ -914,6 +914,13 @@ proc IDPerf {mode} {
   set ret [Login2Linux]
   if {$ret!=0} {return $ret}
   set ret [Send $com "\r" "/\]\#"] 
+  
+  set ret [TpmCheck]
+  if {$ret!=0} {
+    #Send $com "exit\r\r" "#"
+    return $ret
+  }
+  
   set ret [Send $com "cat /USERFS/eeprom/MAC_ADDRESS\r" $gaSet(linuxPrompt)]  
   if {$ret!=0} {return $ret}
   if {[string match {*command not found*} $buffer]} {
@@ -4165,10 +4172,10 @@ proc CellularLte_RadOS_Sim12_Dual {} {
   if {$ret!=0} {return $ret}
   set ret [Send $com "apn-name \"statreal\"\r" "(1)"]
   if {$ret!=0} {return $ret}
-  #if $L4 {}
+  if $L4 {
     set ret [Send $com "pdp-type relayed-ppp\r" "(1)"]
     if {$ret!=0} {return $ret}
-  #{}
+  }
   set ret [Send $com "exit\r" "lte-2"]
   if {$ret!=0} {return $ret}
   set ret [Send $com "no shutdown\r" "lte-2"]
@@ -5450,3 +5457,41 @@ proc Halow_WiFi_ShowStatus {} {
   
   return $ret
 }
+# ***************************************************************************
+# TpmCheck
+# ***************************************************************************
+proc TpmCheck {} {
+  global buffer gaSet
+  puts "\n[MyTime] Tpm Check"; update
+  set com $gaSet(comDut)
+  
+  set ret [RetriveIdTraceData $gaSet(1.barcode1) CSLByBarcode]
+  puts "TpmCheck CSLret:<$ret>"
+  if {$ret!="-1"} {
+    set csl [dict get $ret CSL]
+    #AddToPairLog $gaSet(pair) "CSL: $csl"
+  } else {
+    set gaSet(fail) "Fail to get CSL for $gaSet(1.barcode1)"
+    return -1
+  }
+  
+  set ret [Send $com "\r" $gaSet(linuxPrompt) 1]
+  set ret [Send $com "ls /dev/tpm0\r" $gaSet(linuxPrompt) 1]
+  if [string match {*\'/dev/tpm0\': No such file or directory*} $buffer] {
+    set tmpExists 0
+  } else {
+    set tmpExists 1
+  }
+  AddToPairLog $gaSet(pair) "CSL: $csl, tpm0: $buffer"
+  if {$csl < "F" && $tmpExists==1} {
+    set gaSet(fail) "tpm0 exists when CSL=$csl"  
+    set ret -1    
+  } elseif {$csl >= "F" && $tmpExists==0} {
+    set gaSet(fail) "tpm0 not exists when CSL=$csl"  
+    set ret -1    
+  } else {
+    set ret 0
+  }
+  
+  return $ret  
+}  
