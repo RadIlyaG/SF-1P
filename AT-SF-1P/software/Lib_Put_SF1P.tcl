@@ -5477,7 +5477,8 @@ proc TpmCheck {} {
   
   set ret [Send $com "\r" $gaSet(linuxPrompt) 1]
   set ret [Send $com "ls /dev/tpm0\r" $gaSet(linuxPrompt) 1]
-  if [string match {*\'/dev/tpm0\': No such file or directory*} $buffer] {
+  if {[string match {*\'/dev/tpm0\': No such file or directory*} $buffer] || \
+      [string match {*/dev/tpm0: No such file or directory*} $buffer]} {
     set tmpExists 0
   } else {
     set tmpExists 1
