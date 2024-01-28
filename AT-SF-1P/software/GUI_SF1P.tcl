@@ -46,13 +46,20 @@ Please confirm you know products should not be released to the customer with thi
       }
       }
       {separator}
-      {command "Edit L1 list file" init "" {} -command {exec notepad L1.txt &}}
-      {command "Edit L2 list file" init "" {} -command {exec notepad L2.txt &}}
-      {command "Edit L3 list file" init "" {} -command {exec notepad L3.txt &}}
-      {command "Edit L4 list file" init "" {} -command {exec notepad L4.txt &}}
-      {command "Edit HSP list file" init "" {} -command {exec notepad HSP.txt &}}
+      {cascad "Edit Modems Files" {} {} 0 {
+        {command "Edit L1 file" init "" {} -command {exec notepad L1.txt &}}
+        {command "Edit L2 file" init "" {} -command {exec notepad L2.txt &}}
+        {command "Edit L3 file" init "" {} -command {exec notepad L3.txt &}}
+        {command "Edit L4 file" init "" {} -command {exec notepad L4.txt &}}
+        {command "Edit HSP file" init "" {} -command {exec notepad HSP.txt &}}
+        {command "Edit L4P file" init "" {} -command {exec notepad L4P.txt &}}
+        {command "Edit L450A file" init "" {} -command {exec notepad L450A.txt &}}
+        {command "Edit L450B file" init "" {} -command {exec notepad L450B.txt &}}
+        {command "Edit 5G file" init "" {} -command {exec notepad 5G.txt &}}
+      }
+      }
       {separator}
-      {command "Load Modem list files" init "" {} -command {LoadModemFiles}}
+      {command "Load Modem files" init "" {} -command {LoadModemFiles}}
       {separator}
       {separator}
       {command "History" History "" {} \
