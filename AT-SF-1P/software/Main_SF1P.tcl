@@ -80,7 +80,9 @@ proc BuildTests {} {
       }
     }
   } else {
-    lappend lTestNames CellularModem_SIM1 CellularModem_SIM2
+    if {[string index $gaSet(dutFam.cell) 0]!="0"} {
+      lappend lTestNames CellularModem_SIM1 CellularModem_SIM2
+    }
     
     ## 08:33 15/01/2024
     # if {[string index $gaSet(dutFam.cell) 0]=="1"} {
