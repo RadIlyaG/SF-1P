@@ -4804,7 +4804,7 @@ proc LoraModuleConf {} {
   if {$ret!=0} {return $ret}
   set ret [Send $com "gateway\r" "lora-gateway"]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "shutdown\r" "lora-gateway"]
+  set ret [Send $com "shutdown\r" "lora-gateway" 20]
   if {$ret!=0} {return $ret}
   set ret [Send $com "server ip-address $gaSet(ChirpStackIP.$gaSet(dutFam.lora.fam)) port 1700\r" "lora-gateway"]
   if {$ret!=0} {return $ret}
