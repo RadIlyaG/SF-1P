@@ -1,0 +1,29 @@
+configure router 1 static-route 0.0.0.0/0 address 172.18.93.1
+configure router 1 dns-name-server 8.8.8.8
+configure system date-and-time ntp server 1 address 172.18.93.1
+configure system date-and-time ntp server 1 no shutdown
+# show configure system date-and-time ntp status
+
+configure port lora 1 frequency plan eu868
+configure port lora 1 gateway server ip-address 172.18.93.38 port 1700
+configure port lora 1 gateway gateway-id string 1806f5fffeb8272c
+configure port lora 1 gateway no shutdown
+
+#################################
+### RAK811 _ OTAA _EU868 config ####
+#################################
+
+at+set_config=lora:work_mode:0
+at+set_config=lora:join_mode:0
+at+set_config=lora:class:0
+at+set_config=lora:region:EU868
+at+set_config=lora:confirm:1
+at+set_config=lora:dev_eui:60C5A8FFFE7841A6
+at+set_config=lora:app_eui:60C5A8FFF8680833
+at+set_config=lora:app_key:60C5A8FFF868083360C5A8FFF8680833
+at+join
+at+send=lora:1:12345666
+
+4ernayaK0shka ilyaginzburg68@gmail.com
+ilya_g@rad.com ate2004ate2004 RadIlyaG
+2316010833
