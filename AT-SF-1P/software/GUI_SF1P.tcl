@@ -762,7 +762,8 @@ proc ButRun {} {
     if {$gaSet(manualCSL)=="0"} {
       set ret [RetriveIdTraceData  $IdBarcode CSLByBarcode]
     } else {
-      set ret $gaSet(manualCSL)
+      #set ret $gaSet(manualCSL)
+      set ret [dict set di CSL $gaSet(manualCSL)]
     }
     #set ret [RetriveIdTraceData $IdBarcode CSLByBarcode]
     puts "ButRun CSLret:<$ret>"
