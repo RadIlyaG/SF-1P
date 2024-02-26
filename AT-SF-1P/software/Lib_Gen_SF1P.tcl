@@ -941,12 +941,16 @@ proc RetriveDutFam {{dutInitName ""}} {
 #   }
 #   puts "$dutInitName"
 
+  set gaSet(unknownFieldsL) [list]
   if [llength $fieldsL] {
+    set gaSet(unknownFieldsL) $fieldsL
     RLSound::Play fail
-    set res [DialogBox -title "Unknown option" -message "The following is unknown:\n\n$fieldsL"\
-      -type OK -icon /images/error]
-    set ::gMessage $fieldsL
-    return -1
+    set res [DialogBox -title "Unknown option" -message "The following is unknown:\n$fieldsL\nThe test will fail" \
+      -type {Continue Stop} -icon /images/error]
+    if {$res=="Stop"} {  
+      set ::gMessage $fieldsL
+      return -1
+    }  
   }
   return 0
 }  
@@ -2351,3 +2355,16 @@ proc RetriveIdTraceData {args} {
   # return [lindex $ret end]
 }
 
+# ***************************************************************************
+# NoFti_Cellular
+# ***************************************************************************
+proc NoFti_Cellular {} {
+  global gaSet
+  set celOpt [string range $gaSet(dutFam.cell) 1 end]
+  if {$celOpt=="L4P" || $celOpt=="L450B"} {
+    set gaSet(fail) "No Test defined for $celOpt"
+    return -1
+  } else {
+    return 0
+  }
+}

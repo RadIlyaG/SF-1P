@@ -57,6 +57,12 @@ proc BuildTests {} {
   }
   lappend lTestNames   ID
   
+  if [llength $gaSet(unknownFieldsL)] {
+    foreach tst $gaSet(unknownFieldsL) {
+      lappend lTestNames $tst 
+    }  
+  }
+  
   if [string match *.HL.*  $gaSet(DutInitName)] {
     lappend lTestNames HL_Security
   }
@@ -67,13 +73,13 @@ proc BuildTests {} {
   if {[package vcompare $gaSet(SWver) "5.0.1.229.5"] == "0"} {
     ## if gaSet(SWver) = "5.0.1.229.5", then vcompare = 0 
     if {[string index $gaSet(dutFam.cell) 0]=="1"} {
-      if {[string index $gaSet(dutFam.cell) 2]=="4"} {
+      if {[string range $gaSet(dutFam.cell) 1 end]=="L4"} {
         lappend lTestNames CellularModemL4
       } else {
         lappend lTestNames CellularModem
       } 
     } elseif {[string index $gaSet(dutFam.cell) 0]=="2"} {
-      if {[string index $gaSet(dutFam.cell) 2]=="4"} {
+      if {[string range $gaSet(dutFam.cell) 1 end]=="L4"} {
         lappend lTestNames CellularDualModemL4
       } else {
         lappend lTestNames CellularDualModem
@@ -86,7 +92,7 @@ proc BuildTests {} {
     
     ## 08:33 15/01/2024
     # if {[string index $gaSet(dutFam.cell) 0]=="1"} {
-      # if {[string index $gaSet(dutFam.cell) 2]=="4"} {
+      # if {[string range $gaSet(dutFam.cell) 1 end]=="L4"} {
         # # single L4
         # lappend lTestNames CellularModem_SIM1 CellularModem_SIM2 ; #CellularModemL4_RadOS
       # } else {
@@ -94,7 +100,7 @@ proc BuildTests {} {
         # lappend lTestNames CellularModem_SIM1 CellularModem_SIM2
       # } 
     # } elseif {[string index $gaSet(dutFam.cell) 0]=="2"} {
-      # if {[string index $gaSet(dutFam.cell) 2]=="4"} {
+      # if {[string range $gaSet(dutFam.cell) 1 end]=="L4"} {
         # # double L4
         # # 08:55 14/01/2024 lappend lTestNames CellularDualModemL4_RadOS
         # lappend lTestNames CellularModem_SIM1 CellularModem_SIM2
@@ -204,7 +210,12 @@ proc Testing {} {
     set testName [lindex [split $numberedTest ..] end]
     $gaSet(startTime) configure -text "$startTime ."
     AddToPairLog $gaSet(pair) "Test \'$testName\' started"
-    set ret [$testName 1]
+    if {[llength [info commands $testName]]==0} {
+      set gaSet(fail) "No Test defined for $testName"
+      set ret -1
+    } else {
+      set ret [$testName 1]
+    }
     if {$ret!=0 && $ret!="-2" && $testName!="Mac_BarCode" && $testName!="ID" && $testName!="Leds"} {
 #     set logFileID [open tmpFiles/logFile-$gaSet(pair).txt a+]
 #     puts $logFileID "**** Test $numberedTest fail and rechecked. Reason: $gaSet(fail); [MyTime]"
@@ -799,6 +810,12 @@ proc CellularModem_SIM1 {run} {
     set ret [CellularModemPerf_RadOS lte lte-2 notL4] 
   } else {
     ## if gaSet(SWver) > "5.0.3.33", then vcompare = 1
+    
+    ## 08:21 26/02/2024
+    # if [NoFti_Cellular] {
+      # return -1
+    # }
+    
     if {[string index $gaSet(dutFam.cell) 0]=="1"} {
       set ret [CellularLte_RadOS_Sim12]
       if {$ret!=0} {return -1}
@@ -825,6 +842,12 @@ proc CellularModem_SIM2 {run} {
     set ret [CellularModemPerf_RadOS lte-2 lte notL4] 
   } else {
     ## if gaSet(SWver) > "5.0.3.33", then vcompare = 1
+    
+    ## 08:21 26/02/2024
+    # if [NoFti_Cellular] {
+      # return -1
+    # }
+    
     if {[string index $gaSet(dutFam.cell) 0]=="1"} {
       set ret [CellularLte_RadOS_Sim12]
       if {$ret!=0} {return -1}

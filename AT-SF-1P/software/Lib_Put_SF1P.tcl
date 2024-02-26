@@ -3860,7 +3860,7 @@ proc CellularModemPerf_RadOS {actSim disSim l4} {
 proc CellularLte_RadOS_Sim12 {} {
   global gaSet buffer
   puts "[MyTime] CellularLte_RadOS_Sim12"
-  if {[string index $gaSet(dutFam.cell) 2]=="4"} {
+  if {[string range $gaSet(dutFam.cell) 1 end]=="L4"} {
     set L4 1
   } else {
     set L4 0
@@ -4088,10 +4088,10 @@ proc CellularModemPerf_RadOS_Sim12 {actSim disSim} {
     set cell [string range $gaSet(dutFam.cell) 1 end]
     set fw $gaSet([set cell].fwL) 
     puts "Firmware cell:<$cell> fw:<$fw>"; update  
-    if {$cell=="L450B"} {
-      set gaSet(fail) "Bad FTI for this option"
-      return -1      
-    }
+    # if {$cell=="L450B"} {
+      # set gaSet(fail) "Bad FTI for this option"
+      # return -1      
+    # }
     if {$val!=$fw} {
       set gaSet(fail) "Firmware of SIM-${actSim} is  \'$val\'. Should be \'$fw\'"  
       return -1
@@ -4128,7 +4128,7 @@ proc CellularModemPerf_RadOS_Sim12 {actSim disSim} {
 proc CellularLte_RadOS_Sim12_Dual {} {
   global gaSet buffer
   puts "[MyTime] CellularLte_RadOS_Sim12_Dual"
-  if {[string index $gaSet(dutFam.cell) 2]=="4"} {
+  if {[string range $gaSet(dutFam.cell) 1 end]=="L4"} {
     set L4 1
   } else {
     set L4 0
@@ -4388,10 +4388,10 @@ proc CellularModemPerf_RadOS_Sim12_Dual {actLte} {
     set cell [string range $gaSet(dutFam.cell) 1 end]
     set fw $gaSet([set cell].fwL) 
     puts "Firmware cell:<$cell> fw:<$fw>"; update  
-    if {$cell=="L450B"} {
-      set gaSet(fail) "Bad FTI for this option"
-      return -1      
-    }
+    # if {$cell=="L450B"} {
+      # set gaSet(fail) "Bad FTI for this option"
+      # return -1      
+    # }
     if {$val!=$fw} {
       set gaSet(fail) "Firmware of LTE-$actLte is  \'$val\'. Should be \'$fw\'"  
       return -1
