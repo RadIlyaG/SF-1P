@@ -754,6 +754,8 @@ proc ButRun {} {
   }
   
   if {$ret==0} {
+    AddToPairLog $gaSet(pair) "$gaSet(operatorID) $gaSet(operator)"
+  
     ToggleComDut 
    
     set IdBarcode $gaSet(1.barcode1)
