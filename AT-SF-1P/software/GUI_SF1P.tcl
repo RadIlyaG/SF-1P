@@ -75,7 +75,9 @@ Please confirm you know products should not be released to the customer with thi
     }
     "&Tools" tools tools 0 {	  
 
-       
+      {command "IT6900" {} "" {} -command {Gui_IT6900}} 
+      
+      {separator}   
       {cascad "Power" {} pwr 0 {
         {command "PS-1 & PS-2 ON" {} "" {} -command {GuiPower $gaSet(pair) 1}} 
         {command "PS-1 & PS-2 OFF" {} "" {} -command {GuiPower $gaSet(pair) 0}}  
@@ -1206,3 +1208,79 @@ proc GuiReadOperator {} {
     return 0
   }
 }   
+
+# ***************************************************************************
+# Gui_IT6900
+# ***************************************************************************
+proc Gui_IT6900 {} {
+  global gaSet gaGui
+  set base .topHwInit
+  toplevel $base -class Toplevel
+  wm focusmodel $base passive
+  wm geometry $base $gaGui(xy)
+  wm resizable $base 1 1
+  
+  set addrL []
+  set res_list [exec python.exe lib_IT6900.py get_list stam stam]
+  foreach res $res_list {
+    if [regexp {0x6900::(\d+)::INSTR} $res ma addr] {
+      lappend addrL $addr     
+    }
+  }
+  puts "addrL: $addrL"
+  
+  wm title $base "IT6900"
+  set frA [TitleFrame $base.frA -text "PS's ID" -bd 2 -relief groove]
+    set fr [$frA getframe]
+      foreach p {1 2} {
+        set lab [Label $fr.lab$p -text "PS-$p Serial Number"]
+        set ent [ComboBox $fr.ent$p -values $addrL -width 20] ; #-textvariable gaSet(it6900.$p) 
+        grid $lab $ent
+        set gaGui(it6900.$p) $ent
+      }
+    pack $fr  
+    
+  set frB [TitleFrame $base.frB -text "Set" -bd 2 -relief groove]
+    set fr [$frB getframe]
+    set butOn  [Button $fr.butOn  -text "ON"  -command {IT6900_on_off on}]
+    set butOff [Button $fr.butOff -text "OFF" -command {IT6900_on_off off}]
+    set entVolt [Entry $fr.entVolt -textvariable gaSet(it6900.volt)]
+    set butSet  [Button $fr.butSet  -text "SET"  -command {IT6900_set}]
+    bind $entVolt <Return> {IT6900_set}
+    pack $butOn $butOff -padx 5 -side left
+    pack $entVolt $butSet -padx 5 -side left
+  
+  pack $frA
+  pack $frB
+  
+}
+
+# ***************************************************************************
+# IT6900_on_off
+# ***************************************************************************
+proc IT6900_on_off {mode} {
+  global gaSet gaGui
+  foreach p {1 2} {
+    set addr [$gaGui(it6900.$p) get]
+    if {$addr!=""} {
+      set ret [exec python.exe lib_IT6900.py $addr write "outp $mode"]
+    }
+  }  
+  #set p 1
+  #set ret [exec python.exe lib_IT6900.py $gaSet(it6900.$p) write "outp $mode"]
+}
+# ***************************************************************************
+# IT6900_set
+# ***************************************************************************
+proc IT6900_set {} {
+  global gaSet gaGui
+  foreach p {1 2} {
+    set addr [$gaGui(it6900.$p) get]
+    if {$addr!=""} {
+      set ret [exec python.exe lib_IT6900.py $addr write "volt $gaSet(it6900.volt)"]
+    }
+  }  
+  #set p 1
+  #set ret [exec python.exe lib_IT6900.py $gaSet(it6900.$p) write "volt $gaSet(it6900.volt)"]
+  
+}
