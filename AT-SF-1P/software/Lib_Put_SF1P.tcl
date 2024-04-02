@@ -4094,7 +4094,7 @@ proc CellularModemPerf_RadOS_Sim12 {actSim disSim} {
     # }
     
     # 10:29 02/04/2024 if {$val!=$fw} {} 
-    if {[lsearch $fw $val]=="-1"}
+    if {[lsearch $fw $val]=="-1"} {
       set gaSet(fail) "Firmware of SIM-${actSim} is \'$val\'. Should be \'$fw\'"  
       return -1
     }
@@ -4395,7 +4395,7 @@ proc CellularModemPerf_RadOS_Sim12_Dual {actLte} {
     # }
     
     # 10:33 02/04/2024 if {$val!=$fw} {} 
-    if {[lsearch $fw $val]=="-1"}
+    if {[lsearch $fw $val]=="-1"} {
       set gaSet(fail) "Firmware of LTE-$actLte is \'$val\'. Should be \'$fw\'"  
       return -1
     }
