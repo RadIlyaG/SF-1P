@@ -144,7 +144,7 @@ proc RegBC {} {
     if {$ret!="0"} {
       break
     }
-#     AddToLog "mac:$mac Barcode-1 - $barcode1"
+#     AddToLog "mac:$mac Barcode-1 - $barcode1" 
     
     if ![file exists c://logs//macHistory.txt] {
       set id [open c://logs//macHistory.txt w]

@@ -4078,7 +4078,7 @@ proc CellularModemPerf_RadOS_Sim12 {actSim disSim} {
     
     set gaSet(fail) "Read Firmware fail"
     set val ""
-    set res [regexp {Firmware : Revision:\s+(\w+)} $buffer ma val]  
+    set res [regexp {Firmware : Revision:\s+([\w\._/]+)} $buffer ma val]  
     if {$res==0} {
       set res [set res [regexp {Firmware :\s+([\w\._/]+)} $buffer ma val]]  
       if {$res==0} {return -1}  
@@ -4092,11 +4092,12 @@ proc CellularModemPerf_RadOS_Sim12 {actSim disSim} {
       # set gaSet(fail) "Bad FTI for this option"
       # return -1      
     # }
-    if {$val!=$fw} {
-      set gaSet(fail) "Firmware of SIM-${actSim} is  \'$val\'. Should be \'$fw\'"  
+    
+    # 10:29 02/04/2024 if {$val!=$fw} {} 
+    if {[lsearch $fw $val]=="-1"}
+      set gaSet(fail) "Firmware of SIM-${actSim} is \'$val\'. Should be \'$fw\'"  
       return -1
     }
-    
   }
   
   if {$ret!=0} {return $ret} 
@@ -4392,8 +4393,10 @@ proc CellularModemPerf_RadOS_Sim12_Dual {actLte} {
       # set gaSet(fail) "Bad FTI for this option"
       # return -1      
     # }
-    if {$val!=$fw} {
-      set gaSet(fail) "Firmware of LTE-$actLte is  \'$val\'. Should be \'$fw\'"  
+    
+    # 10:33 02/04/2024 if {$val!=$fw} {} 
+    if {[lsearch $fw $val]=="-1"}
+      set gaSet(fail) "Firmware of LTE-$actLte is \'$val\'. Should be \'$fw\'"  
       return -1
     }
     
