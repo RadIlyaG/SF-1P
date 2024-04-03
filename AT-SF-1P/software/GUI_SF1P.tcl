@@ -1242,10 +1242,10 @@ proc Gui_IT6900 {} {
     
   set frB [TitleFrame $base.frB -text "Set" -bd 2 -relief groove]
     set fr [$frB getframe]
-    set butOn  [Button $fr.butOn  -text "ON"  -command {IT6900_on_off on}]
-    set butOff [Button $fr.butOff -text "OFF" -command {IT6900_on_off off}]
+    set butOn  [Button $fr.butOn  -text "ON"  -command {IT6900_on_off gui on}]
+    set butOff [Button $fr.butOff -text "OFF" -command {IT6900_on_off gui off}]
     set entVolt [Entry $fr.entVolt -textvariable gaSet(it6900.volt)]
-    set butSet  [Button $fr.butSet  -text "SET"  -command {IT6900_set}]
+    set butSet  [Button $fr.butSet  -text "SET"  -command {IT6900_set gui ""}]
     bind $entVolt <Return> {IT6900_set}
     pack $butOn $butOff -padx 5 -side left
     pack $entVolt $butSet -padx 5 -side left
@@ -1258,29 +1258,43 @@ proc Gui_IT6900 {} {
 # ***************************************************************************
 # IT6900_on_off
 # ***************************************************************************
-proc IT6900_on_off {mode} {
+proc IT6900_on_off {gui_script mode} {
   global gaSet gaGui
-  foreach p {1 2} {
-    set addr [$gaGui(it6900.$p) get]
+  set ret -1
+  foreach ps {1 2} {
+    if {$gui_script=="gui"} {
+      set addr [$gaGui(it6900.$ps) get]
+    } else {
+      set addr $gaSet(it6900.$ps)
+    }
     if {$addr!=""} {
       set ret [exec python.exe lib_IT6900.py $addr write "outp $mode"]
     }
-  }  
-  #set p 1
-  #set ret [exec python.exe lib_IT6900.py $gaSet(it6900.$p) write "outp $mode"]
+  } 
+  if {$ret=="-1"} {
+    set gaSet(fail) "No communication with IT6900"
+  }
+  return ret
 }
 # ***************************************************************************
 # IT6900_set
 # ***************************************************************************
-proc IT6900_set {} {
+proc IT6900_set {gui_script volt} {
   global gaSet gaGui
+  set ret -1
   foreach p {1 2} {
-    set addr [$gaGui(it6900.$p) get]
+    if {$gui_script=="gui"} {
+      set addr [$gaGui(it6900.$ps) get]
+      set volt $gaSet(it6900.volt)
+    } else {
+      set addr $gaSet(it6900.$ps)
+    }
     if {$addr!=""} {
-      set ret [exec python.exe lib_IT6900.py $addr write "volt $gaSet(it6900.volt)"]
+      set ret [exec python.exe lib_IT6900.py $addr write "volt $volt"]
     }
   }  
-  #set p 1
-  #set ret [exec python.exe lib_IT6900.py $gaSet(it6900.$p) write "volt $gaSet(it6900.volt)"]
-  
+  if {$ret=="-1"} {
+    set gaSet(fail) "No communication with IT6900"
+  }
+  return ret
 }
