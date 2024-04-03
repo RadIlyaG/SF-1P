@@ -5499,3 +5499,96 @@ proc TpmCheck {} {
   
   return $ret  
 }  
+# ***************************************************************************
+# PowerProtection
+# ***************************************************************************
+proc PowerProtection {} {
+  global buffer gaSet
+  puts "\n[MyTime] PowerProtection"; update
+  set com $gaSet(comDut)
+  foreach ps {1 2} {
+    set addr $gaSet(it6900.$ps)
+    if {$addr!=""} {
+      puts "PS-$ps, $addr, OFF"; update
+      set ret [exec python.exe lib_IT6900.py $addr write "outp off"]
+      puts "<$ret>"; update
+    }
+  }  
+  after 4000
+  if {$gaSet(dutFam.ps)=="WDC"} {
+    set volt 72
+  } elseif {$gaSet(dutFam.ps)=="12V"} {
+    set volt 30
+  }
+  foreach ps {1 2} {
+    set addr $gaSet(it6900.$ps)
+    if {$addr!=""} {
+      puts "PS-$ps, $addr, volt:$volt"; update
+      set ret [exec python.exe lib_IT6900.py $addr write "volt $volt"]
+      puts "<$ret>"; update
+    }
+  } 
+  foreach ps {1 2} {
+    set addr $gaSet(it6900.$ps)
+    if {$addr!=""} {
+      puts "PS-$ps, $addr, ON"; update
+      set ret [exec python.exe lib_IT6900.py $addr write "outp on"]
+      puts "<$ret>"; update
+    }
+  } 
+  Send $com \r "stam" 5
+  set buffLen [string length $buffer]
+  puts "Buffer length: $buffLen"
+  if {$buffLen>0} {
+    set gaSet(fail) "UUT is responsing when $volt VDC supplied"
+    set ret -1
+  } else {
+    set ret 0
+  }
+  return $ret
+}
+# ***************************************************************************
+# VoltagePerf
+# ***************************************************************************
+proc VoltagePerf {} {
+  global buffer gaSet
+  puts "\n[MyTime] VoltagePerf"; update
+  set com $gaSet(comDut)
+  if {$gaSet(dutFam.ps)=="WDC"} {
+    set voltL [list 20 48 60]
+  } elseif {$gaSet(dutFam.ps)=="DC"} {
+    set voltL [list 10 48 60]
+  } elseif {$gaSet(dutFam.ps)=="12V" || $gaSet(dutFam.ps)=="ACEX"} {
+    set voltL [list 10 18 30]
+  }
+  foreach volt $voltL {
+    foreach i {1 2} {
+      Status "\nVoltage=${volt}VDC, attempt $i"
+      foreach ps {1 2} {
+        set addr $gaSet(it6900.$ps)
+        if {$addr!=""} {
+          puts "PS-$ps, $addr, OFF"; update
+          set ret [exec python.exe lib_IT6900.py $addr write "outp off"]
+        }
+      }  
+      foreach ps {1 2} {
+        set addr $gaSet(it6900.$ps)
+        if {$addr!=""} {
+          puts "PS-$ps, $addr, volt:$volt"; update
+          set ret [exec python.exe lib_IT6900.py $addr write "volt $volt"]
+        }
+      } 
+      foreach ps {1 2} {
+        set addr $gaSet(it6900.$ps)
+        if {$addr!=""} {
+          puts "PS-$ps, $addr, ON"; update
+          set ret [exec python.exe lib_IT6900.py $addr write "outp on"]
+        }
+      } 
+      set ret [Login]
+      if {$ret!=0} {return $ret}
+    }
+    if {$ret!=0} {return $ret}
+  }
+  return $ret
+}  

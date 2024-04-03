@@ -18,13 +18,29 @@ proc BuildTests {} {
     return -1
   }
   
+  set addrL []
+  set res_list [exec python.exe lib_IT6900.py get_list stam stam]
+  foreach res $res_list {
+    if [regexp {0x6900::(\d+)::INSTR} $res ma addr] {
+      lappend addrL $addr        
+    }
+  }
+  puts "BuildTests IT6900_addrL: $addrL"
+  
   set lTestsAllTests [list]
   set lTestNames [list]
 #   set lDownloadTests [list BrdEeprom]
 #   eval lappend lTestsAllTests $lDownloadTests
   
   ## 14:15 28/12/2022
-  lappend lTestNames PowerOffOn
+  if {[llength $addrL] == 0} {
+    lappend lTestNames PowerOffOn
+  } else {
+    foreach addr $addrL ps {1 2} {
+      set gaSet(it6900.$ps) $addr
+    }
+    lappend lTestNames Voltage
+  }
   
   ##08:06 23/11/2023
   ## lappend lTestNames UsbTree
@@ -918,5 +934,20 @@ proc Halow_WiFi {run} {
   #set gaSet(fail) "No Test Instruction"
   #return -1
   set ret [Halow_WiFiPerf]
+  return $ret
+}
+# ***************************************************************************
+# Voltage
+# ***************************************************************************
+proc Voltage {run} {
+  global gaSet
+  set ::sendSlow 0
+  set ret -1
+  if {$gaSet(dutFam.ps)=="WDC" || $gaSet(dutFam.ps)=="12V"} {
+    set ret [PowerProtection]
+  }  
+  if {$ret==0} {
+    set ret [VoltagePerf]
+  }
   return $ret
 }
