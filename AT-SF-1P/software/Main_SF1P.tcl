@@ -945,7 +945,9 @@ proc Voltage {run} {
   set ret -1
   if {$gaSet(dutFam.ps)=="WDC" || $gaSet(dutFam.ps)=="12V"} {
     set ret [PowerProtection]
-  }  
+  } else {
+    set ret 0
+  }
   if {$ret==0} {
     set ret [VoltagePerf]
   }

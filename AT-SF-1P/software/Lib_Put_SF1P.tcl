@@ -5544,6 +5544,7 @@ proc PowerProtection {} {
     set ret -1
   } else {
     set ret 0
+    AddToPairLog $gaSet(pair) "Voltage Protection ${volt}VDC PASS"
   }
   return $ret
 }
@@ -5571,6 +5572,7 @@ proc VoltagePerf {} {
           set ret [exec python.exe lib_IT6900.py $addr write "outp off"]
         }
       }  
+      after 4000
       foreach ps {1 2} {
         set addr $gaSet(it6900.$ps)
         if {$addr!=""} {
@@ -5586,6 +5588,9 @@ proc VoltagePerf {} {
         }
       } 
       set ret [Login]
+      if {$ret==0} {
+        AddToPairLog $gaSet(pair) "Voltage=${volt}VDC, attempt $i PASS"
+      }
       if {$ret!=0} {return $ret}
     }
     if {$ret!=0} {return $ret}
