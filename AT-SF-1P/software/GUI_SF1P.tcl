@@ -149,6 +149,12 @@ Please confirm you know products should not be released to the customer with thi
   
   set tb0 [$mainframe addtoolbar]
   pack $tb0 -fill x
+  
+  set gaGui(labDemoNotDemo1) [Label $tb0.labDemoNotDemo1 -width 5]
+  if $gaSet(demo) {
+    pack $gaGui(labDemoNotDemo1) -padx 5 -side left
+  }
+  
   set labstartFrom [Label $tb0.labSoft -text "Start From   "]
   set gaGui(startFrom) [ComboBox $tb0.cbstartFrom  -height 18 -width 35 -textvariable gaSet(startFrom) -justify center  -editable 0]
   $gaGui(startFrom) bind <Button-1> {SaveInit}
@@ -189,6 +195,9 @@ Please confirm you know products should not be released to the customer with thi
         -takefocus 0 -command {ShowLog} -bd 1 -helptext "View Log file"]     
   pack $bb -side left  -anchor w -padx 7
   
+  set gaGui(labDemoNotDemo2) [Label $tb0.labDemoNotDemo2 -width 5]
+  pack $gaGui(labDemoNotDemo2) -padx 5 -side right
+  
       
 #     set frCommon [frame $mainframe.frCommon  -bd 2 -relief groove]
 #     pack $frCommon -fill both -expand 1 -padx 2 -pady 0 -side left 
@@ -217,8 +226,9 @@ Please confirm you know products should not be released to the customer with thi
             -editable 0 -relief groove -textvariable gaSet(curTest) \
 	       -justify center -width 50]
         set gaGui(labRelDebMode) [Label $frCur.labRelDebMode -text $gaSet(relDebMode) -width 13] 
+        set gaGui(labDemoNotDemo) [Label $frCur.labDemoNotDemo -width 5] 
         pack $labCur $gaGui(curTest) -padx 7 -pady 1 -side left -fill x;# -expand 1 
-        pack $gaGui(labRelDebMode) -side right -anchor e
+        pack $gaGui(labRelDebMode) $gaGui(labDemoNotDemo) -side right -anchor e
       pack $frCur  -anchor w
       #set frStatus [frame $f.frStatus]
       #  set labStatus [Label $frStatus.labStatus -text "Status  " -width 12]
@@ -267,6 +277,12 @@ Please confirm you know products should not be released to the customer with thi
     RLStatus::Show -msg atp
   }
   RLStatus::Show -msg fti
+  
+  if $gaSet(demo) {
+    #$gaGui(labDemoNotDemo) configure -text "DEMO!!!" -bg yellow -fg red
+    $gaGui(labDemoNotDemo1) configure -text "DEMO!!!" -bg yellow -fg red
+    $gaGui(labDemoNotDemo2) configure -text "DEMO!!!" -bg yellow -fg red
+  }
   set gaSet(entDUT) ""
   focus -force $gaGui(entDUT)
   
