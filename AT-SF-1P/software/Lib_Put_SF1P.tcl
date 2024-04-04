@@ -5509,7 +5509,7 @@ proc PowerProtection {} {
   if {$gaSet(dutFam.ps)=="WDC"} {
     set volt 72
   } elseif {$gaSet(dutFam.ps)=="12V"} {
-    set volt 30
+    set volt 36
   }
   
   set ret [IT6900_on_off script off]
@@ -5544,10 +5544,10 @@ proc VoltagePerf {} {
   set com $gaSet(comDut)
   if {$gaSet(dutFam.ps)=="WDC"} {
     set voltL [list 20 48 60]
+  } elseif {$gaSet(dutFam.ps)=="12V" || $gaSet(dutFam.ps)=="ACEX"} {
+    set voltL [list 10 24 30]
   } elseif {$gaSet(dutFam.ps)=="DC"} {
     set voltL [list 10 48 60]
-  } elseif {$gaSet(dutFam.ps)=="12V" || $gaSet(dutFam.ps)=="ACEX"} {
-    set voltL [list 10 18 30]
   }
   foreach volt $voltL {
     foreach i {1 2} {
