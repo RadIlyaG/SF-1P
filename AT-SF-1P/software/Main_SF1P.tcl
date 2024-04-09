@@ -145,7 +145,7 @@ proc BuildTests {} {
     lappend lTestNames GPS
   }
   
-  if {$gaSet(dutFam.wifi)!="0"} {
+  if {$gaSet(dutFam.wifi)!="0" &&  ![string match *.WH.*  $gaSet(DutInitName)]} {
     lappend lTestNames WiFi_2G  ; ## 16:12 29/06/2023 WiFi_5G
   }
   
@@ -532,8 +532,16 @@ proc WiFi_2G {run} {
   
   catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)} res
   puts "FtpDeleteFile <$res>"
+  if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
+    set gaSet(fail) "Unable to connect to ftp.rad.co.il"
+    return -1
+  }
   catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt} res
   puts "FtpDeleteFile <$res>"
+  if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
+    set gaSet(fail) "Unable to connect to ftp.rad.co.il"
+    return -1
+  }
   
   set locWifiReport LocWifiReport_$gaSet(wifiNet).txt
   if {[file exists $locWifiReport]} {
@@ -544,6 +552,10 @@ proc WiFi_2G {run} {
   
   catch {exec python.exe lib_sftp.py FtpUploadFile startMeasurement_$gaSet(wifiNet)} res
   puts "FtpUploadFile <$res>"
+  if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
+    set gaSet(fail) "Unable to connect to ftp.rad.co.il"
+    return -1
+  }
   regexp {result: (-?1) } $res ma ret
   
   set ret [Login2App]
@@ -554,8 +566,16 @@ proc WiFi_2G {run} {
   if {$ret==0} { 
     catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)} res
     puts "FtpDeleteFile <$res>"
+    if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
+    set gaSet(fail) "Unable to connect to ftp.rad.co.il"
+    return -1
+  }
     catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt} res
     puts "FtpDeleteFile <$res>"
+    if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
+    set gaSet(fail) "Unable to connect to ftp.rad.co.il"
+    return -1
+  }
   }
 
   return $ret

@@ -1954,11 +1954,11 @@ proc WifiPerf {baud locWifiReport} {
   set ret [Send $com "wifi-country-code israel\r" "port"]
   if {$ret!=0} {return $ret}
   if {$baud=="2.4"} {
-    set ret [Send $com "wlan 2.4g\r" "(1)"]
+    set ret [Send $com "wlan 2.4g\r" "(2.4g)"]
     if {$ret!=0} {return $ret}
-    set ret [Send $com "radio-mode 802.11g\r" "(1)"]
+    set ret [Send $com "radio-mode 802.11g\r" "(2.4g)"]
     if {$ret!=0} {return $ret}
-    set ret [Send $com "channel 4\r" "(1)"]
+    set ret [Send $com "channel 4\r" "(2.4g)"]
   } elseif {$baud=="5"} {
     set ret [Send $com "wlan 2\r" "(2)"]
     if {$ret!=0} {return $ret}
@@ -2019,8 +2019,16 @@ proc WifiPerf {baud locWifiReport} {
   
   catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)} res
   puts "FtpDeleteFile <$res>"
+  if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
+    set gaSet(fail) "Unable to connect to ftp.rad.co.il"
+    return -1
+  }
   catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt} res
   puts "FtpDeleteFile <$res>"
+  if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
+    set gaSet(fail) "Unable to connect to ftp.rad.co.il"
+    return -1
+  }
   
   for {set try 1} {$try <= 3} {incr try} {
     for {set adrr $maxAddr} {$adrr > 0} {incr adrr -1} {
@@ -2035,6 +2043,10 @@ proc WifiPerf {baud locWifiReport} {
   if {$ret!=0} {
     catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)} res
     puts "FtpDeleteFile <$res>"
+    if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
+    set gaSet(fail) "Unable to connect to ftp.rad.co.il"
+    return -1
+  }
     return $ret
   }
   
@@ -2133,6 +2145,10 @@ proc WiFiReport {locWifiReport baud ant} {
     catch {exec python.exe lib_sftp.py FtpGetFile [string tolower wifiReport_$gaSet(wifiNet).txt] $locWifiReport} res
     regexp {result: (-?1) } $res ma res
     puts "FtpGetFile res <$res>"
+    if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
+      set gaSet(fail) "Unable to connect to ftp.rad.co.il"
+      return -1
+    }
     
     if {$res=="1" } {
       after 500
