@@ -1954,7 +1954,7 @@ proc WifiPerf {baud locWifiReport} {
   set ret [Send $com "wifi-country-code israel\r" "port"]
   if {$ret!=0} {return $ret}
   if {$baud=="2.4"} {
-    set ret [Send $com "wlan 1\r" "(1)"]
+    set ret [Send $com "wlan 2.4g\r" "(1)"]
     if {$ret!=0} {return $ret}
     set ret [Send $com "radio-mode 802.11g\r" "(1)"]
     if {$ret!=0} {return $ret}
@@ -5358,11 +5358,14 @@ proc Halow_WiFiPerf {} {
   if {$ret!=0} {return $ret}
   
   set gaSet(fail) "Config Halow_WiFi Client fail"
+  Send $com "exit all\r" "-1p#"
   set ret [Send $com "configure router 1\r" (1)]
   if {$ret!=0} {return $ret}
   set ret [Send $com "interface 10\r"  (10)]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "bind wifi-client\r" (10)]
+   set ret [Send $com "shutdown\r"  (10)]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "bind wifi-client 1\r" (10)]
   if {$ret!=0} {return $ret}
   
   set addr "192.168.172."
@@ -5445,6 +5448,7 @@ proc Halow_WiFi_ShowStatus {} {
       set gaSet(fail) "Read Admin Status fail"
       return -1
     }
+    set ret -1
     set res [regexp {Operational Status[\s\:]+(\w+)\s} $buffer ma os]
     if {$res==0} {
       set gaSet(fail) "Read Operational Status fail"
@@ -5457,6 +5461,9 @@ proc Halow_WiFi_ShowStatus {} {
     }
     after 5000
   }  
+  if {$ret=="-1"} {
+    set gaSet(fail) "Admin: $as, Operational: $os"
+  }
   
   return $ret
 }
