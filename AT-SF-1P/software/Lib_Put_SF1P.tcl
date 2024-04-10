@@ -5373,6 +5373,7 @@ proc Halow_WiFiPerf {} {
   set ret [Login]
   if {$ret!=0} {return $ret}
   
+  Status "Config Halow_WiFi Client"
   set gaSet(fail) "Config Halow_WiFi Client fail"
   Send $com "exit all\r" "-1p#"
   set ret [Send $com "configure router 1\r" (1)]
@@ -5400,6 +5401,8 @@ proc Halow_WiFiPerf {} {
   if {$ret!=0} {return $ret}
   set ret [Send $com "port wifi-client\r" client]
   if {$ret!=0} {return $ret}
+  set ret [Send $com "shutdown\r" client]
+  if {$ret!=0} {return $ret}
   set ret [Send $com "ssid \"HalowAP\"\r" HalowAP]
   if {$ret!=0} {return $ret}
   set ret [Send $com "security none\r" HalowAP]
@@ -5415,22 +5418,27 @@ proc Halow_WiFiPerf {} {
   puts "\n ret of Halow_WiFi_ShowStatus: <$ret>"
   if {$ret!=0} {return $ret}
   
-  set ret [Send $com "ping 192.168.172.250\r" client 20]
-  if {$ret!=0} {
-    set gaSet(fail) "Send ping to 192.168.172.250 fail"
-    return $ret
-  }
-  set res [regexp {(\d) packets transmitted. (\d) packets received, (\d)% packet loss} $buffer ma tp rp pl]
-  if {$res==0} {
-    set gaSet(fail) "Retrive ping results fail"
-    return -1
-  }
-  puts "\nPing results: tp:<$tp> rp:<$rp> pl:<$pl>"
-  if {$tp!=5 || $rp!=5 || $pl!=0} {
-    set gaSet(fail) "Ping results: $rp packets received, $pl% packet loss"
-    return -1  
-  } else {
-    set ret 0
+  for {set i 1} {$i <=3} {incr i} {
+    Status "Ping to 192.168.172.250 ($i)"
+    set ret [Send $com "ping 192.168.172.250\r" "client" 20]
+    if {$ret!=0} {
+      set gaSet(fail) "Send ping to 192.168.172.250 fail"
+      return $ret
+    }
+    set res [regexp {(\d) packets transmitted. (\d) packets received, (\d+)% packet loss} $buffer ma tp rp pl]
+    if {$res==0} {
+      set gaSet(fail) "Retrive ping results fail"
+      return -1
+    }
+    puts "\nPing results ($i): tp:<$tp> rp:<$rp> pl:<$pl>"
+    if {$tp!=5 || $rp!=5 || $pl!=0} {
+      set gaSet(fail) "Ping results: $rp packets received, $pl% packet loss"
+      set ret -1 
+      after 3000      
+    } else {
+      set ret 0
+      break
+    }
   }
   
   ## shutdown to wifi-client for release the REF unit's MAC table
@@ -5452,6 +5460,7 @@ proc Halow_WiFi_ShowStatus {} {
   set gaSet(fail) "Show wifi-client status fail"
   for {set i 1} {$i<=10} {incr i} {
     if {$gaSet(act)==0} {return -2}
+    #Login
     Status "Show wifi-client status ($i)"
     set ret [Send $com "exit all\r" -1p]
     if {$ret!=0} {return $ret}
@@ -5471,10 +5480,19 @@ proc Halow_WiFi_ShowStatus {} {
       return -1
     }
     puts "Admin Status: <$as> Operational Status: <$os>"
+    
+    # set ret [Login2Linux]
+    # if {$ret==0} {
+      # Send $com "\r\r" "localhost"
+      # Send $com "iw dev wlan0 scan\r" "stam"
+      # Send $com "exit\r\r" "stam" 1
+    # }
+    
     if {$as=="Enabled" && $os=="Connected"} {
       set ret 0
       break
     }
+    
     after 5000
   }  
   if {$ret=="-1"} {
