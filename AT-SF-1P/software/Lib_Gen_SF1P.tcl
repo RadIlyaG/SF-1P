@@ -1801,15 +1801,21 @@ proc FtpVerifyNoReport {} {
     #set res [FtpFileExist [string tolower  wifireport_$gaSet(wifiNet).txt]]
     catch {exec python.exe lib_sftp.py FtpFileExist wifireport_$gaSet(wifiNet).txt} res
     regexp {result: (-?1) } $res ma res
-    puts "FtpFileExist res <$res>"
+    #puts "FtpFileExist res <$res>"
     set runDur [expr {[clock seconds] - $startSec}]
     puts "FtpVerifyNoReport runDur:<$runDur> res:<$res>"
-    if {$runDur > 120} {
+    if {$runDur > 220} {
       set gaSet(fail) "wilireport_$gaSet(wifiNet).txt still exists on the ftp"
       return -1 
     }
     if {$res=="-1"} {
       break
+    }
+    catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt} res
+    puts "FtpDeleteFile <$res>"
+    if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
+      set gaSet(fail) "Unable to connect to ftp.rad.co.il"
+      return -1
     }
     after 10000
   }
@@ -1826,10 +1832,10 @@ proc FtpVerifyReportExists {} {
     #set res [FtpFileExist  [string tolower wifireport_$gaSet(wifiNet).txt]]
     catch {exec python.exe lib_sftp.py FtpFileExist wifireport_$gaSet(wifiNet).txt} res
     regexp {result: (-?1) } $res ma res
-    puts "FtpFileExist res <$res>"  
+    #puts "FtpFileExist res <$res>"  
     set runDur [expr {[clock seconds] - $startSec}]
     puts "FtpVerifyReportExists runDur:<$runDur> res:<$res>"
-    if {$runDur > 120} {
+    if {$runDur > 220} {
       set gaSet(fail) "wifireport_$gaSet(wifiNet).txt still doesn't exist on the ftp"
       return -1 
     }

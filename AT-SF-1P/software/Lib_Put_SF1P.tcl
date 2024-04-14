@@ -1920,6 +1920,20 @@ proc WifiPerf {baud locWifiReport} {
     return $ret 
   }
   set gaSet(fail) "Config WiFi fail"
+  
+  Send $com "config router 1\r" "(1)"
+  Send $com "no interface 1\r" "(1)"
+  Send $com "exit all\r" "-1p"
+  Send $com "config port\r" ">port"
+  if {$baud=="2.4"} {
+    Send $com "wlan 2.4g\r" "(2.4g)"
+  } elseif {$baud=="5"} {
+    set ret [Send $com "wlan 2\r" "(2)"]
+  }
+  Send $com "access-point 1\r" "ap(1)"
+  Send $com "shutdown\r" "ap(1)"
+  Send $com "exit all\r" "-1p"
+  
   set ret [Send $com "config system\r" "system"]
   if {$ret!=0} {return $ret}
   set ret [Send $com "dhcp-server 1\r" "(1)"]
@@ -1958,7 +1972,7 @@ proc WifiPerf {baud locWifiReport} {
     if {$ret!=0} {return $ret}
     set ret [Send $com "radio-mode 802.11g\r" "(2.4g)"]
     if {$ret!=0} {return $ret}
-    set ret [Send $com "channel 4\r" "(2.4g)"]
+    set ret [Send $com "channel auto\r" "(2.4g)"] ; #4
   } elseif {$baud=="5"} {
     set ret [Send $com "wlan 2\r" "(2)"]
     if {$ret!=0} {return $ret}
@@ -1971,7 +1985,8 @@ proc WifiPerf {baud locWifiReport} {
   if {$ret!=0} {return $ret}
   set ret [Send $com "ssid RAD_TST1_$gaSet(wifiNet)\r" "(1)"]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "password \"RAD_TST1\" hash\r" "(1)"]
+  #set ret [Send $com "password \"RAD_TST1\" hash\r" "(1)"]
+  set ret [Send $com "password \"RAD_TST1\"\r" "(1)"]
   if {$ret!=0} {return $ret}
   if [string match {*Illegal encrypted password *} $buffer] {
     set ret [Send $com "password \"RAD_TST1\"\r" "(1)"]
@@ -1994,7 +2009,7 @@ proc WifiPerf {baud locWifiReport} {
   set ret [Send $com "address [set gaSet(WifiNet)].5[PcNum].[UutNum]/24\r" "(1)"]
   if {$ret!=0} {return $ret}
   if {$baud=="2.4"} {
-    set ret [Send $com "bind wlan 1 access-point 1\r" "(1)"]
+    set ret [Send $com "bind wlan 2.4g access-point 1\r" "(1)"]
   } elseif {$baud=="5"} {
     set ret [Send $com "bind wlan 2 access-point 1\r" "(1)"]
   }
@@ -2017,6 +2032,17 @@ proc WifiPerf {baud locWifiReport} {
   set ret [WiFiReport $locWifiReport $baud on]
   if {$ret!=0} {return $ret}
   
+  for {set try 1} {$try <= 3} {incr try} {
+    for {set adrr $maxAddr} {$adrr > 0} {incr adrr -1} {
+	    Status "Ping to [set gaSet(WifiNet)].5[PcNum].[UutNum][set adrr]"
+	    set ret [Ping2Cellular WiFi [set gaSet(WifiNet)].5[PcNum].[UutNum][set adrr]]   
+	    puts "[MyTime] ping res: $ret at try $try" 
+	    if {$ret==0} {break}
+	  }
+    if {$ret==0} {break}
+    after 10000
+  }
+  
   catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)} res
   puts "FtpDeleteFile <$res>"
   if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
@@ -2029,23 +2055,12 @@ proc WifiPerf {baud locWifiReport} {
     set gaSet(fail) "Unable to connect to ftp.rad.co.il"
     return -1
   }
-  
-  for {set try 1} {$try <= 3} {incr try} {
-    for {set adrr $maxAddr} {$adrr > 0} {incr adrr -1} {
-	    Status "Ping to [set gaSet(WifiNet)].5[PcNum].[UutNum][set adrr]"
-	    set ret [Ping2Cellular WiFi [set gaSet(WifiNet)].5[PcNum].[UutNum][set adrr]]   
-	    puts "[MyTime] ping res: $ret at try $try" 
-	    if {$ret==0} {break}
-	  }
-    if {$ret==0} {break}
-    after 10000
-  }
   if {$ret!=0} {
-    catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)} res
-    puts "FtpDeleteFile <$res>"
-    if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
-    set gaSet(fail) "Unable to connect to ftp.rad.co.il"
-    return -1
+    # catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)} res
+    # puts "FtpDeleteFile <$res>"
+    # if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
+    # set gaSet(fail) "Unable to connect to ftp.rad.co.il"
+    # return -1
   }
     return $ret
   }

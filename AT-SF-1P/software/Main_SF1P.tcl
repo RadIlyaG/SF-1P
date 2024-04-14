@@ -524,11 +524,11 @@ proc Mac_BarCode {run} {
 proc WiFi_2G {run} {
   global gaSet
   set ::sendSlow 0
-  Power all off
-  after 4000
+  #Power all off
+  #after 4000
   Power all on 
   
-  Wait "Wait for up" 15
+  #Wait "Wait for up" 15
   
   catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)} res
   puts "FtpDeleteFile <$res>"
