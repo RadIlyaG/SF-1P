@@ -2062,8 +2062,8 @@ proc WifiPerf {baud locWifiReport} {
     # set gaSet(fail) "Unable to connect to ftp.rad.co.il"
     # return -1
   }
-    return $ret
-  }
+  return $ret
+  
   
   ## 08:04 23/11/2023
   if 0 {
