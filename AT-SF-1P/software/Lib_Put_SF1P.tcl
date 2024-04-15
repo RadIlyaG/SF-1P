@@ -2043,24 +2043,25 @@ proc WifiPerf {baud locWifiReport} {
     after 10000
   }
   
-  catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)} res
-  puts "FtpDeleteFile <$res>"
-  if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
-    set gaSet(fail) "Unable to connect to ftp.rad.co.il"
-    return -1
-  }
-  catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt} res
-  puts "FtpDeleteFile <$res>"
-  if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
-    set gaSet(fail) "Unable to connect to ftp.rad.co.il"
-    return -1
-  }
+  # catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)} res
+  # puts "FtpDeleteFile <$res>"
+  # if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
+    # set gaSet(fail) "Unable to connect to ftp.rad.co.il"
+    # return -1
+  # }
+  # catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt} res
+  # puts "FtpDeleteFile <$res>"
+  # if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
+    # set gaSet(fail) "Unable to connect to ftp.rad.co.il"
+    # return -1
+  # }
   if {$ret!=0} {
     # catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)} res
     # puts "FtpDeleteFile <$res>"
     # if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
-    # set gaSet(fail) "Unable to connect to ftp.rad.co.il"
-    # return -1
+    #   set gaSet(fail) "Unable to connect to ftp.rad.co.il"
+    #   return -1
+    # }
   }
   return $ret
   
