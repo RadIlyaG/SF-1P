@@ -757,17 +757,18 @@ proc ButRun {} {
     }
   }
   if {$ret==0} {
-    if 0 {
-    RLSound::Play information
-    set txt "Please connect all cables, sim cards, USB devices and antennas, except AUX, according to the order"
-    set res [DialogBox -icon images/info -type "Continue Abort" -text $txt -default 0 -aspect 2000 -title "SecFlow-1V"]
-    if {$res=="Abort"} {
-      set ret -2
-      set gaSet(fail) "User stop"
-      AddToPairLog $gaSet(pair) $gaSet(fail)
-    } else {
-      set ret 0
-    }
+    if 1 {
+      RLSound::Play information
+      set txt "Connect all cables, SIM cards, SD card and antennas according to the ordered option\n\n\
+      Set J18 to 2-3, J19 to 1-2, J20 to 1-2, J21 to 1-2"
+      set res [DialogBox -icon images/info -type "Continue Abort" -text $txt -default 0 -aspect 2000 -title "SF-1p"]
+      if {$res=="Abort"} {
+        set ret -2
+        set gaSet(fail) "User stop"
+        AddToPairLog $gaSet(pair) $gaSet(fail)
+      } else {
+        set ret 0
+      }
     }
   }
   
