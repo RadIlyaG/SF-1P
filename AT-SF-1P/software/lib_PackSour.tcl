@@ -161,6 +161,9 @@ source lib_SQlite.tcl
 source LibUrl.tcl
 source Lib_GetOperator.tcl
 source Lib_Lora.tcl
+source Lib_Ramzor.tcl
+source lib_EcoCheck.tcl
+
 
 set gaSet(act) 1
 set gaSet(initUut) 1
