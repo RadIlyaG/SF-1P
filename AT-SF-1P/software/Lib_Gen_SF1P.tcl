@@ -607,17 +607,18 @@ proc GetDbrName {} {
   Status "Please wait for retriving DBR's parameters"
   set barcode [set gaSet(entDUT) [string toupper $gaSet(entDUT)]] ; update
   
-  set ret [MainEcoCheck $barcode]
-  if {$ret!=0} {
-    $gaGui(startFrom) configure -text "" -values [list]
-    set gaSet(log.$gaSet(pair)) c:/logs/[clock format [clock seconds] -format  "%Y.%m.%d-%H.%M.%S"].txt
-    AddToPairLog $gaSet(pair) $ret
-    RLSound::Play information
-    DialogBoxRamzor -type "OK" -icon /images/error -title "Unapproved changes" -message $ret
-    Status ""
-    return -2
+  if {$gaSet(demo)==0} {
+    set ret [MainEcoCheck $barcode]
+    if {$ret!=0} {
+      $gaGui(startFrom) configure -text "" -values [list]
+      set gaSet(log.$gaSet(pair)) c:/logs/[clock format [clock seconds] -format  "%Y.%m.%d-%H.%M.%S"].txt
+      AddToPairLog $gaSet(pair) $ret
+      RLSound::Play information
+      DialogBoxRamzor -type "OK" -icon /images/error -title "Unapproved changes" -message $ret
+      Status ""
+      return -2
+    }
   }
-  
   
   if [file exists MarkNam_$barcode.txt] {
     file delete -force MarkNam_$barcode.txt
