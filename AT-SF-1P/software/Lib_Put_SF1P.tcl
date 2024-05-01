@@ -1753,7 +1753,7 @@ proc ReadImei {} {
       return $ret 
     }
     
-    for {set i 1} {$i<=10} {incr i} {
+    for {set i 1} {$i<=15} {incr i} {
       if {$gaSet(act)==0} {set ret -2; break}
       Status "Read LTE status ($i)"
       set b ""
