@@ -1766,6 +1766,12 @@ proc ReadImei {} {
         set ret [Send $com "\r" "(lte)#"]
         append b $buffer
       }
+      
+      if [string match *more* $buffer] {
+        set ret [Send $com "\r" "(lte)#"]
+        append b $buffer
+      }
+      
       if {$ret!=0} {
         set gaSet(fail) "LTE Show Status fail"
         return $ret 
@@ -4078,7 +4084,10 @@ proc CellularModemPerf_RadOS_Sim12 {actSim disSim} {
   if {$ret==0} {  
     set gaSet(fail) "Read RSSI of SIM-${actSim} fail"
     set res [regexp {RSSI \(dBm\)\s+:\s+([\-\d]+)} $buffer ma val]  
-    if {$res==0} {return -1}  
+    if {$res==0} {
+      set res [regexp {RSSI \(decibel-milliwatts\)\s+:\s+([\-\d]+)} $buffer ma val]  
+      if {$res==0} {return -1}  
+    }  
     puts "ReadRSSI ma:<$ma> val:<$val>"; update  
     AddToPairLog $gaSet(pair) "RSSI of SIM-${actSim}: $val dBm"  
     if {$val<"-75" || $val>"-38"} {
@@ -4379,7 +4388,10 @@ proc CellularModemPerf_RadOS_Sim12_Dual {actLte} {
   if {$ret==0} {  
     set gaSet(fail) "Read RSSI of LTE-$actLte fail"
     set res [regexp {RSSI \(dBm\)\s+:\s+([\-\d]+)} $buffer ma val]  
-    if {$res==0} {return -1}  
+    if {$res==0} {
+      set res [regexp {RSSI \(decibel-milliwatts\)\s+:\s+([\-\d]+)} $buffer ma val]  
+      if {$res==0} {return -1}  
+    }  
     puts "ReadRSSI ma:<$ma> val:<$val>"; update  
     AddToPairLog $gaSet(pair) "RSSI of LTE-$actLte: $val dBm"  
     if {$val<"-75" || $val>"-38"} {
