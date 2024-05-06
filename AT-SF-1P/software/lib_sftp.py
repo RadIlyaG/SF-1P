@@ -2,10 +2,12 @@ import sys
 import time
 from RL import Lib_RadApps
 
-def FtpDeleteFile(fil):
-    if sftp.FileExists(fil.lower()) == 1:
-        fil = fil.lower()
-        sftp.DeleteFile(fil)
+def FtpDeleteFile(*files):
+    for fil in files:
+        print(f'fil<{fil}>')
+        if sftp.FileExists(fil.lower()) == 1:
+            fil = fil.lower()
+            sftp.DeleteFile(fil)
         
 def FtpFileExist(fil):
     fil = fil.lower()
@@ -46,7 +48,7 @@ if __name__ == '__main__':
         if func == 'FtpDeleteFile':
             print(f'list_files:{sftp.ListOfFiles()}')
         
-        if func == 'FtpGetFile':
+        if func == 'FtpGetFile' or func == 'FtpDeleteFile':
             fil2 =  sys.argv[3]
             result = eval(func + "(fil, fil2)")
         else:
@@ -54,5 +56,5 @@ if __name__ == '__main__':
         
         print(f'result: {result} , list_files:{sftp.ListOfFiles()}')
     else:
-        print(f'result: {result}')
+        print(f'bad result: {result}')
     

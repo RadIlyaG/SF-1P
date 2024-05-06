@@ -530,18 +530,18 @@ proc WiFi_2G {run} {
   
   #Wait "Wait for up" 15
   
-  catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)} res
+  catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet) wifireport_$gaSet(wifiNet).txt} res
   puts "FtpDeleteFile <$res>"
   if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
     set gaSet(fail) "Unable to connect to ftp.rad.co.il"
     return -1
   }
-  catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt} res
-  puts "FtpDeleteFile <$res>"
-  if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
-    set gaSet(fail) "Unable to connect to ftp.rad.co.il"
-    return -1
-  }
+  # catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt} res
+  # puts "FtpDeleteFile <$res>"
+  # if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
+    # set gaSet(fail) "Unable to connect to ftp.rad.co.il"
+    # return -1
+  # }
   
   set locWifiReport LocWifiReport_$gaSet(wifiNet).txt
   if {[file exists $locWifiReport]} {
@@ -558,24 +558,24 @@ proc WiFi_2G {run} {
   }
   regexp {result: (-?1) } $res ma ret
   
-  set ret [Login2App]
+  set ret [Login] ; #[Login2App]
   if {$ret!=0} {return $ret}
   
   set ret [WifiPerf 2.4 $locWifiReport]
   
   if {$ret==0} { 
-    catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)} res
+    catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet) wifireport_$gaSet(wifiNet).txt} res
     puts "FtpDeleteFile <$res>"
     if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
-    set gaSet(fail) "Unable to connect to ftp.rad.co.il"
-    return -1
-  }
-    catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt} res
-    puts "FtpDeleteFile <$res>"
-    if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
-    set gaSet(fail) "Unable to connect to ftp.rad.co.il"
-    return -1
-  }
+      set gaSet(fail) "Unable to connect to ftp.rad.co.il"
+      return -1
+    }
+    # catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt} res
+    # puts "FtpDeleteFile <$res>"
+    # if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
+      # set gaSet(fail) "Unable to connect to ftp.rad.co.il"
+      # return -1
+    # }
   }
 
   return $ret
@@ -602,10 +602,10 @@ proc WiFi_5G {run} {
   
   #FtpDeleteFile [string tolower startMeasurement_$gaSet(wifiNet)]
   #FtpDeleteFile [string tolower wifireport_$gaSet(wifiNet).txt]
-  catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)} res
+  catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet) wifireport_$gaSet(wifiNet).txt} res
   puts "FtpDeleteFile <$res>"
-  catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt} res
-  puts "FtpDeleteFile <$res>"
+  # catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt} res
+  # puts "FtpDeleteFile <$res>"
   set locWifiReport LocWifiReport_$gaSet(wifiNet).txt
   if {[file exists $locWifiReport]} {
     file delete -force $locWifiReport
@@ -618,7 +618,7 @@ proc WiFi_5G {run} {
   puts "FtpDeleteFile <$res>"
   regexp {result: (-?1) } $res ma ret
   
-  set ret [Login2App]
+  set ret [Login] ; #[Login2App]
   if {$ret!=0} {return $ret}
   
   set ret [WifiPerf 5 $locWifiReport]
@@ -626,10 +626,10 @@ proc WiFi_5G {run} {
   if {$ret==0} {
     #FtpDeleteFile [string tolower startMeasurement_$gaSet(wifiNet)]
     #FtpDeleteFile [string tolower wifireport_$gaSet(wifiNet).txt]
-	catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)} res
+	  catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet) wifireport_$gaSet(wifiNet).txt} res
     puts "FtpDeleteFile <$res>"
-    catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt} res
-    puts "FtpDeleteFile <$res>"
+    # catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt} res
+    # puts "FtpDeleteFile <$res>"
   }
   
   return $ret

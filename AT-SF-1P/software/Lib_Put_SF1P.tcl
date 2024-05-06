@@ -311,6 +311,11 @@ proc Login2App {} {
     after 10000
     set ret -1
   }
+  if {[string match *root@localhost* $buffer]} {
+    Send $com "exit\r\r" stam 2
+    Send $com "logout\r\r" stam 2
+    set ret -1
+  } 
   
   set gaSet(fail) "Login to Application level fail" 
   if {$ret!=0} {
@@ -2079,10 +2084,10 @@ proc WifiPerf {baud locWifiReport} {
     ## we stop the measurement and wait upto 2 minutes to verify that wifireport will be deleted
     #FtpDeleteFile [string tolower startMeasurement_$gaSet(wifiNet)]
     #FtpDeleteFile  [string tolower wifireport_$gaSet(wifiNet).txt]
-    catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)} res
+    catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)  wifireport_$gaSet(wifiNet).txt} res
     puts "FtpDeleteFile <$res>"
-    catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt} res
-    puts "FtpDeleteFile <$res>"
+    # catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt} res
+    # puts "FtpDeleteFile <$res>"
     
     set ret [FtpVerifyNoReport]
     if {$ret!=0} {return $ret}
@@ -2118,11 +2123,11 @@ proc WifiPerf {baud locWifiReport} {
       set wifiRet $ret
       puts "wifiRet:<$wifiRet>"; update
       if {$ret!=0} {
-        catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)} res
+        catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)  wifireport_$gaSet(wifiNet).txt} res
         puts "FtpDeleteFile <$res>"
         #FtpDeleteFile  [string tolower wifireport_$gaSet(wifiNet).txt]
-        catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt} res
-        puts "FtpDeleteFile <$res>"
+        # catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt} res
+        # puts "FtpDeleteFile <$res>"
       
         set wifiRet $ret
         set ret [FtpVerifyNoReport]
