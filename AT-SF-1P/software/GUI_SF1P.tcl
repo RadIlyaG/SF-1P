@@ -6,6 +6,9 @@ proc GUI {} {
   
   #  wm title . "$gaSet(pair) : $gaSet(DutFullName)"
   # wm title . "$gaSet(pair) : "
+  if {![info exist gaSet(showBoot)]} {
+    set gaSet(showBoot) 1
+  }
   if $gaSet(demo) {
     wm deiconify .
   wm geometry . $gaGui(xy)
@@ -110,7 +113,10 @@ Please confirm you know products should not be released to the customer with thi
         {command "E-mail Setting" gaGui(ToolAdd) {} {} -command {GuiEmail .mail}} 
   		  {command "E-mail Test" gaGui(ToolAdd) {} {} -command {TestEmail}}       
       }
-      }     
+      }  
+      {separator}
+      {radiobutton "J21 1-2 (Show Boot)"  init {} {} -value 1 -variable gaSet(showBoot) -command ToggleShowBoot}
+      {radiobutton "J21 2-3 (Hide Boot)"  init {} {} -value 0 -variable gaSet(showBoot) -command ToggleShowBoot}
     }                
  "&Terminal" terminal tterminal 0  {
       {command "UUT" "" "" {} -command {OpenTeraTerm gaSet(comDut)}}  
@@ -1353,4 +1359,12 @@ proc IT6900_quit {} {
   }  
   SaveInit
   destroy .topHwInit
+}
+
+proc ToggleShowBoot {} {
+   global gaSet gaGui
+   if {[info exists gaSet(DutFullName)] && $gaSet(DutFullName)!=""} {
+    BuildTests
+  }
+  SaveInit
 }

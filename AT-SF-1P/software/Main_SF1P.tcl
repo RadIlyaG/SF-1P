@@ -59,12 +59,15 @@ proc BuildTests {} {
       # lappend lTestNames MicroSD  
     # }
   # }
-  if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC"} {
-    ## no CD card Contact
-  } else {  
-    lappend lTestNames MicroSD  
+  
+  if $gaSet(showBoot) {
+    if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC"} {
+      ## no CD card Contact
+    } else {  
+      lappend lTestNames MicroSD  
+    }
+    lappend lTestNames SOC_Flash_Memory SOC_i2C 
   }
-  lappend lTestNames SOC_Flash_Memory SOC_i2C 
   
   if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC"} {
     ## 15:52 18/10/2023 lappend lTestNames BrdEeprom
@@ -168,7 +171,11 @@ proc BuildTests {} {
   if {[string index $gaSet(dutFam.cell) 0] !=0} {
     lappend lTestNames LteLeds
   }
-  lappend lTestNames  FrontPanelLeds 
+  if $gaSet(showBoot) {
+    lappend lTestNames FrontPanelLeds 
+  } else {
+    lappend lTestNames FDbutton
+  }
   lappend lTestNames  Factory_Settings SSH
   if !$gaSet(demo) {
     lappend lTestNames Mac_BarCode

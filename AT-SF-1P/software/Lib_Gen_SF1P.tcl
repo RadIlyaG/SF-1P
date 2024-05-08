@@ -229,6 +229,7 @@ proc SaveInit {} {
     puts $id "set gaSet(it6900.$ps) \"$gaSet(it6900.$ps)\""    
   }  
   
+  puts $id "set gaSet(showBoot) \"$gaSet(showBoot)\""
   close $id   
 }
 
