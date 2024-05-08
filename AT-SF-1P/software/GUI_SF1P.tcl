@@ -1299,7 +1299,7 @@ proc IT6900_on_off {gui_script mode} {
 proc IT6900_set {gui_script volt} {
   global gaSet gaGui
   set ret -1
-  foreach p {1 2} {
+  foreach ps {1 2} {
     if {$gui_script=="gui"} {
       set addr [$gaGui(it6900.$ps) get]
       set volt $gaSet(it6900.volt)
