@@ -18,27 +18,32 @@ proc BuildTests {} {
     return -1
   }
   
-  set addrL []
-  set res_list [exec python.exe lib_IT6900.py get_list stam stam]
-  foreach res $res_list {
-    if [regexp {0x6900::(\d+)::INSTR} $res ma addr] {
-      lappend addrL $addr        
-    }
-  }
-  puts "BuildTests IT6900_addrL: $addrL"
+  # set addrL []
+  # set res_list [exec python.exe lib_IT6900.py get_list stam stam]
+  # foreach res $res_list {
+    # if [regexp {0x6900::(\d+)::INSTR} $res ma addr] {
+      # lappend addrL $addr        
+    # }
+  # }
+  # puts "BuildTests IT6900_addrL: $addrL"
   
   set lTestsAllTests [list]
   set lTestNames [list]
 #   set lDownloadTests [list BrdEeprom]
 #   eval lappend lTestsAllTests $lDownloadTests
   
-  ## 14:15 28/12/2022
-  if {[llength $addrL] == 0} {
+  # ## 14:15 28/12/2022
+  # if {[llength $addrL] == 0} {
+    # lappend lTestNames PowerOffOn
+  # } else {
+    # foreach addr $addrL ps {1 2} {
+      # set gaSet(it6900.$ps) $addr
+    # }
+    # lappend lTestNames Voltage
+  # }
+  if {$gaSet(it6900.1) == "" && $gaSet(it6900.2) == ""} {
     lappend lTestNames PowerOffOn
   } else {
-    foreach addr $addrL ps {1 2} {
-      set gaSet(it6900.$ps) $addr
-    }
     lappend lTestNames Voltage
   }
   
@@ -963,13 +968,20 @@ proc Voltage {run} {
   global gaSet
   set ::sendSlow 0
   set ret -1
-  if {$gaSet(dutFam.ps)=="WDC" || $gaSet(dutFam.ps)=="12V"} {
-    set ret [PowerProtection]
-  } else {
-    set ret 0
-  }
+  
+  set ret [IT9600_current]
+  
   if {$ret==0} {
     set ret [VoltagePerf]
   }
+  
+  if {$ret==0} {
+    if {$gaSet(dutFam.ps)=="WDC" || $gaSet(dutFam.ps)=="12V"} {
+      set ret [PowerProtection]
+    } else {
+      set ret 0
+    }
+  }
+  
   return $ret
 }

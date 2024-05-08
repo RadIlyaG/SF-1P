@@ -207,7 +207,7 @@ proc SaveUutInit {fil} {
 # SaveInit
 # ***************************************************************************
 proc SaveInit {} {
-  global gaSet  
+  global gaSet  gaGui
   set id [open [info host]/init$gaSet(pair).tcl w]
   puts $id "set gaGui(xy) +[winfo x .]+[winfo y .]"
   if [info exists gaSet(DutFullName)] {
@@ -221,6 +221,13 @@ proc SaveInit {} {
     set gaSet(eraseTitle) 1
   }
   puts $id "set gaSet(eraseTitle) \"$gaSet(eraseTitle)\""
+  
+  foreach ps {1 2} {
+    if ![info exists gaSet(it6900.$ps)] {
+      set gaSet(it6900.$ps) ""
+    }
+    puts $id "set gaSet(it6900.$ps) \"$gaSet(it6900.$ps)\""    
+  }  
   
   close $id   
 }
@@ -462,16 +469,14 @@ proc Power {ps state} {
     all {set pioL "1 2"}
   } 
   switch -exact -- $state {
-    on  {
-	    foreach pio $pioL {      
-        RLUsbPio::Set $gaSet(idPwr$pio) 1
-      }
-    } 
-	  off {
-	    foreach pio $pioL {
-	      RLUsbPio::Set $gaSet(idPwr$pio) 0
-      }
-    } 
+    on  {set bit 1} 
+	  off {set bit 0} 
+  }
+  foreach pio $pioL {      
+    RLUsbPio::Set $gaSet(idPwr$pio) $bit
+    if {$gaSet(it6900.$pio)!=""} {
+      IT6900_on_off script $state
+    }
   }
 #   $gaGui(tbrun)  configure -state disabled 
 #   $gaGui(tbstop) configure -state normal

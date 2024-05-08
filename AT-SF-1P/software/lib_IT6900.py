@@ -36,7 +36,9 @@ class IP6900:
         self.inst.close() 
     
     def exec_cmd(self, cmd, par):
-        #print(f'cmd:{cmd} par:{par}')
+        print(f'cmd:{cmd} par:{par}')
+        ret = self.inst.write('*cls')
+        #print(f'ret:{ret}')
         ret = None
         if cmd == 'query':
             ret = self.inst.query(par)
@@ -45,7 +47,7 @@ class IP6900:
         elif cmd == 'read':
             ret = self.inst.read(par)
             
-        print(f'ret:{ret}')
+        print(f'{ret}')
         return ret
          
          

@@ -34,7 +34,7 @@ Please confirm you know products should not be released to the customer with thi
   }
   
   wm protocol . WM_DELETE_WINDOW {Quit}
-  wm geometry . 640x141$gaGui(xy)
+  wm geometry . 640x183$gaGui(xy)
   wm resizable . 0 0
   set descmenu {
     "&File" all file 0 {	 
@@ -218,6 +218,16 @@ Please confirm you know products should not be released to the customer with thi
 #     set frTestPerf [TitleFrame $mainframe.frTestPerf -bd 2 -relief groove \
 #         -text "Test Performance"] 
 #       set f [$frTestPerf getframe]      17/09/2014 16:26:46
+
+    set fr6900 [frame $mainframe.fr6900 -bd 2 -relief groove] 
+      set lab1 [Label $fr6900.lab1 -text "IT6900 PS:"]
+      if ![info exists gaSet(it6900.1)] {
+        set gaSet(it6900.1) ""
+      }
+      set lab2 [Label $fr6900.lab2 -text $gaSet(it6900.1) -width 20 -relief sunken -bd 2 ]
+      set gaGui(fr6900.lab2) $lab2
+      pack $lab1 $lab2 -padx 2 -side left
+
     set frTestPerf [frame $mainframe.frTestPerf -bd 2 -relief groove]     
       set f $frTestPerf
       set frCur [frame $f.frCur]  
@@ -246,7 +256,7 @@ Please confirm you know products should not be released to the customer with thi
       pack $labFail $labFailStatus -fill x -padx 7 -pady 3 -side left; # -expand 1	
       #pack $gaGui(frFailStatus) -anchor w
   
-    pack $frDUT $frTestPerf -fill both -expand yes -padx 2 -pady 2 -anchor nw	 
+    pack $frDUT $fr6900 $frTestPerf -fill both -expand yes -padx 2 -pady 2 -anchor nw	 
   pack $mainframe -fill both -expand yes
 
   $gaGui(tbrun) configure -relief raised -state normal
@@ -276,7 +286,10 @@ Please confirm you know products should not be released to the customer with thi
   if $::NoATP {
     RLStatus::Show -msg atp
   }
-  RLStatus::Show -msg fti
+  set ::NoFTI 0
+  if $::NoFTI {
+    RLStatus::Show -msg fti
+  }
   
   if $gaSet(demo) {
     #$gaGui(labDemoNotDemo) configure -text "DEMO!!!" -bg yellow -fg red
@@ -916,7 +929,7 @@ proc ButRun {} {
   if {$gaSet(runStatus)!=""} {
     SQliteAddLine
   }
-  SendEmail "SF-1V" [$gaSet(sstatus) cget -text]
+  SendEmail "SF-1P" [$gaSet(sstatus) cget -text]
   $gaGui(tbrun) configure -relief raised -state normal
   $gaGui(tbstop) configure -relief sunken -state disabled
   $gaGui(tbpaus) configure -relief sunken -state disabled
@@ -1236,7 +1249,7 @@ proc Gui_IT6900 {} {
   wm focusmodel $base passive
   wm geometry $base $gaGui(xy)
   wm resizable $base 1 1
-  
+  wm protocol $base WM_DELETE_WINDOW {IT6900_quit}
   set addrL []
   set res_list [exec python.exe lib_IT6900.py get_list stam stam]
   foreach res $res_list {
@@ -1251,13 +1264,14 @@ proc Gui_IT6900 {} {
     set fr [$frA getframe]
       foreach p {1 2} {
         set lab [Label $fr.lab$p -text "PS-$p Serial Number"]
-        set ent [ComboBox $fr.ent$p -values $addrL -width 20] ; #-textvariable gaSet(it6900.$p) 
-        grid $lab $ent
+        set ent [ComboBox $fr.ent$p -values $addrL -width 20 -textvariable gaSet(it6900.$p) ]
+        set but [Button $fr.but$p -command [list IT6900_clr $p] -text "Clear"]
+        grid $lab $ent $but
         set gaGui(it6900.$p) $ent
       }
     pack $fr  
     
-  set frB [TitleFrame $base.frB -text "Set" -bd 2 -relief groove]
+  set frB [TitleFrame $base.frB -text "Manual mode" -bd 2 -relief groove]
     set fr [$frB getframe]
     set butOn  [Button $fr.butOn  -text "ON"  -command {IT6900_on_off gui on}]
     set butOff [Button $fr.butOff -text "OFF" -command {IT6900_on_off gui off}]
@@ -1276,6 +1290,7 @@ proc Gui_IT6900 {} {
 # IT6900_on_off
 # ***************************************************************************
 proc IT6900_on_off {gui_script mode} {
+  puts "\nIT6900_on_off $gui_script $mode"
   global gaSet gaGui
   set ret -1
   foreach ps {1 2} {
@@ -1291,13 +1306,14 @@ proc IT6900_on_off {gui_script mode} {
   if {$ret=="-1"} {
     set gaSet(fail) "No communication with IT6900"
   }
-  return ret
+  return $ret
 }
 # ***************************************************************************
 # IT6900_set
 # ***************************************************************************
 proc IT6900_set {gui_script volt} {
   global gaSet gaGui
+  puts "\nIT6900_set $gui_script $volt"
   set ret -1
   foreach ps {1 2} {
     if {$gui_script=="gui"} {
@@ -1313,5 +1329,28 @@ proc IT6900_set {gui_script volt} {
   if {$ret=="-1"} {
     set gaSet(fail) "No communication with IT6900"
   }
-  return ret
+  return $ret
+}
+
+# ***************************************************************************
+# IT6900_clr
+# ***************************************************************************
+proc IT6900_clr {ps} {
+  global gaGui
+  $gaGui(it6900.$ps) clearvalue
+}
+# ***************************************************************************
+# IT6900_quit
+# ***************************************************************************
+proc IT6900_quit {} {
+  global gaSet gaGui
+  foreach ps {1 2} {
+    set gaSet(it6900.$ps) [$gaGui(it6900.$ps) get]
+  }
+  $gaGui(fr6900.lab2) configure -text ${gaSet(it6900.1)}-${gaSet(it6900.2)}
+  if {[info exists gaSet(DutFullName)] && $gaSet(DutFullName)!=""} {
+    BuildTests
+  }  
+  SaveInit
+  destroy .topHwInit
 }
