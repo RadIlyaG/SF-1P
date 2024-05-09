@@ -187,15 +187,19 @@ proc CheckBcOk {readTrace} {
       set entLab {"ID"}
       set radButQty 0
     } else {
-      if {$gaSet(dutFam.ps)=="WDC" || $gaSet(dutFam.ps)=="12V"} {
-        set entQty 3
-        set entLab {"ID" "Main Card's Traceability" "PS Card's Traceability"}
-        set radButQty 3        
-      } else {
-        set entQty 2
-        set entLab {"ID" "Main Card's Traceability"}
-        set radButQty 2 
-      }
+      # 13:37 09/05/2024
+      # if {$gaSet(dutFam.ps)=="WDC" || $gaSet(dutFam.ps)=="12V"} {
+        # set entQty 3
+        # set entLab {"ID" "Main Card's Traceability" "PS Card's Traceability"}
+        # set radButQty 3        
+      # } else {
+        # set entQty 2
+        # set entLab {"ID" "Main Card's Traceability"}
+        # set radButQty 2 
+      # }
+      set entQty 2
+      set entLab {"ID" "Main Card's Traceability"}
+      set radButQty 2
     }
     set ret [DialogBox -title "Read Barcodes" -text "Enter the SF-1P's barcode" -ent1focus 1\
         -type "Ok Cancel" -entQty $entQty -entPerRow 1 -entLab $entLab -icon /images/info] 
