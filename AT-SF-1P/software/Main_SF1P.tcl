@@ -998,6 +998,9 @@ proc Voltage {run} {
   if {$ret==0} {
     global buffer gaSet
     set ret [IT9600_normalVoltage 1 1]
+    if {$ret!="-1"} {
+      set ret 0
+    }
     # set volt [Retrive_normalVoltage]
     # set ret [IT6900_on_off script off]
     # if {$ret!="-1"} {
