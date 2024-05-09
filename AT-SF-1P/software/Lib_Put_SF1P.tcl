@@ -5618,41 +5618,7 @@ proc PowerProtection {} {
   return $ret
 }
 
-# ***************************************************************************
-# IT9600_current
-# ***************************************************************************
-proc IT9600_current {} {
-  global buffer gaSet
-  puts "\n[MyTime] IT9600_current"; update
-  if {$gaSet(dutFam.ps)=="WDC"} {
-    set volt 48
-  } elseif {$gaSet(dutFam.ps)=="12V" || $gaSet(dutFam.ps)=="ACEX"} {
-    set volt 24
-  } elseif {$gaSet(dutFam.ps)=="DC"} {
-    set volt 48
-  }
-  set ret [IT6900_on_off script off]
-  if {$ret!="-1"} {
-    set ret [IT6900_set script $volt]
-  }  
-  if {$ret!="-1"} {
-    after 2000
-    set ret [IT6900_on_off script on]
-    after 2000
-  }
-  set addr $gaSet(it6900.1)
-  set ret [exec python.exe lib_IT6900.py $addr query meas:curr?]
-  puts "curr_ret:<$ret>"
-  set ret [lindex [split $ret \n] end]
-  puts "curr_ret:<$ret>"
-  if {$ret>0.1} {
-    set ret 0
-  } else {
-    set gaSet(fail) "UUT doesn't connected to IT6900"
-    set ret -1
-  }
-  return $ret
-}
+
 # ***************************************************************************
 # VoltagePerf
 # ***************************************************************************
