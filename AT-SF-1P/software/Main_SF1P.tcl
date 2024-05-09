@@ -356,8 +356,10 @@ proc ID {run} {
   set ret [ReadWanLanStatus]
   if {$ret != 0} {return $ret}
   
-  set ret [ReadBootParams]
-  if {$ret != 0} {return $ret}
+  if $gaSet(showBoot) {
+    set ret [ReadBootParams]
+    if {$ret != 0} {return $ret}
+  }
   
   return $ret
 }
@@ -828,9 +830,13 @@ proc SSH {run} {
   } 
   set ret [SshPerform]
   if {$ret=="-1"} {
-    set txt "Set J21 to 1-2 (BADAS) and verify the SSH cable is connected"
-    RLSound::Play information
-    set res [DialogBox -title "SSH Test" -type "OK Cancel" -message $txt -icon images/info]
+    if $gaSet(showBoot) {
+      set txt "Set J21 to 1-2 (BADAS) and verify the SSH cable is connected"
+      RLSound::Play information
+      set res [DialogBox -title "SSH Test" -type "OK Cancel" -message $txt -icon images/info]
+    } else {
+      set res OK
+    }
     if {$res=="Cancel"} {
       set ret -2
     } else {

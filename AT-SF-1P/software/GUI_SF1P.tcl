@@ -778,8 +778,12 @@ proc ButRun {} {
   if {$ret==0} {
     if 1 {
       RLSound::Play information
-      set txt "Connect all cables, SIM cards, SD card and antennas according to the ordered option\n\n\
-      Set J18 to 2-3, J19 to 1-2, J20 to 1-2, J21 to 1-2"
+      
+      set txt "Connect all cables, SIM cards, SD card and antennas according to the ordered option"
+      set txt2 "\n\nSet J18 to 2-3, J19 to 1-2, J20 to 1-2, J21 to 1-2"
+      if $gaSet(showBoot) {
+        append txt $txt2
+      }
       set res [DialogBox -icon images/info -type "Continue Abort" -text $txt -default 0 -aspect 2000 -title "SF-1p"]
       if {$res=="Abort"} {
         set ret -2

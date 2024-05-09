@@ -511,6 +511,30 @@ proc GuiPower {n state} {
       RLUsbPio::Close $id
     }   
   }
+ 
+  # foreach pio $portL {      
+    # if {$gaSet(it6900.$pio)!=""} {
+      # IT6900_on_off script $state
+    # }
+  # }
+  
+  if {$gaSet(dutFam.ps)=="WDC"} {
+    set volt 48
+  } elseif {$gaSet(dutFam.ps)=="12V" || $gaSet(dutFam.ps)=="ACEX"} {
+    set volt 24
+  } elseif {$gaSet(dutFam.ps)=="DC"} {
+    set volt 48
+  }
+  if {$state=="0"} {
+    set ret [IT6900_on_off script off]
+  } elseif {$state=="1"} {
+    set ret [IT6900_set script $volt]
+    if {$ret!="-1"} {
+      after 2000
+      set ret [IT6900_on_off script on]
+      after 2000
+    }
+  }
   RLEH::Close
 } 
 

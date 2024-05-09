@@ -1,28 +1,4 @@
 # ***************************************************************************
-# TstAlm 
-# ***************************************************************************
-proc TstAlm {state} {
-  global gaSet buffer
-  set ret [Login]
-  if {$ret!=0} {
-    #set ret [Login]
-    if {$ret!=0} {return $ret}
-  }
-  set gaSet(fail) "Logon fail"
-  set com $gaSet(comDut)
-  Send $com "exit all\r" stam 0.25 
-  
-  set ret [Send $com "configure reporting\r" ">reporting"]
-  if {$ret!=0} {return $ret}
-  if {$state=="off"} { 
-    set ret [Send $com "mask-minimum-severity log major\r" ">reporting"]
-  } elseif {$state=="on"} { 
-    set ret [Send $com "no mask-minimum-severity log\r" ">reporting"]
-  } 
-  return $ret
-}
-
-# ***************************************************************************
 # PowerResetAndLogin2Uboot
 # ***************************************************************************
 proc PowerResetAndLogin2Uboot {} {
@@ -3015,29 +2991,48 @@ proc LedsInLoop {} {
 proc FDbuttonPerf {} {
   global gaSet buffer
   set com $gaSet(comDut)
-  
-#   set sta ""
-#   set ret [Send $com "\r\r" "PCPE" 0.5]
-#   if {$ret==0} {
-#     set sta boot
-#   } else {
-#     set ret [Send $com "\r\r" "-1p" 0.5]
-#     if {$ret==0} {
-#       set sta app
-#     } else {
-#       set ret [Send $com "\r\r" "\]" 0.5]
-#       if {$ret==0} {
-#         set sta linux
-#       }
-#     }
-#   }
-  
+  set ret [Login]  ; # Login2App
+  if {$ret!=0} {
+    return $ret
+  }
   RLSound::Play information
+  set txt "Please disconnect all ETH cables\n\
+  Remove the SD-card and the SIMs (if exists)"
+  if {$gaSet(dutFam.cell)!=0} {
+    append txt "\nDisconnect the antenna from \'LTE MAIN\' and mount it on the \'LTE AUX\'"
+  }  
+  set res [DialogBox -title "Boot Leds Test" -type "Ok Cancel" -message $txt  -icon images/info]
+  if {$res=="Cancel"} {
+    set gaSet(fail) "\'LTE AUX\' Test fail" 
+    return -1
+  }
+  
+  Send $com "logout\r\r" "stam" 3 
+  RLSound::Play information
+  RLCom::Read $com buffer
+  Send $com "\r" "stam" 1 
+  set ::bb $buffer
+  puts "Buffer before FD: <$::bb>"; update 
   set res [DialogBox -title "FD button Test" -type "Yes No" \
-      -message "Press the DF button and verify the UUT is reboting.\n\n\
-      Does the reset is done?" -icon images/info]
+      -message "Press the FD button for 10-15 sec and verify the UUT is reboting (Front side's LEDs are blinking one time).\n\n\
+      Reset has been performed??" -icon images/info]
   if {$res=="No"} {
     set gaSet(fail) "FD button Test fail" 
+    return -1
+  }
+  
+  Send $com "\r" "stam" 1 
+  set ::ba $buffer
+  puts "Buffer after FD: <$::ba>"; update 
+  
+  RLCom::Read $com buffer
+  puts "BootLedsPerf buffer <$buffer>" ; update
+  if {[string match {*actory-default-config*} $buffer]==0} {
+    set gaSet(fail) "No \'factory-default-config\' message (FD button)" 
+    #return -1
+  }
+  if {$::bb == $::ba} {
+    set gaSet(fail) "Reset was not performed (FD button)" 
     return -1
   }
   return 0
@@ -3542,12 +3537,16 @@ proc SshPerform {} {
     set sshPort 4
   }
  
+  
   set txt "Please connect the SSH cable to port $sshPort"
-  append txt "\nRemove the J21 jumper to 2-3 position"  
+  if $gaSet(showBoot) {
+    append txt "\nRemove the J21 jumper to 2-3 position"  
+  }  
   set res [DialogBox -title "SSH Test" -type "Ok Cancel" -message $txt  -icon images/info]
   if {$res=="Cancel"} {
     return -2
   } 
+
   
 #   package require RLPlink
 #    # plink.exe -ssh -P 22 su@169.254.1.1
@@ -4531,6 +4530,7 @@ proc BootLedsPerf {} {
   if {$ret!=0} {
     return $ret
   }
+  Send $com "logout\r\r" "stam" 3 
   RLSound::Play information
   RLCom::Read $com buffer
   Send $com "\r" "stam" 1 
@@ -4725,7 +4725,15 @@ proc PowerOffOnPerf {} {
     Power all on
     Status "Power ON $i"
     after 1000
-    Send $com \r stam 2
+    if $gaSet(showBoot) {
+      set timeou 2
+    } else {
+      set timeou 30
+      if {$gaSet(dutFam.box)=="ETX-1P"} {
+        set timeou 70
+      }
+    }
+    Send $com \r stam $timeou
     set buffLen [string length $buffer]
     puts "PowerOffOnPerf $i buffLen:<$buffLen>"; update
     if {$buffLen>100} {
