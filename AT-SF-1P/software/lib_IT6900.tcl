@@ -178,7 +178,7 @@ proc IT9600_current {} {
   puts "curr_ret:<$ret>"
   set ret [lindex [split $ret \n] end]
   puts "curr_ret:<$ret>"
-  if {$ret>0.1} {
+  if {$ret>0.05} {
     set ret 0
   } else {
     set gaSet(fail) "UUT doesn't connected to IT6900"
