@@ -3961,9 +3961,13 @@ proc CellularLte_RadOS_Sim12 {} {
   if {$ret!=0} {return $ret}
   set ret [Send $com "apn-name \"statreal\"\r" "(1)"]
   if {$ret!=0} {return $ret}
-  if $L4 {
-    set ret [Send $com "pdp-type relayed-ppp\r" "(1)"]
-    if {$ret!=0} {return $ret}
+  if {$gaSet(dutFam.box) == "ETX-1P"} {
+    ## don't config pdp in ETX, L4
+  } else {
+    if $L4 {
+      set ret [Send $com "pdp-type relayed-ppp\r" "(1)"]
+      if {$ret!=0} {return $ret}
+    }
   }
   #set ret [Send $com "no shutdown\r" "(lte)"]
   #if {$ret!=0} {return $ret}
@@ -3973,9 +3977,13 @@ proc CellularLte_RadOS_Sim12 {} {
   if {$ret!=0} {return $ret}
   set ret [Send $com "apn-name \"statreal\"\r" "(2)"]
   if {$ret!=0} {return $ret}
-  if $L4 {
-    set ret [Send $com "pdp-type relayed-ppp\r" "(2)"]
-    if {$ret!=0} {return $ret}
+  if {$gaSet(dutFam.box) == "ETX-1P"} {
+    ## don't config pdp in ETX, L4
+  } else {
+    if $L4 {
+      set ret [Send $com "pdp-type relayed-ppp\r" "(2)"]
+      if {$ret!=0} {return $ret}
+    }
   }
   set ret [Send $com "exit all\r" "-1p"]
   if {$ret!=0} {return $ret}
