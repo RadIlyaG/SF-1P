@@ -779,7 +779,7 @@ proc ButRun {} {
     if 1 {
       RLSound::Play information
       
-      set txt "Connect all cables, SIM cards, SD card and antennas according to the ordered option"
+      set txt "Connect all cables, SIM cards and antennas according to the ordered option" ; #, SD card
       set txt2 "\n\nSet J18 to 2-3, J19 to 1-2, J20 to 1-2, J21 to 1-2"
       if $gaSet(showBoot) {
         append txt $txt2
@@ -819,21 +819,22 @@ proc ButRun {} {
       set gaSet(fail) "Fail to get CSL for $IdBarcode"
     }
     if {$ret==0} {
-      set ret [RetriveIdTraceData $traceId PCBTraceabilityIDData]
-      puts "ButRun PCBret:<$ret>"
-      if {$ret!="-1"} {
-        set gaSet(mainPcbId)  [dict get $ret pcb]
-        AddToPairLog $gaSet(pair) "MainPcb: $gaSet(mainPcbId)"
-        set  res [regexp {REV([\d\.]+)[A-Z]} $gaSet(mainPcbId)  ma gaSet(mainHW)]
-        if {$res==1} {
-          set ret 0
-        } else {
-          set ret -1
-          set gaSet(fail) "Fail to retrive mainHW from mainPcbId"
-        }  
-      } else {
-        set gaSet(fail) "Fail to get PCB_Data for $traceId"
-      }  
+      # 09:20 15/05/2024 No TraceID
+      # set ret [RetriveIdTraceData $traceId PCBTraceabilityIDData]
+      # puts "ButRun PCBret:<$ret>"
+      # if {$ret!="-1"} {
+        # set gaSet(mainPcbId)  [dict get $ret pcb]
+        # AddToPairLog $gaSet(pair) "MainPcb: $gaSet(mainPcbId)"
+        # set  res [regexp {REV([\d\.]+)[A-Z]} $gaSet(mainPcbId)  ma gaSet(mainHW)]
+        # if {$res==1} {
+          # set ret 0
+        # } else {
+          # set ret -1
+          # set gaSet(fail) "Fail to retrive mainHW from mainPcbId"
+        # }  
+      # } else {
+        # set gaSet(fail) "Fail to get PCB_Data for $traceId"
+      # }  
     }
   }
   if {$ret==0} {

@@ -584,6 +584,29 @@ proc DryContactAlarmcheck {mode} {
   if {$ret!=0} {
     set ret [Login]
     if {$ret!=0} {return $ret}
+    set ret [Send $com "configure system\r" "system"]
+    if {$ret!=0} {
+      set gaSet(fail) "Configure System fail"
+      return -1
+    }
+    set ret [Send $com "show device-information\r" "Engine Time"]
+    if {$ret!=0} {
+      set gaSet(fail) "Show device-information fail"
+      return -1
+    }
+    set res  [regexp {Hw:\s+([\w\/\.]+)\s?} $buffer ma uutHw]
+    if {$res==0} {
+      set gaSet(fail) "Read Hw fail"
+      return -1
+    } 
+    set uutHw [string trim $uutHw]
+    puts "uutHw:$uutHw"
+    if {[package vcompare $gaSet(SWver) "5.0.1.229.5"] == "0"} {
+      set gaSet(mainHW) "1.0/a"
+    } else {
+      set gaSet(mainHW) $uutHw
+    }
+    Send $com "exit all\r" "stam" 1
     set ret [Login2Linux]
     if {$ret!=0} {return $ret}    
   }
@@ -970,22 +993,23 @@ proc IDPerf {mode} {
     return -1
   }
   
-  set res  [regexp {Hw:\s+([\w\/\.]+)\s?} $buffer ma uutHw]
-  if {$res==0} {
-    set gaSet(fail) "Read Hw fail"
-    return -1
-  } 
-  set uutHw [string trim $uutHw]
-  puts "gaSet(mainHW):$gaSet(mainHW) uutHw:$uutHw"
-  if {[package vcompare $gaSet(SWver) "5.0.1.229.5"] == "0"} {
-    set gaSetMainHw "1.0/a"
-  } else {
-    set gaSetMainHw $gaSet(mainHW)
-  }
-  if {$uutHw!=$gaSetMainHw} {
-    set gaSet(fail) "The HW is \'$uutHw\'. Should be \'$gaSetMainHw\'" 
-    return -1
-  }
+  # 09:52 15/05/2024  HW's check will be performed in Download Station
+  # set res  [regexp {Hw:\s+([\w\/\.]+)\s?} $buffer ma uutHw]
+  # if {$res==0} {
+    # set gaSet(fail) "Read Hw fail"
+    # return -1
+  # } 
+  # set uutHw [string trim $uutHw]
+  # puts "gaSet(mainHW):$gaSet(mainHW) uutHw:$uutHw"
+  # if {[package vcompare $gaSet(SWver) "5.0.1.229.5"] == "0"} {
+    # set gaSetMainHw "1.0/a"
+  # } else {
+    # set gaSetMainHw $gaSet(mainHW)
+  # }
+  # if {$uutHw!=$gaSetMainHw} {
+    # set gaSet(fail) "The HW is \'$uutHw\'. Should be \'$gaSetMainHw\'" 
+    # return -1
+  # }
   
   set res  [regexp {Name\s+:\s+([a-zA-Z\d\-]+)\s} $buffer ma uutName]
   if {$res==0} {
@@ -1004,32 +1028,31 @@ proc IDPerf {mode} {
     return -1
   }
   
-  set res  [regexp {Model\s:\s+([a-zA-Z\d\-\/\_\s]+)\s+[FL]} $buffer ma uutModel]
-  if {$res==0} {
-    set gaSet(fail) "Read Model fail"
-    return -1
-  } 
-  set uutModel [string trim $uutModel]
-  puts "uutModel:<$uutModel>"
   
-  # 10:39 11/05/2023
-  #regsub {_} $uutModel / uutModel
-  #puts "uutModel:$uutModel"
-  if {($gaSet(dutFam.wanPorts) == "4U2S" || $gaSet(dutFam.wanPorts) == "5U1S") && \
-	      $gaSet(mainHW) < 0.6 &&  $uutModel != "SF-1P superset"} {
-	  set gaSet(fail) "The Model is \'$uutModel\'. Should be \'SF-1P superset\'" 
-    return -1
-  } elseif {$gaSet(dutFam.wanPorts) == "2U" && $uutModel != "SF-1P"} {
-	  set gaSet(fail) "The Model is \'$uutModel\'. Should be \'SF-1P\'" 
-    return -1
-  } elseif {$gaSet(dutFam.wanPorts) == "1SFP1UTP" && $uutModel != "ETX-1P"} {
-	  set gaSet(fail) "The Model is \'$uutModel\'. Should be \'ETX-1P\'" 
-    return -1
-  } elseif {($gaSet(dutFam.wanPorts) == "4U2S" || $gaSet(dutFam.wanPorts) == "5U1S") && \
-	      $gaSet(mainHW) >= 0.6 && $uutModel != "SF-1P superset CP_2"} {
-      set gaSet(fail) "The Model is \'$uutModel\'. Should be \'SF-1P superset CP_2\'" 
-    return -1
-  }
+  # 09:05 15/05/2024 Model's check will be performed in Download Station
+  # set res  [regexp {Model\s:\s+([a-zA-Z\d\-\/\_\s]+)\s+[FL]} $buffer ma uutModel]
+  # if {$res==0} {
+    # set gaSet(fail) "Read Model fail"
+    # return -1
+  # } 
+  # set uutModel [string trim $uutModel]
+  # puts "uutModel:<$uutModel>"
+  
+  # if {($gaSet(dutFam.wanPorts) == "4U2S" || $gaSet(dutFam.wanPorts) == "5U1S") && \
+	      # $gaSet(mainHW) < 0.6 &&  $uutModel != "SF-1P superset"} {
+	  # set gaSet(fail) "The Model is \'$uutModel\'. Should be \'SF-1P superset\'" 
+    # return -1
+  # } elseif {$gaSet(dutFam.wanPorts) == "2U" && $uutModel != "SF-1P"} {
+	  # set gaSet(fail) "The Model is \'$uutModel\'. Should be \'SF-1P\'" 
+    # return -1
+  # } elseif {$gaSet(dutFam.wanPorts) == "1SFP1UTP" && $uutModel != "ETX-1P"} {
+	  # set gaSet(fail) "The Model is \'$uutModel\'. Should be \'ETX-1P\'" 
+    # return -1
+  # } elseif {($gaSet(dutFam.wanPorts) == "4U2S" || $gaSet(dutFam.wanPorts) == "5U1S") && \
+	      # $gaSet(mainHW) >= 0.6 && $uutModel != "SF-1P superset CP_2"} {
+      # set gaSet(fail) "The Model is \'$uutModel\'. Should be \'SF-1P superset CP_2\'" 
+    # return -1
+  # }
   
   set res  [regexp {Address\s+:\s+([A-F\d\-]+)\s} $buffer ma uutMac]
   if {$res==0} {
@@ -4725,15 +4748,17 @@ proc PowerOffOnPerf {} {
     Power all on
     Status "Power ON $i"
     after 1000
-    if $gaSet(showBoot) {
-      set timeou 2
-    } else {
-      set timeou 30
-      if {$gaSet(dutFam.box)=="ETX-1P"} {
-        set timeou 70
-      }
-    }
-    Send $com \r stam $timeou
+    # if $gaSet(showBoot) {
+      # set timeou 2
+    # } else {
+      # set timeou 30
+      # if {$gaSet(dutFam.box)=="ETX-1P"} {
+        # set timeou 70
+      # }
+    # }
+    set ret [ReadCom $com "rad os pre service" 130]
+    puts "PowerOffOnPerf ret:<$ret>" ; update       
+    #Send $com \r stam $timeou
     set buffLen [string length $buffer]
     puts "PowerOffOnPerf $i buffLen:<$buffLen>"; update
     if {$buffLen>100} {

@@ -2132,10 +2132,10 @@ proc ToggleComDut {} {
       set gaSet(comDut) $gaSet(comSer1)
     } else {
       set gaSet(comDut) $gaSet(comSer2)
-    }
-    if [winfo exists .menubar.tterminal]  {
-      .menubar.tterminal entryconfigure 0 -label "UUT: COM $gaSet(comDut)"
-    }
+    } 
+  }
+  if [winfo exists .menubar.tterminal]  {
+    .menubar.tterminal entryconfigure 0 -label "UUT: COM $gaSet(comDut)"
   }
 }
 

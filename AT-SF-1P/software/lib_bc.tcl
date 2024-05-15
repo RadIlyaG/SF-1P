@@ -278,17 +278,20 @@ proc ReadBarcode {} {
   set ret -1
   catch {array unset gaDBox}
   
-  if {[lsearch $gaSet(noTraceL) $gaSet(DutFullName)]!="-1"} {
-    set readTrace 0
-  } else {
-    # if {[lsearch $glTests *BrdEeprom*]!="-1"} {
-      # set readTrace 1
-    # } else {
-      # set readTrace 0
-    # } 
-    set readTrace 1    
-  }
-  #set readTrace 1
+  # if {[lsearch $gaSet(noTraceL) $gaSet(DutFullName)]!="-1"} {
+    # set readTrace 0
+  # } else {
+    # # if {[lsearch $glTests *BrdEeprom*]!="-1"} {
+      # # set readTrace 1
+    # # } else {
+      # # set readTrace 0
+    # # } 
+    # set readTrace 1    
+  # }
+  # #set readTrace 1
+  
+  # 09:18 15/05/2024 No TraceID
+  set readTrace 0
   
   while {$ret != "0" } {
     set ret [CheckBcOk $readTrace]
