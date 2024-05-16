@@ -5583,7 +5583,13 @@ proc TpmCheck {} {
   puts "\n[MyTime] Tpm Check"; update
   set com $gaSet(comDut)
   
-  set ret [RetriveIdTraceData $gaSet(1.barcode1) CSLByBarcode]
+  if {$gaSet(manualCSL)=="0"} {
+    set ret [RetriveIdTraceData  $gaSet(1.barcode1) CSLByBarcode]
+  } else {
+    set ret [dict set di CSL $gaSet(manualCSL)]
+  }
+    
+  #set ret [RetriveIdTraceData $gaSet(1.barcode1) CSLByBarcode]
   puts "TpmCheck CSLret:<$ret>"
   if {$ret!="-1"} {
     set csl [dict get $ret CSL]
