@@ -732,6 +732,7 @@ proc GetDbrName {} {
   puts ""
   
   BuildTests
+  set ret [IT9600_normalVoltage 1 1]
   
   focus -force $gaGui(tbrun)
   if {$ret==0} {

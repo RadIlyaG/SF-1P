@@ -36,7 +36,7 @@ proc Retrive_normalVoltage {} {
   } elseif {$gaSet(dutFam.ps)=="12V" || $gaSet(dutFam.ps)=="ACEX"} {
     set volt 24
   } elseif {$gaSet(dutFam.ps)=="DC"} {
-    set volt 48
+    set volt 24
   }
   return $volt
 }
