@@ -6,9 +6,13 @@ proc GUI {} {
   
   #  wm title . "$gaSet(pair) : $gaSet(DutFullName)"
   # wm title . "$gaSet(pair) : "
-  if {![info exist gaSet(showBoot)]} {
-    set gaSet(showBoot) 1
-  }
+  
+  # 09:37 19/05/2024 From today - no Boot
+  # if {![info exist gaSet(showBoot)]} {
+    # set gaSet(showBoot) 1
+  # }
+  set gaSet(showBoot) 0
+  
   if $gaSet(demo) {
     wm deiconify .
   wm geometry . $gaGui(xy)
@@ -114,9 +118,7 @@ Please confirm you know products should not be released to the customer with thi
   		  {command "E-mail Test" gaGui(ToolAdd) {} {} -command {TestEmail}}       
       }
       }  
-      {separator}
-      {radiobutton "J21 1-2 (Show Boot)"  init {} {} -value 1 -variable gaSet(showBoot) -command ToggleShowBoot}
-      {radiobutton "J21 2-3 (Hide Boot)"  init {} {} -value 0 -variable gaSet(showBoot) -command ToggleShowBoot}
+      
     }                
  "&Terminal" terminal tterminal 0  {
       {command "UUT" "" "" {} -command {OpenTeraTerm gaSet(comDut)}}  
@@ -138,6 +140,10 @@ Please confirm you know products should not be released to the customer with thi
   #    {separator}  
   #    {command "Options" init {} {} -command {GuiOpts}}
   #    {separator} 
+  
+  # {separator}
+      # {radiobutton "J21 1-2 (Show Boot)"  init {} {} -value 1 -variable gaSet(showBoot) -command ToggleShowBoot}
+      # {radiobutton "J21 2-3 (Hide Boot)"  init {} {} -value 0 -variable gaSet(showBoot) -command ToggleShowBoot}
       
 
   set mainframe [MainFrame .mainframe -menu $descmenu]
