@@ -309,20 +309,8 @@ proc ReadBarcode {} {
     foreach la {1} {
       set barcode [string toupper $gaDBox([set ent$la])]  
       set gaSet(1.barcode$la) $barcode
-      set res [catch {exec $gaSet(javaLocation)/java.exe -jar $::RadAppsPath/checkmac.jar $barcode AABBCCFFEEDD} retChk]
-      puts "CheckMac barcode:< $barcode > res:<$res> retChk:<$retChk>" ; update
-      if {$res=="1" && $retChk=="0"} {
-        puts "No Id-MAC link"
-        set gaSet(1.barcode$la.IdMacLink) "noLink"
-      } else {
-        puts "Id-Mac link or error"
-        if [regexp {is already connected to :(\w+)} $retChk ma val] {
-          set li $val
-        } else {
-          set li "error"
-        }
-        set gaSet(1.barcode$la.IdMacLink) $li
-      }
+      set res [IdMacLinkNoLink $barcode]
+      set gaSet(1.barcode$la.IdMacLink) $res
     }
     if {$readTrace==0} {      
       set traceId ""  
@@ -420,3 +408,24 @@ proc UnregIdMac {barcode {mac {}}} {
   return $ret
 }
 
+# ***************************************************************************
+# IdMacLinkNoLink
+# ***************************************************************************
+proc IdMacLinkNoLink {barcode} {
+  global gaSet
+  puts "\nIdMacLinkNoLink $barcode"
+  set res [catch {exec $gaSet(javaLocation)/java.exe -jar $::RadAppsPath/checkmac.jar $barcode AABBCCFFEEDD} retChk]
+  puts "IdMacLinkNoLink barcode:<$barcode > res:<$res> retChk:<$retChk>" ; update
+  if {$res=="1" && $retChk=="0"} {
+    puts "No Id-MAC link"
+    set ret "noLink"
+  } else {
+    puts "Id-Mac link or error"
+    if [regexp {is already connected to :(\w+)} $retChk ma val] {
+      set ret $val
+    } else {
+      set ret "error"
+    }
+  } 
+  return $ret
+}

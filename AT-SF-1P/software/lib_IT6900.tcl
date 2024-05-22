@@ -20,9 +20,9 @@ proc IT9600_normalVoltage {off on} {
       after 2000
       set ret [IT6900_on_off script on]
     } else {
-      set ret
+      set ret 0
     }
-    after 2000
+    # after 2000
   }
   return $ret
 }  
@@ -103,6 +103,8 @@ proc IT6900_on_off {gui_script mode} {
     }
     if {$addr!=""} {
       set ret [exec python.exe lib_IT6900.py $addr write "outp $mode"]
+    } else {
+      set ret 0
     }
   } 
   if {$ret=="-1"} {
@@ -126,6 +128,8 @@ proc IT6900_set {gui_script volt} {
     }
     if {$addr!=""} {
       set ret [exec python.exe lib_IT6900.py $addr write "volt $volt"]
+    } else {
+      set ret 0
     }
   }  
   if {$ret=="-1"} {

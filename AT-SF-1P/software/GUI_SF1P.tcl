@@ -20,7 +20,7 @@ proc GUI {} {
     RLSound::Play information
     set txt "You are working with ATE's DEMO version\n
 Please confirm you know products should not be released to the customer with this version"
-    set res [DialogBox -icon images/info -type "OK Abort" -text $txt -default 1 -aspect 2000 -title "DEMO version"]
+    set res [DialogBoxRamzor -icon images/info -type "OK Abort" -text $txt -default 1 -aspect 2000 -title "DEMO version"]
     if {$res=="Abort"} {
       exit
     } 
@@ -106,7 +106,7 @@ Please confirm you know products should not be released to the customer with thi
       }      
       {separator}    
       {radiobutton "Don't use exist Barcodes" init {} {} -command {} -variable gaSet(useExistBarcode) -value 0}
-      {radiobutton "Use exist Barcodes" init {} {} -command {} -variable gaSet(useExistBarcode) -value 1}      
+      {radiobutton "Use exist Barcodes" init {} {} -command {GetDbrName} -variable gaSet(useExistBarcode) -value 1}      
       {separator}
       {radiobutton "One test ON"  init {} {} -value 1 -variable gaSet(oneTest)}
       {radiobutton "One test OFF" init {} {} -value 0 -variable gaSet(oneTest)}
@@ -282,7 +282,7 @@ Please confirm you know products should not be released to the customer with thi
   bind . <Alt-i> {GuiInventory}
   bind . <Alt-r> {ButRun}
   bind . <Alt-s> {ButStop}
-  bind . <Alt-b> {set gaSet(useExistBarcode) 1}
+  bind . <Alt-b> {set gaSet(useExistBarcode) 1; GetDbrName}
   bind . <Control-p> {ToolsPower on}
   bind . <Alt-o> {set gaSet(oneTest) 1}
   
@@ -675,13 +675,19 @@ proc CaptureConsole {} {
 proc ButRun {} {
   global gaSet gaGui glTests gRelayState
   
-  if ![llength $glTests] {
+  if {[wm title .]=="$gaSet(pair) : " || [wm title .]=="DEMO!!! $gaSet(pair)" || \
+      ![info exists glTests]  || ![llength $glTests]} {
+    Ramzor red on
     RLSound::Play fail
-    set txt "No test to perform"
-    DialogBox -icon /images/error -text $txt -title "Wrong Tests definition"
+    set txt "Scan ID Barcode first"
+    DialogBoxRamzor -icon /images/error -text $txt -title "Wrong Tests definition"
     set gaSet(fail) $txt
+    Status $txt red
     return -2
   }
+  set ret 0
+  
+  Ramzor green on
   
   pack forget $gaGui(frFailStatus)
   set gaSet(ButRunTime) [clock seconds]
@@ -699,34 +705,35 @@ proc ButRun {} {
     
   set clkSeconds [clock seconds]
   set ti [clock format $clkSeconds -format  "%Y.%m.%d-%H.%M"]
-  set gaSet(logTime) [clock format  $clkSeconds -format  "%Y.%m.%d-%H.%M.%S"]
-  
-  set ret 0
-  puts "[wm title .]"
-  if {[wm title .]=="$gaSet(pair) : " || [wm title .]=="DEMO!!! $gaSet(pair)"} {
-    set ret -2
-    set gaSet(fail) "Please scan the UUT's barcode"
+  if ![info exists gaSet(logTime)] {
+    set gaSet(logTime) [clock format [clock seconds] -format  "%Y.%m.%d-%H.%M.%S"]
   }
+   
+  
 
   if ![file exists c:/logs] {
     file mkdir c:/logs
   }
   
-  set ret [LoadModemFiles]
-  puts "ButRun ret after LoadModemFiles ret:<$ret>"
-  LoadNoTraceFile
+  if {$ret==0} {
+    set ret [LoadModemFiles]
+    puts "ButRun ret after LoadModemFiles ret:<$ret>"
+    LoadNoTraceFile
+  }
   
   set gRelayState red
   IPRelay-LoopRed
   if {$ret==0} {
+    Ramzor red on
     set ret [GuiReadOperator]
+    Ramzor green on
     parray gaSet *arco*
     parray gaSet *rato*
   }
   if {$ret!=0} {
     set ret -3
   } elseif {$ret==0} {
-    set ret [ReadBarcode]
+    set ret 0 ; # in GetDbrName [ReadBarcode]
     parray gaSet *arco*
     parray gaSet *rato*
 #   if {$ret=="-1"} {
@@ -756,7 +763,7 @@ proc ButRun {} {
       RLSound::Play information
       set txt "Be aware!\r\rYou are about to perform tests in Debug mode.\r\r\
       If you are not sure, in the GUI's \'Tools\'->\'Release / Debug mode\' choose \"Release Mode\""
-      set res [DialogBox -icon images/info -type "Continue Abort" -text $txt -default 1 -aspect 2000 -title "Release / Debug mode"]
+      set res [DialogBoxRamzor -icon images/info -type "Continue Abort" -text $txt -default 1 -aspect 2000 -title "Release / Debug mode"]
       if {$res=="Abort"} {
         set ret -1
         set gaSet(fail) "Debug mode abort"
@@ -790,7 +797,7 @@ proc ButRun {} {
       if $gaSet(showBoot) {
         append txt $txt2
       }
-      set res [DialogBox -icon images/info -type "Continue Abort" -text $txt -default 0 -aspect 2000 -title "SF-1p"]
+      set res [DialogBoxRamzor -icon images/info -type "Continue Abort" -text $txt -default 0 -aspect 2000 -title "SF-1p"]
       if {$res=="Abort"} {
         set ret -2
         set gaSet(fail) "User stop"
@@ -808,7 +815,7 @@ proc ButRun {} {
    
     set IdBarcode $gaSet(1.barcode1)
     set traceId $gaSet(1.traceId)
-    puts "\n ButRun IdBarcode:<$IdBarcode> traceId:<$traceId>"
+    puts "\nButRun IdBarcode:<$IdBarcode> traceId:<$traceId>"
     if {$gaSet(manualCSL)=="0"} {
       set ret [RetriveIdTraceData  $IdBarcode CSLByBarcode]
     } else {
@@ -896,6 +903,7 @@ proc ButRun {} {
     IPRelay-LoopRed
   }
   
+  Ramzor red on
   if {$ret==0} {
     RLSound::Play pass
     Status "Done"  green
@@ -951,15 +959,37 @@ proc ButRun {} {
   $gaGui(tbstop) configure -relief sunken -state disabled
   $gaGui(tbpaus) configure -relief sunken -state disabled
   
-  if {$gaSet(eraseTitle)==1} {
-    #wm title . "$gaSet(pair) : "
-    if $gaSet(demo) {
-      wm title . "DEMO!!! $gaSet(pair)"
-    } else {
-      wm title . "$gaSet(pair) : "
-    }
+  if {$ret==0 || $ret==1} {
+    set txt ""
+    set bg yellow
+    set fg blue
+    set fnt {TkDefaultFont 11}
+  } else {
+    set txt ""
+    set bg SystemButtonFace
+    set fg SystemWindowText
+    set fnt {TkDefaultFont 9}
+  }
+  set res [DialogBoxRamzor -type "OK" -icon /images/info -title "Finish" -message "The test is done $txt" \
+    -bg $bg -font $fnt -fg $fg]
+  update
+  Ramzor all off
+  
+  if $gaSet(demo) {
+    wm title . "DEMO!!! $gaSet(pair)"
+  } else {
+    wm title . "$gaSet(pair) : "
   }
   
+  # if {$gaSet(eraseTitle)==1} {
+    # #wm title . "$gaSet(pair) : "
+    # if $gaSet(demo) {
+      # wm title . "DEMO!!! $gaSet(pair)"
+    # } else {
+      # wm title . "$gaSet(pair) : "
+    # }
+  # }
+  focus -force $gaGui(entDUT)
   update
 }
 

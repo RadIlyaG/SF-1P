@@ -620,14 +620,35 @@ proc mparray {a {pattern *}} {
 proc GetDbrName {} {
   global gaSet gaGui
   
+  if ![info exists gaSet(logTime)] {
+    set gaSet(logTime) [clock format [clock seconds] -format  "%Y.%m.%d-%H.%M.%S"]
+  }
+  
   set gaSet(relDebMode) Release
   $gaGui(labRelDebMode) configure -text $gaSet(relDebMode) -bg SystemButtonFace
   
   Status "Please wait for retriving DBR's parameters"
-  set barcode [set gaSet(entDUT) [string toupper $gaSet(entDUT)]] ; update
+  if {$gaSet(useExistBarcode) && [info exists gaSet(1.barcode1)]} {
+    set barcode $gaSet(1.barcode1)
+  } else {  
+    #set gaSet(useExistBarcode) 0
+    set barcode [set gaSet(entDUT) [string toupper $gaSet(entDUT)]] ; update
+  }
+  set gaSet(useExistBarcode) 0
+  
+  if {$barcode==""} {
+    set gaSet(fail) "Scan ID Barcode first"
+    RLSound::Play fail
+	  Status "Test FAIL"  red
+    DialogBoxRamzor -aspect 2000 -type Ok -message $gaSet(fail) -icon images/error
+    pack $gaGui(frFailStatus)  -anchor w
+	  $gaSet(runTime) configure -text ""
+  	return -1
+  }
   
   if {$gaSet(demo)==0} {
     set ret [MainEcoCheck $barcode]
+    puts "ret of MainEcoCheck $barcode <$ret>"
     if {$ret!=0} {
       $gaGui(startFrom) configure -text "" -values [list]
       set gaSet(log.$gaSet(pair)) c:/logs/[clock format [clock seconds] -format  "%Y.%m.%d-%H.%M.%S"].txt
@@ -650,44 +671,56 @@ proc GetDbrName {} {
   }
   after 500
   
-  if 1 {
-  if {![file exist $gaSet(javaLocation)]} {
-    set gaSet(fail) "Java application is missing"
-    return -1
-  }
-  catch {exec $gaSet(javaLocation)\\java -jar $::RadAppsPath/OI4Barcode.jar $barcode} b
-  set fileName MarkNam_$barcode.txt
-  after 1000
-  if ![file exists MarkNam_$barcode.txt] {
-    set gaSet(fail) "File $fileName is not created. Verify the Barcode"
-    #exec C:\\RLFiles\\Tools\\Btl\\failbeep.exe &
+  # if 1 {
+  # if {![file exist $gaSet(javaLocation)]} {
+    # set gaSet(fail) "Java application is missing"
+    # return -1
+  # }
+  # catch {exec $gaSet(javaLocation)\\java -jar $::RadAppsPath/OI4Barcode.jar $barcode} b
+  # set fileName MarkNam_$barcode.txt
+  # after 1000
+  # if ![file exists MarkNam_$barcode.txt] {
+    # set gaSet(fail) "File $fileName is not created. Verify the Barcode"
+    # #exec C:\\RLFiles\\Tools\\Btl\\failbeep.exe &
+    # RLSound::Play fail
+	  # Status "Test FAIL"  red
+    # DialogBox -aspect 2000 -type Ok -message $gaSet(fail) -icon images/error
+    # pack $gaGui(frFailStatus)  -anchor w
+	  # $gaSet(runTime) configure -text ""
+  	# return -1
+  # }
+  
+  # set fileId [open "$fileName"]
+    # seek $fileId 0
+    # set dbrName [read $fileId]    
+  # close $fileId
+  # }
+  
+  set gaSet(1.traceId) ""
+  set gaSet(1.useTraceId) 0
+  set gaSet(1.barcode1) $barcode
+  set ret [RetriveIdTraceData $gaSet(1.barcode1) OperationItem4Barcode]
+  if {$ret!="-1"} {
+    set dbrName [dict get $ret "item"]
+  } else {
+    set gaSet(fail) "Fail to get DBR Name for $gaSet(1.barcode1)"
     RLSound::Play fail
 	  Status "Test FAIL"  red
-    DialogBox -aspect 2000 -type Ok -message $gaSet(fail) -icon images/error
+    DialogBoxRamzor -aspect 2000 -type Ok -message $gaSet(fail) -icon images/error
     pack $gaGui(frFailStatus)  -anchor w
 	  $gaSet(runTime) configure -text ""
   	return -1
   }
   
-  set fileId [open "$fileName"]
-    seek $fileId 0
-    set res [read $fileId]    
-  close $fileId
-  }
-  
-  #set res "ETX-1P/ACEX/1SFP1UTP/4UTP/L1"
-  
-  #set txt "$barcode $res"
-  set txt "[string trim $res]"
-  #set gaSet(entDUT) $txt
+  set txt "[string trim $dbrName]"
   set gaSet(entDUT) ""
   puts "GetDbrName <$txt>"
   
-  set initName [regsub -all / $res .]
+  set initName [regsub -all / $dbrName .]
   
-  puts "GetDbrName res:<$res>"
+  puts "GetDbrName dbrName:<$dbrName>"
   puts "GetDbrName initName:<$initName>"
-  set gaSet(DutFullName) $res
+  set gaSet(DutFullName) $dbrName
   set gaSet(DutInitName) $initName.tcl
   
   file delete -force MarkNam_$barcode.txt
@@ -716,6 +749,10 @@ proc GetDbrName {} {
   update
   #BuildTests
   
+  ## 08:38 20/05/2024
+  set gaSet(1.barcode1) $barcode
+  set gaSet(1.barcode1.IdMacLink) [IdMacLinkNoLink $barcode]
+  
   set ret 0
   if 1 {
     set ret [GetDbrSW $barcode]
@@ -723,7 +760,7 @@ proc GetDbrName {} {
     if {$ret!=0} {
       RLSound::Play fail
       Status "Test FAIL"  red
-      DialogBox -aspect 2000 -type Ok -message $gaSet(fail) -icon images/error
+      DialogBoxRamzor -aspect 2000 -type Ok -message $gaSet(fail) -icon images/error
       pack $gaGui(frFailStatus)  -anchor w
       $gaSet(runTime) configure -text ""
       return $ret
@@ -731,8 +768,16 @@ proc GetDbrName {} {
   }
   puts ""
   
+  set gaSet(log.$gaSet(pair)) c:/logs/${gaSet(logTime)}-$barcode.txt
+  AddToPairLog $gaSet(pair) "$gaSet(DutFullName)"
+  AddToPairLog $gaSet(pair) "UUT - $barcode"
+  
   BuildTests
   set ret [IT9600_normalVoltage 1 1]
+  if {$ret!="-1"} {
+    set ret 0
+  }
+  puts "\nGetDbrName ret after IT9600_normalVoltage:<$ret>"
   
   focus -force $gaGui(tbrun)
   if {$ret==0} {
@@ -978,7 +1023,7 @@ proc RetriveDutFam {{dutInitName ""}} {
   if [llength $fieldsL] {
     set gaSet(unknownFieldsL) $fieldsL
     RLSound::Play fail
-    set res [DialogBox -title "Unknown option" -message "The following is unknown:\n$fieldsL\nThe test will fail" \
+    set res [DialogBoxRamzor -title "Unknown option" -message "The following is unknown:\n$fieldsL\nThe test will fail" \
       -type {Continue Stop} -icon /images/error]
     if {$res=="Stop"} {  
       set ::gMessage $fieldsL
