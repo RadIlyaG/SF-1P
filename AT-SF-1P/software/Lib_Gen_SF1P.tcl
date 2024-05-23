@@ -631,10 +631,9 @@ proc GetDbrName {} {
   if {$gaSet(useExistBarcode) && [info exists gaSet(1.barcode1)]} {
     set barcode $gaSet(1.barcode1)
   } else {  
-    #set gaSet(useExistBarcode) 0
     set barcode [set gaSet(entDUT) [string toupper $gaSet(entDUT)]] ; update
   }
-  set gaSet(useExistBarcode) 0
+  # do it after GetSW set gaSet(useExistBarcode) 0
   
   if {$barcode==""} {
     set gaSet(fail) "Scan ID Barcode first"
@@ -756,6 +755,7 @@ proc GetDbrName {} {
   set ret 0
   if 1 {
     set ret [GetDbrSW $barcode]
+    set gaSet(useExistBarcode) 0
     puts "GetDbrName ret of GetDbrSW:$ret" ; update
     if {$ret!=0} {
       RLSound::Play fail
@@ -1527,21 +1527,26 @@ proc GetDbrSW {barcode} {
   puts "GetDbrSW barcode:<$barcode> b:<$b>" ; update
   
   if $gaSet(demo) {
-    set ret [DialogBox -width 39 -title "Manual Definitions" -text "Please define details" -type "Ok Cancel" \
-      -entQty 4  -DotEn 1 -DashEn 1 -NoNumEn 1\
-      -entLab {"SW Version, like 5.4.0.127.28" "Boot Version, like B1.0.4" "Marketing Name, like SF-1P/E1/DC/4U2S/2RS/2R" "CSL, like A"}]  
-    if {$ret=="Cancel"} {
-      set gaSet(fail) "User stop"
-      return -2
+    if $gaSet(useExistBarcode) {
+      set boot $gaSet(dbrBootSwVer)
+      set sw $gaSet(SWver)
+    } else {
+      set ret [DialogBox -width 39 -title "Manual Definitions" -text "Please define details" -type "Ok Cancel" \
+        -entQty 4  -DotEn 1 -DashEn 1 -NoNumEn 1\
+        -entLab {"SW Version, like 5.4.0.127.28" "Boot Version, like B1.0.4" "Marketing Name, like SF-1P/E1/DC/4U2S/2RS/2R" "CSL, like A"}]  
+      if {$ret=="Cancel"} {
+        set gaSet(fail) "User stop"
+        return -2
+      }
+      UnregIdBarcode $barcode
+      set sw [string trim $gaDBox(entVal1)]
+      set boot [string toupper [string trim $gaDBox(entVal2)]]
+      if {[string index $boot 0]=="B"} {
+        set boot [string range $boot 1 end]
+      }
+      set gaSet(manualMrktName) [string trim $gaDBox(entVal3)]
+      set gaSet(manualCSL) [string toupper [string trim $gaDBox(entVal4)]]
     }
-    UnregIdBarcode $barcode
-    set sw [string trim $gaDBox(entVal1)]
-    set boot [string toupper [string trim $gaDBox(entVal2)]]
-    if {[string index $boot 0]=="B"} {
-      set boot [string range $boot 1 end]
-    }
-    set gaSet(manualMrktName) [string trim $gaDBox(entVal3)]
-    set gaSet(manualCSL) [string toupper [string trim $gaDBox(entVal4)]]
   } else {
     if {[lindex $b end] == $barcode} {
       set gaSet(fail) "No SW definition in IDbarcode"
