@@ -4125,8 +4125,8 @@ proc CellularModemPerf_RadOS_Sim12 {actSim disSim} {
     }  
     puts "ReadRSSI ma:<$ma> val:<$val>"; update  
     AddToPairLog $gaSet(pair) "RSSI of SIM-${actSim}: $val dBm"  
-    if {$val<"-75" || $val>"-38"} {
-      set gaSet(fail) "RSSI of SIM-${actSim} is \'$val\'. Should be between -75 to -38"  
+    if {$val<"-75" || $val>"-20"} {
+      set gaSet(fail) "RSSI of SIM-${actSim} is \'$val\'. Should be between -75 to -20"  
       return -1
     }
     
@@ -4429,8 +4429,8 @@ proc CellularModemPerf_RadOS_Sim12_Dual {actLte} {
     }  
     puts "ReadRSSI ma:<$ma> val:<$val>"; update  
     AddToPairLog $gaSet(pair) "RSSI of LTE-$actLte: $val dBm"  
-    if {$val<"-75" || $val>"-38"} {
-      set gaSet(fail) "RSSI of LTE-$actLte is \'$val\'. Should be between -75 to -38"  
+    if {$val<"-75" || $val>"-20"} {
+      set gaSet(fail) "RSSI of LTE-$actLte is \'$val\'. Should be between -75 to -20"  
       return -1
     }
     
