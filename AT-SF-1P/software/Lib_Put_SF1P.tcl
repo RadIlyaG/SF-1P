@@ -611,7 +611,7 @@ proc DryContactAlarmcheck {mode} {
     if {$ret!=0} {return $ret}    
   }
   
-  set ret [ConfigDryContact]
+  set ret [DryContactConfig]
   if {$ret!=0} {return $ret}
   
 #   RLUsbPio::Set $gaSet(idPioDrContOut) 00000010 
@@ -3491,9 +3491,9 @@ proc MicroSDPerform {} {
   return $ret
 }  
 # ***************************************************************************
-# ConfigDryContact
+# DryContactConfig
 # ***************************************************************************
-proc ConfigDryContact {} {
+proc DryContactConfig {} {
   global gaSet buffer
   set com $gaSet(comDut)
   Send $com "cd / \r" stam 0.1
@@ -3515,7 +3515,7 @@ proc ConfigDryContact {} {
     set scr dry2in2out.sh
   }
   #set scr dry2in2out.sh
-  puts "\n[MyTime]ConfigDryContact $scr"
+  puts "\n[MyTime]DryContactConfig $scr"
   set ret 0
   set id [open $scr r]
     while {[gets $id line]>=0} {
@@ -5695,3 +5695,89 @@ proc VoltagePerf {} {
   }
   return $ret
 }  
+# ***************************************************************************
+# DryContactAlarmcheckGo
+# ***************************************************************************
+proc DryContactAlarmcheckGo {} {
+  global buffer gaSet
+  puts "\n[MyTime] DryContactAlarmcheckGo"; update
+  set com $gaSet(comDut)
+  
+  set ret [Login]
+  if {$ret!=0} {return $ret}
+  set ret [Login2Linux]
+  if {$ret!=0} {return $ret}    
+  
+  set ret [DryContactGoConfig]
+  if {$ret!=0} {return $ret}
+  
+  after 500
+  
+  foreach gr2st {0 1 0 1} gr1st {0 0 1 1} sb {11 01 10 00} {
+    puts ""
+    MuxSwitchBox 1 $gr1st
+    MuxSwitchBox 2 $gr2st
+    after 250
+    Send $com "echo in > \$DC_IN1_DIR/direction\r" stam 0.2
+    Send $com "echo in > \$DC_IN2_DIR/direction\r" stam 0.2
+    Send $com "value1=\$(cat /sys/class/gpio/gpio\$DC_IN1/value)\r" stam 0.2
+    Send $com "value2=\$(cat /sys/class/gpio/gpio\$DC_IN2/value)\r" stam 0.2
+    Send $com "echo \"DC_IN_1:\$value1\"\r" stam 0.2
+    set res [regexp {DC_IN_\d\:(\d) } $buffer ma val1]
+    if !$res {
+      set gaSet(fail) "Get value of DC_IN_1 fail"
+      return -1
+    }
+    Send $com "echo \"DC_IN_2:\$value2\"\r" stam 0.2
+    set res [regexp {DC_IN_\d\:(\d) } $buffer ma val2]
+    if !$res {
+      set gaSet(fail) "Get value of DC_IN_1 fail"
+      return -1
+    }
+    set ibuf ${val2}${val1}
+    
+    puts "DryContactAlarmcheckGo buffer after gr2st:<$gr2st> gr1st:<$gr1st> ibuf:<$ibuf> sb:<$sb>"
+    if [string match *$sb $ibuf] {
+      #puts "$buffer match *$sb"
+      set res 0
+    } else {
+      set gaSet(fail) "I/O Alarm is [string range $buffer 6 7]. Should be $sb"
+      puts "$gaSet(fail)"
+      set res -1
+      break
+    }
+  }
+  set ret [Send $com "\r\r" $gaSet(linuxPrompt) 1]
+  set ret $res
+  return $ret
+} 
+
+# ***************************************************************************
+# DryContactGoConfig
+# ***************************************************************************
+proc DryContactGoConfig {} {
+  global gaSet buffer
+  set com $gaSet(comDut)
+  Send $com "cd / \r" stam 0.1
+  set scr dry2inGo.sh
+  puts "\n[MyTime]DryContactGoConfig $scr"
+  
+  set ret 0
+  set id [open $scr r]
+    while {[gets $id line]>=0} {
+      if {[string length $line]>0} {
+        Send $com "$line\r" stam 0.1
+        if {[string match {*write error*} $buffer]} {
+          set gaSet(fail) "\'write error\' during Config DryContact"
+          set ret -1
+          break
+        }
+      }
+    }
+  close $id
+  if {$ret!=0} {
+    return $ret
+  }
+  Send $com "\r" stam 0.25
+  return $ret
+}

@@ -77,7 +77,11 @@ proc BuildTests {} {
   if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC"} {
     ## no DRY Contact
   } else {  
-    lappend lTestNames  DryContactAlarm 
+    if {$gaSet(dutFam.dryCon)=="FULL"} {
+      lappend lTestNames DryContactAlarm 
+    } elseif {$gaSet(dutFam.dryCon)=="GO"} {
+      lappend lTestNames DryContactAlarmGo 
+    }
   }
   lappend lTestNames   ID
   
@@ -1013,5 +1017,21 @@ proc Voltage {run} {
     # }
   }
   
+  return $ret
+}
+# ***************************************************************************
+# DryContactAlarmGo
+# ***************************************************************************
+proc DryContactAlarmGo {run} {
+  global gaSet buffer
+  set ::sendSlow 0
+  MuxMngIO nc
+  set com $gaSet(comDut)
+  Send $com "\r" stam 0.25
+  Send $com "\r" stam 0.25
+  set ret 0
+  if {$ret==0} {
+    set ret [DryContactAlarmcheckGo]
+  }
   return $ret
 }
