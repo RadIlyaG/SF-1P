@@ -1570,6 +1570,10 @@ proc GetDbrSW {barcode} {
   }  
   #set gaSet(dbrSWver) $bb
   
+  if ![info exists boot] {
+    set gaSet(fail) "No Boot Version defined in DBR for $barcode"
+    return -1
+  }
   puts "GetDbrSW $barcode sw:<$sw> boot:<$boot>"
   set gaSet(dbrBootSwVer) $boot
   set gaSet(SWver) $sw
