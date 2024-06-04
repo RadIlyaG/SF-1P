@@ -2,7 +2,7 @@
 # ConfigLoraDev
 # ***************************************************************************
 proc ConfigLoraDev {} {
-  Status "Config Lora Device"
+  Status "Config Lora Sensor"
   global gaSet buffer
   
   switch -exact -- $gaSet(dutFam.lora.region) {
@@ -24,7 +24,7 @@ proc ConfigLoraDev {} {
   puts "[MyTime] ConfigLoraDev POST $query"
   catch {::http::geturl $url -query $query -timeout $timeout} tok
   upvar #0 $tok state
-  #parray state
+  parray state
   http::cleanup $tok
   
   set ret [ReadChirpStackLogs]
@@ -35,7 +35,7 @@ proc ConfigLoraDev {} {
 # JoinLoraDev
 # ***************************************************************************
 proc JoinLoraDev {} {
-  Status "Join Lora Device"
+  Status "Join Lora Sensor"
   global gaSet buffer
   
   ClearChirpStackLogs
@@ -51,7 +51,7 @@ proc JoinLoraDev {} {
   
   set ret [ReadChirpStackLogs 60]
   if {$ret!="0"} {
-    set gaSet(fail) "Join LoRa Device fail"
+    set gaSet(fail) "Join LoRa Sensor fail"
   }
   return $ret
 }
@@ -60,7 +60,7 @@ proc JoinLoraDev {} {
 # SendDataToLoraDev
 # ***************************************************************************
 proc SendDataToLoraDev {{data aabbccdd}} {
-  Status "Send Data $data to Lora Device"
+  Status "Send Data $data to Lora Sensor"
   global gaSet buffer
   
   ClearChirpStackLogs
@@ -76,7 +76,7 @@ proc SendDataToLoraDev {{data aabbccdd}} {
   
   set ret [ReadChirpStackLogs]
   if {$ret!="0"} {
-    set gaSet(fail) "Send_Receive to LoRa Device fail"
+    set gaSet(fail) "Send_Receive to LoRa Sensor fail"
   }
   
   return $ret
