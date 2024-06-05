@@ -177,6 +177,7 @@ proc IT9600_current {} {
     # set ret [IT6900_on_off script on]
     # after 2000
   # }
+  after 2000
   set addr $gaSet(it6900.1)
   set ret [exec python.exe lib_IT6900.py $addr query meas:curr?]
   puts "curr_ret:<$ret>"
