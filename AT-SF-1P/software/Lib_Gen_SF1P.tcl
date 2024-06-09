@@ -873,6 +873,7 @@ proc RetriveDutFam {{dutInitName ""}} {
   set fieldsL [lreplace $fieldsL $idx $idx]
   set idx [lsearch $fieldsL $gaSet(dutFam.ps)]
   set fieldsL [lreplace $fieldsL $idx $idx]
+  set fieldsL [concat $fieldsL "D72V" "FDC"]
 
   if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC"} {
     set gaSet(dutFam.wanPorts)  "1SFP1UTP"
