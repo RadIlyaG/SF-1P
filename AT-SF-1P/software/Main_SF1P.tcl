@@ -986,11 +986,7 @@ proc Voltage {run} {
   set ::sendSlow 0
   set ret -1
   
-  set ret [IT9600_current]
-  
-  if {$ret==0} {
-    set ret [VoltagePerf]
-  }
+  set ret [IT9600_current 1]
   
   if {$ret==0} {
     if {$gaSet(dutFam.ps)=="WDC" || $gaSet(dutFam.ps)=="12V"} {
@@ -999,6 +995,18 @@ proc Voltage {run} {
       set ret 0
     }
   }
+  
+  if {$ret==0} {
+    set ret [VoltagePerf]
+  }
+  
+  # if {$ret==0} {
+    # if {$gaSet(dutFam.ps)=="WDC" || $gaSet(dutFam.ps)=="12V"} {
+      # set ret [PowerProtection]
+    # } else {
+      # set ret 0
+    # }
+  # }
   if {$ret==0} {
     global buffer gaSet
     set ret [IT9600_normalVoltage 1 1]

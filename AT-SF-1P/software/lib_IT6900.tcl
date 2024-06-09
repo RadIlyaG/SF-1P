@@ -37,6 +37,10 @@ proc Retrive_normalVoltage {} {
     set volt 24
   } elseif {$gaSet(dutFam.ps)=="DC"} {
     set volt 24
+  } elseif {$gaSet(dutFam.ps)=="D72V"} {
+    set volt 48
+  } elseif {$gaSet(dutFam.ps)=="FDC"} {
+    set volt 48
   }
   return $volt
 }
@@ -164,10 +168,14 @@ proc IT6900_quit {} {
 # ***************************************************************************
 # IT9600_current
 # ***************************************************************************
-proc IT9600_current {} {
+proc IT9600_current {{set_normal 1}} {
   global buffer gaSet
-  puts "\n[MyTime] IT9600_current"; update
-  set ret [IT9600_normalVoltage 1 1]
+  puts "\n[MyTime] IT9600_current $set_normal"; update
+  if $set_normal {
+    set ret [IT9600_normalVoltage 1 1]
+  } else {
+    set ret 0
+  }
   # set ret [IT6900_on_off script off]
   # if {$ret!="-1"} {
     # set ret [IT6900_set script $volt]

@@ -5643,14 +5643,20 @@ proc PowerProtection {} {
   }  
   
   if {$ret!="-1"} {
-    Send $com \r "stam" 5
-    set buffLen [string length $buffer]
-    puts "Buffer length: $buffLen"
-    if {$buffLen>0} {
-      set gaSet(fail) "UUT is responsing when $volt VDC supplied"
+    after 2000
+    set ret [IT9600_current 0]
+    puts "IT9600_current ret: $ret"
+    #Send $com \r "stam" 5
+    #set buffLen [string length $buffer]
+    #puts "Buffer length: $buffLen"
+    #if {$buffLen>0} {}
+    if {$ret==0} {
+      #set gaSet(fail) "UUT is responsing when $volt VDC supplied"
+      set gaSet(fail) "UUT's Supply's current isn't 0"
       set ret -1
     } else {
       set ret 0
+      set gaSet(fail)  ""
       AddToPairLog $gaSet(pair) "Voltage Protection ${volt}VDC PASS"
     }
   }  
@@ -5670,6 +5676,10 @@ proc VoltagePerf {} {
   } elseif {$gaSet(dutFam.ps)=="12V" || $gaSet(dutFam.ps)=="ACEX"} {
     set voltL [list 10 24 30]
   } elseif {$gaSet(dutFam.ps)=="DC"} {
+    set voltL [list 10 48 60]
+  } elseif {$gaSet(dutFam.ps)=="D72V"} {
+    set voltL [list 10 48 72]
+  } elseif {$gaSet(dutFam.ps)=="FDC"} {
     set voltL [list 10 48 60]
   }
   foreach volt $voltL {
