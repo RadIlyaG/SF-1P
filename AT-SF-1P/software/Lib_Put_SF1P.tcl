@@ -4047,7 +4047,7 @@ proc CellularModemPerf_RadOS_Sim12 {actSim disSim} {
   if {$ret!=0} {return $ret}
   set ret [Send $com "shutdown\r" $prmpt]
   if {$ret!=0} {return $ret}
-  Wait "Wait for LTE shutdown" 10
+  Wait "Wait for LTE shutdown" 30
   set ret [Send $com "mode sim $actSim\r" $prmpt]
   if {$ret!=0} {return $ret}
   set ret [Send $com "no shutdown\r" $prmpt]
