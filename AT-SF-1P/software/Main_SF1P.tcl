@@ -928,7 +928,12 @@ proc CellularModem_SIM2 {run} {
 # ***************************************************************************
 proc PowerOffOn {run} {
   set ::sendSlow 0
-  return [PowerOffOnPerf]
+  global gaSet
+  if {$gaSet(PowerOffOnUntil)=="first_steps"} {
+    return [PowerOffOnPerf]
+  } elseif {$gaSet(PowerOffOnUntil)=="login"} {
+    return [PowerOffOnPerf_login]
+  }
 }  
 
 # ***************************************************************************

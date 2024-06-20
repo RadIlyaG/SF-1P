@@ -5791,3 +5791,29 @@ proc DryContactGoConfig {} {
   Send $com "\r" stam 0.25
   return $ret
 }
+# ***************************************************************************
+# PowerOffOnPerf_login
+# ***************************************************************************
+proc PowerOffOnPerf_login {} {
+  global gaSet buffer
+  set com $gaSet(comDut)
+  for {set i 1} {$i <=  5} {incr i} {
+    Power all off
+    Status "Power OFF $i"
+    after 4000
+    Power all on
+    Status "Power ON $i"
+    after 1000
+    set ret [Login]
+    puts "PowerOffOnPerf ret:<$ret>" ; update       
+    if {$ret==0} {
+      AddToPairLog $gaSet(pair) "OFF-ON attempt $i PASS"
+    } else {
+      set ret -1
+      set gaSet(fail) "UUT doesn't respond after $i OFF-ON"
+      break
+    }
+    
+  }
+  return $ret
+}

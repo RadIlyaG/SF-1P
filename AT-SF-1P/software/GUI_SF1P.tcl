@@ -118,6 +118,9 @@ Please confirm you know products should not be released to the customer with thi
   		  {command "E-mail Test" gaGui(ToolAdd) {} {} -command {TestEmail}}       
       }
       }  
+      {separator}    
+      {radiobutton "PowerOffOn until first steps" init {} {} -command {} -variable gaSet(PowerOffOnUntil) -value first_steps}
+      {radiobutton "PowerOffOn until Login" init {} {} -command {} -variable gaSet(PowerOffOnUntil) -value login}      
       
     }                
  "&Terminal" terminal tterminal 0  {
