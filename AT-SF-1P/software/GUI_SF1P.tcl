@@ -239,7 +239,7 @@ Please confirm you know products should not be released to the customer with thi
       if ![info exists gaSet(it6900.1)] {
         set gaSet(it6900.1) ""
       }
-      set lab2 [Label $fr6900.lab2 -text $gaSet(it6900.1) -width 20 -relief sunken -bd 2 ]
+      set lab2 [Label $fr6900.lab2 -text ${gaSet(it6900.1)}-${gaSet(it6900.2)} -width 40 -relief sunken -bd 2 ]
       set gaGui(fr6900.lab2) $lab2
       pack $lab1 $lab2 -padx 2 -side left
 

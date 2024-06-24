@@ -5631,15 +5631,17 @@ proc PowerProtection {} {
     set volt 72
   } elseif {$gaSet(dutFam.ps)=="12V"} {
     set volt 36
+  } elseif {$gaSet(dutFam.ps)=="D72V"} {
+    set volt 75
   }
   
-  set ret [IT6900_on_off script off]
+  set ret [IT6900_on_off script off "1 2"]
   if {$ret!="-1"} {
-    set ret [IT6900_set script $volt]
+    set ret [IT6900_set script $volt 1]
   }  
   if {$ret!="-1"} {
     after 4000
-    set ret [IT6900_on_off script on]
+    set ret [IT6900_on_off script on 1]
   }  
   
   if {$ret!="-1"} {
@@ -5673,31 +5675,51 @@ proc VoltagePerf {} {
   set com $gaSet(comDut)
   if {$gaSet(dutFam.ps)=="WDC"} {
     set voltL [list 20 48 60]
+    set ps_l 1
   } elseif {$gaSet(dutFam.ps)=="12V" || $gaSet(dutFam.ps)=="ACEX"} {
     set voltL [list 10 24 30]
+    set ps_l 1
   } elseif {$gaSet(dutFam.ps)=="DC"} {
     set voltL [list 10 48 60]
+    set ps_l 1
   } elseif {$gaSet(dutFam.ps)=="D72V"} {
-    set voltL [list 10 48 72]
+    set voltL [list 20 48 60 72]
+    set ps_l "1 2"
   } elseif {$gaSet(dutFam.ps)=="FDC"} {
     set voltL [list 10 48 60]
+    set ps_l 1
   }
+  
   foreach volt $voltL {
-    foreach i {1 2} {
-      Status "Voltage=${volt}VDC, attempt $i"
-      set ret [IT6900_on_off script off]
-      if {$ret!="-1"} {
-        set ret [IT6900_set script $volt]
-      }  
-      if {$ret!="-1"} {
-        after 4000
-        set ret [IT6900_on_off script on]
+    foreach ps $ps_l {
+      if {$gaSet(dutFam.ps)=="D72V" && $ps==2 && ($volt==48 || $volt==60)} {
+        set ret 0
+        continue  
       }
-      if {$ret!="-1"} {
-        set ret [Login]
-        if {$ret==0} {
-          AddToPairLog $gaSet(pair) "Voltage=${volt}VDC, attempt $i PASS"
+      foreach i {1 2} {
+        set ret [IT6900_on_off script off "1 2"]
+        $gaSet(statBarShortTest) configure -text "PS=$ps ${volt}V i=$i"
+        
+        Status "PS=$ps, Voltage=${volt}VDC, attempt $i"
+        set ret [IT6900_on_off script off $ps]
+        puts "ret after IT6900_on_off script off $ps : $ret"
+        if {$ret!="-1"} {
+          set ret [IT6900_set script $volt $ps]
+          puts "ret after IT6900_set script $volt $ps : $ret"
+        }  
+        if {$ret!="-1"} {
+          after 4000
+          set ret [IT6900_on_off script on $ps]
+          puts "ret after IT6900_on_off script on $ps : $ret"
         }
+        if {$ret!="-1"} {
+          set ret [Login]
+          puts "ret after Login: $ret"
+          if {$ret==0} {
+            AddToPairLog $gaSet(pair) "PS=$ps, Voltage=${volt}VDC, attempt $i PASS"
+          }
+        }
+        if {$ret!=0} {return $ret}
       }
       if {$ret!=0} {return $ret}
     }

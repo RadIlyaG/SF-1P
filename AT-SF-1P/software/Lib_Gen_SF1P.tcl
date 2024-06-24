@@ -476,7 +476,7 @@ proc Power {ps state} {
   foreach pio $pioL {      
     RLUsbPio::Set $gaSet(idPwr$pio) $bit
     if {$gaSet(it6900.$pio)!=""} {
-      IT6900_on_off script $state
+      IT6900_on_off script $state "1 2"
     }
   }
 #   $gaGui(tbrun)  configure -state disabled 

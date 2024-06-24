@@ -994,7 +994,7 @@ proc Voltage {run} {
   set ret [IT9600_current 1]
   
   if {$ret==0} {
-    if {$gaSet(dutFam.ps)=="WDC" || $gaSet(dutFam.ps)=="12V"} {
+    if {$gaSet(dutFam.ps)=="WDC" || $gaSet(dutFam.ps)=="12V" || $gaSet(dutFam.ps)=="D72V"} {
       set ret [PowerProtection]
     } else {
       set ret 0
@@ -1003,6 +1003,7 @@ proc Voltage {run} {
   
   if {$ret==0} {
     set ret [VoltagePerf]
+    $gaSet(statBarShortTest) configure -text ""
   }
   
   # if {$ret==0} {
