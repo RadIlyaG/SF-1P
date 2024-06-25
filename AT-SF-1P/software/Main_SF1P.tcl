@@ -472,7 +472,11 @@ proc Factory_Settings {run} {
   global gaSet
   set ::sendSlow 0
   set ret [ReadImei]
-  if {$ret!=0} {return $ret}
+  if {$ret!=0} {
+    after 10000
+    set ret [ReadImei]
+    if {$ret!=0} {return $ret}
+  }
   set ret [CheckSimOut]
   if [string match {*pulled out*} $gaSet(fail)] {
     RLSound::Play information
