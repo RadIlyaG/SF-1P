@@ -17,49 +17,20 @@ proc BuildTests {} {
     $gaGui(startFrom) configure -values $glTests
     return -1
   }
-  
-  # set addrL []
-  # set res_list [exec python.exe lib_IT6900.py get_list stam stam]
-  # foreach res $res_list {
-    # if [regexp {0x6900::(\d+)::INSTR} $res ma addr] {
-      # lappend addrL $addr        
-    # }
-  # }
-  # puts "BuildTests IT6900_addrL: $addrL"
-  
+    
   set lTestsAllTests [list]
   set lTestNames [list]
-#   set lDownloadTests [list BrdEeprom]
-#   eval lappend lTestsAllTests $lDownloadTests
   
-  # ## 14:15 28/12/2022
-  # if {[llength $addrL] == 0} {
-    # lappend lTestNames PowerOffOn
-  # } else {
-    # foreach addr $addrL ps {1 2} {
-      # set gaSet(it6900.$ps) $addr
-    # }
-    # lappend lTestNames Voltage
-  # }
+  if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC"} {
+    lappend lTestNames FDbutton_on_start
+  }
+
   if {$gaSet(it6900.1) == "" && $gaSet(it6900.2) == ""} {
     lappend lTestNames PowerOffOn
   } else {
     lappend lTestNames Voltage
   }
-  
-  ##08:06 23/11/2023
-  ## lappend lTestNames UsbTree
-  
-  # if [string match *.HL.*  $gaSet(DutInitName)] {
-    # ## HL option doesn't have MicroSD
-  # } else {
-    # if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC"} {
-      # ## no CD card Contact
-    # } else {  
-      # lappend lTestNames MicroSD  
-    # }
-  # }
-  
+   
   if $gaSet(showBoot) {
     if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC"} {
       ## no CD card Contact
@@ -178,7 +149,11 @@ proc BuildTests {} {
   if $gaSet(showBoot) {
     lappend lTestNames FrontPanelLeds 
   } else {
-    lappend lTestNames FDbutton
+    if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC"} {
+      ## we did it at start
+    } else {
+      lappend lTestNames FDbutton
+    }
   }
   lappend lTestNames  Factory_Settings SSH
   if !$gaSet(demo) {
@@ -736,7 +711,14 @@ proc FrontPanelLeds {run} {
 # ***************************************************************************
 proc FDbutton {run} {
   set ::sendSlow 0
-  set ret [FDbuttonPerf]
+  set ret [FDbuttonPerf ""]
+}
+# ***************************************************************************
+# FDbutton_on_start
+# ***************************************************************************
+proc FDbutton_on_start {run} {
+  set ::sendSlow 0
+  set ret [FDbuttonPerf "on_start"]
 }
 # ***************************************************************************
 # UsbTree

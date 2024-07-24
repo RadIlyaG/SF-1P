@@ -871,7 +871,7 @@ proc RetriveDutFam {{dutInitName ""}} {
   }  
   set idx [lsearch $fieldsL $gaSet(dutFam.box)]
   set fieldsL [lreplace $fieldsL $idx $idx]
-  if {$gaSet(dutFam.ps) != "D72V" && $gaSet(dutFam.ps) != "FDC"} {
+  if {$gaSet(dutFam.ps) != "FDC"} {
     set idx [lsearch $fieldsL $gaSet(dutFam.ps)]
     set fieldsL [lreplace $fieldsL $idx $idx]
   }

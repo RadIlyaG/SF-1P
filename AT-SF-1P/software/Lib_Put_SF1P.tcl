@@ -3011,23 +3011,26 @@ proc LedsInLoop {} {
 # ***************************************************************************
 # FDbuttonPerf
 # ***************************************************************************
-proc FDbuttonPerf {} {
+proc FDbuttonPerf {mode} {
   global gaSet buffer
   set com $gaSet(comDut)
   set ret [Login]  ; # Login2App
   if {$ret!=0} {
     return $ret
   }
-  RLSound::Play information
-  set txt "Please disconnect all ETH cables\n\
-  Remove the SD-card and the SIMs (if exists)"
-  if {$gaSet(dutFam.cell)!=0} {
-    append txt "\nDisconnect the antenna from \'LTE MAIN\' and mount it on the \'LTE AUX\'"
-  }  
-  set res [DialogBox -title "Boot Leds Test" -type "Ok Cancel" -message $txt  -icon images/info]
-  if {$res=="Cancel"} {
-    set gaSet(fail) "\'LTE AUX\' Test fail" 
-    return -1
+  
+  if {$mode!="on_start"} {
+    RLSound::Play information
+    set txt "Please disconnect all ETH cables\n\
+    Remove the SD-card and the SIMs (if exists)"
+    if {$gaSet(dutFam.cell)!=0} {
+      append txt "\nDisconnect the antenna from \'LTE MAIN\' and mount it on the \'LTE AUX\'"
+    }  
+    set res [DialogBox -title "Boot Leds Test" -type "Ok Cancel" -message $txt  -icon images/info]
+    if {$res=="Cancel"} {
+      set gaSet(fail) "\'LTE AUX\' Test fail" 
+      return -1
+    }
   }
   
   Send $com "logout\r\r" "stam" 3 
