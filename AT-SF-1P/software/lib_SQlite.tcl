@@ -247,12 +247,14 @@ proc ImeiSQliteAddLine {} {
     return 0
   }
   
-  set ret [RetriveIdTraceData $Barcode MKTItem4Barcode]
-  puts "ImeiSQliteAddLine ret:<$ret>"
+  #set ret [RetriveIdTraceData $Barcode MKTItem4Barcode]
+  foreach {ret resTxt} [Get_MrktName  $gaSet(1.barcode1) {}
+  puts "ImeiSQliteAddLine ret:<$ret> resTxt:<$resTxt>"
   if {$ret=="-1"} {
     return -1
   } else {
-    set RadName [dict get $ret "MKT Item"]
+    # set RadName [dict get $ret "MKT Item"]
+    set RadName $resTxt
   }
   
   # switch -exact -- $RadName {

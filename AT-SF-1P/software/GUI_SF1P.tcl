@@ -121,7 +121,8 @@ Please confirm you know products should not be released to the customer with thi
       {separator}    
       {radiobutton "PowerOffOn until first steps" init {} {} -command {} -variable gaSet(PowerOffOnUntil) -value first_steps}
       {radiobutton "PowerOffOn until Login" init {} {} -command {} -variable gaSet(PowerOffOnUntil) -value login}      
-      
+      {separator}  
+      {command "Different Voltage Test" {} "" {} -command {Gui_DifferentVoltageTest}}
     }                
  "&Terminal" terminal tterminal 0  {
       {command "UUT" "" "" {} -command {OpenTeraTerm gaSet(comDut)}}  
@@ -820,19 +821,21 @@ proc ButRun {} {
     set traceId $gaSet(1.traceId)
     puts "\nButRun IdBarcode:<$IdBarcode> traceId:<$traceId>"
     if {$gaSet(manualCSL)=="0"} {
-      set ret [RetriveIdTraceData  $IdBarcode CSLByBarcode]
+      #  set ret [RetriveIdTraceData  $IdBarcode CSLByBarcode]
+      foreach {ret resTxt} [Get_CSL $IdBarcode] {}
     } else {
-      #set ret $gaSet(manualCSL)
-      set ret [dict set di CSL $gaSet(manualCSL)]
-    }
-    #set ret [RetriveIdTraceData $IdBarcode CSLByBarcode]
-    puts "ButRun CSLret:<$ret>"
-    if {$ret!="-1"} {
-      set gaSet(csl) [dict get $ret CSL]
-      AddToPairLog $gaSet(pair) "CSL: $gaSet(csl)"
       set ret 0
+      set resTxt $gaSet(manualCSL)
+      # set ret [dict set di CSL $gaSet(manualCSL)]
+    }
+    puts "ButRun CSL ret:<$ret>"
+    if {$ret=="0"} {
+      # set gaSet(csl) [dict get $ret CSL]
+      set gaSet(csl) $resTxt
+      AddToPairLog $gaSet(pair) "CSL: $gaSet(csl)"
     } else {
-      set gaSet(fail) "Fail to get CSL for $IdBarcode"
+      # set gaSet(fail) "Fail to get CSL for $IdBarcode"
+      set gaSet(fail) $resTxt
     }
     if {$ret==0} {
       # 09:20 15/05/2024 No TraceID

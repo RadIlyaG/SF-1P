@@ -1100,17 +1100,20 @@ proc IDPerf {mode} {
   # }
   
   if {$gaSet(manualMrktName)=="0"} {
-    set ret [RetriveIdTraceData $gaSet(1.barcode1) MKTItem4Barcode]
-    if {$ret!="-1"} {
-      set market_name [dict get $ret "MKT Item"]
+    # set ret [RetriveIdTraceData $gaSet(1.barcode1) MKTItem4Barcode]
+    foreach {ret resTxt} [Get_MrktName  $gaSet(1.barcode1) {}
+    if {$ret=="0"} {
+      # set market_name [dict get $ret "MKT Item"]
+      set market_name $resTxt
     } else {
-      set gaSet(fail) "Fail to get market_name for  $gaSet(1.barcode1)"
+      # set gaSet(fail) "Fail to get market_name for $gaSet(1.barcode1)"
+      set gaSet(fail) $resTxt
       return -1 
     }
   } else {
     set market_name $gaSet(manualMrktName)
   }
-  # set market_name [RetriveIdTraceData $gaSet(1.barcode1) MKTItem4Barcode]
+  
   puts "IDperf val:<$val>  market_name:<$market_name>"
   if {$market_name != $val} {
     set gaSet(fail) "The FW Ver is \'$val\'. Should be \'$market_name\'"
@@ -5587,18 +5590,22 @@ proc TpmCheck {} {
   set com $gaSet(comDut)
   
   if {$gaSet(manualCSL)=="0"} {
-    set ret [RetriveIdTraceData  $gaSet(1.barcode1) CSLByBarcode]
+    # set ret [RetriveIdTraceData  $gaSet(1.barcode1) CSLByBarcode]
+    foreach {ret resTxt} [Get_CSL $gaSet(1.barcode1)] {}
   } else {
-    set ret [dict set di CSL $gaSet(manualCSL)]
+    # set ret [dict set di CSL $gaSet(manualCSL)]
+    set resTxt $gaSet(manualCSL)
   }
     
-  #set ret [RetriveIdTraceData $gaSet(1.barcode1) CSLByBarcode]
-  puts "TpmCheck CSLret:<$ret>"
-  if {$ret!="-1"} {
-    set csl [dict get $ret CSL]
+  # set ret [RetriveIdTraceData $gaSet(1.barcode1) CSLByBarcode]
+  puts "TpmCheck CSL ret:<$ret> resTxt:<$resTxt>"
+  if {$ret=="0"} {
+    # set csl [dict get $ret CSL]
+    set csl $resTxt
     #AddToPairLog $gaSet(pair) "CSL: $csl"
   } else {
-    set gaSet(fail) "Fail to get CSL for $gaSet(1.barcode1)"
+    # set gaSet(fail) "Fail to get CSL for $gaSet(1.barcode1)"
+    set gaSet(fail) $resTxt
     return -1
   }
   

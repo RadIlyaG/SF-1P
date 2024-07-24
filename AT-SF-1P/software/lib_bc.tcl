@@ -414,18 +414,30 @@ proc UnregIdMac {barcode {mac {}}} {
 proc IdMacLinkNoLink {barcode} {
   global gaSet
   puts "\nIdMacLinkNoLink $barcode"
-  set res [catch {exec $gaSet(javaLocation)/java.exe -jar $::RadAppsPath/checkmac.jar $barcode AABBCCFFEEDD} retChk]
-  puts "IdMacLinkNoLink barcode:<$barcode > res:<$res> retChk:<$retChk>" ; update
-  if {$res=="1" && $retChk=="0"} {
-    puts "No Id-MAC link"
-    set ret "noLink"
-  } else {
-    puts "Id-Mac link or error"
-    if [regexp {is already connected to :(\w+)} $retChk ma val] {
-      set ret $val
-    } else {
-      set ret "error"
-    }
-  } 
+  
+  foreach {res resTxt} [CheckMac $barcode AABBCCFFEEDD] {}
+  if {$res<0} {
+    set ret "error"
+    set gaSet(fail) $resTxt
+  } elseif {$res==0} {
+    set ret $resTxt
+  } elseif {$res==1} {
+    set ret [lindex [split $resTxt " "] end]
+  }
   return $ret
+  
+  # set res [catch {exec $gaSet(javaLocation)/java.exe -jar $::RadAppsPath/checkmac.jar $barcode AABBCCFFEEDD} retChk]
+  # puts "IdMacLinkNoLink barcode:<$barcode > res:<$res> retChk:<$retChk>" ; update
+  # if {$res=="1" && $retChk=="0"} {
+    # puts "No Id-MAC link"
+    # set ret "noLink"
+  # } else {
+    # puts "Id-Mac link or error"
+    # if [regexp {is already connected to :(\w+)} $retChk ma val] {
+      # set ret $val
+    # } else {
+      # set ret "error"
+    # }
+  # } 
+  # return $ret
 }

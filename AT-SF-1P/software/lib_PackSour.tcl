@@ -162,6 +162,7 @@ source Lib_Lora.tcl
 source Lib_Ramzor.tcl
 source lib_EcoCheck.tcl
 source lib_IT6900.tcl
+source lib_DifferentVoltageTest.tcl
 
 set gaSet(act) 1
 set gaSet(initUut) 1

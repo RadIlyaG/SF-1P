@@ -698,9 +698,11 @@ proc GetDbrName {} {
   set gaSet(1.traceId) ""
   set gaSet(1.useTraceId) 0
   set gaSet(1.barcode1) $barcode
-  set ret [RetriveIdTraceData $gaSet(1.barcode1) OperationItem4Barcode]
-  if {$ret!="-1"} {
-    set dbrName [dict get $ret "item"]
+  #  set ret [RetriveIdTraceData $gaSet(1.barcode1) OperationItem4Barcode]
+  foreach {ret resTxt} [Get_OI4Barcode  $gaSet(1.barcode1) {}
+  if {$ret=="0"} {
+    #  set dbrName [dict get $ret "item"]
+    set dbrName $resTxt
   } else {
     set gaSet(fail) "Fail to get DBR Name for $gaSet(1.barcode1)"
     RLSound::Play fail
@@ -1474,60 +1476,9 @@ proc GetDbrSW {barcode} {
   set sw 0
   set gaSet(manualMrktName) 0
   set gaSet(manualCSL) 0
-  catch {exec $gaSet(javaLocation)\\java -jar $::RadAppsPath/SWVersions4IDnumber.jar $barcode} b
+  # catch {exec $gaSet(javaLocation)\\java -jar $::RadAppsPath/SWVersions4IDnumber.jar $barcode} b
+  foreach {res b} [Get_SwVersions $barcode] {}
   after 1000
-#   if ![info exists gaSet(dbrUbootSWnum)] {
-#     set gaSet(dbrUbootSWnum) ""
-#   }
-#   set dbrUbootSWnumIndx [lsearch $b $gaSet(dbrUbootSWnum)]  
-#   if {$dbrUbootSWnumIndx<0} {
-#     set gaSet(fail) "There is no Uboot for $gaSet(dbrUbootSWnum) ID:$barcode. Verify the Barcode."
-#     RLSound::Play fail
-# 	  Status "Test FAIL"  red
-#     DialogBox -aspect 2000 -type Ok -message $gaSet(fail) -icon images/error
-#     pack $gaGui(frFailStatus)  -anchor w
-# 	  $gaSet(runTime) configure -text ""
-#   	return -1
-#   }
-#   set dbrUbootSWver [string trim [lindex $b [expr {1+$dbrUbootSWnumIndx}]]]
-#   puts dbrUbootSWver:<$dbrUbootSWver>
-#   set gaSet(dbrUbootSWver) $dbrUbootSWver
-
-# 15:12 09/10/2023
-  # if ![info exists gaSet(dbrBootSwNum)] {
-    # set gaSet(dbrBootSwNum) ""
-  # }
-  # set dbrBootSwNumIndx [lsearch $b $gaSet(dbrBootSwNum)]  
-  # if {$dbrBootSwNumIndx<0} {
-    # set gaSet(fail) "There is no Boot for $gaSet(dbrBootSwNum) ID:$barcode. Verify the Barcode."
-    # RLSound::Play fail
-	  # Status "Test FAIL"  red
-    # DialogBox -aspect 2000 -type Ok -message $gaSet(fail) -icon images/error
-    # pack $gaGui(frFailStatus)  -anchor w
-	  # $gaSet(runTime) configure -text ""
-  	# return -1
-  # }
-  # set dbrBootSwVer [string trim [lindex $b [expr {1+$dbrBootSwNumIndx}]]]
-  # puts dbrBootSwVer:<$dbrBootSwVer>
-  # set gaSet(dbrBootSwVer) $dbrBootSwVer
-  
-  # if {$gaSet(uutSWfrom)=="fromDbr"} {
-    # set dbrSWnumIndx [lsearch $b $gaSet(dbrSWnum)]  
-    # if {$dbrSWnumIndx<0} {
-      # set gaSet(fail) "There is no SW for $gaSet(dbrSWnum) ID:$barcode. Verify the Barcode."
-      # RLSound::Play fail
-  	  # Status "Test FAIL"  red
-      # DialogBox -aspect 2000 -type Ok -message $gaSet(fail) -icon images/error
-      # pack $gaGui(frFailStatus)  -anchor w
-  	  # $gaSet(runTime) configure -text ""
-    	# return -1
-    # }
-    # set SWver [string trim [lindex $b [expr {1+$dbrSWnumIndx}]]]
-    # puts SWver:<$SWver>
-    # set gaSet(SWver) $SWver
-  # } elseif {$gaSet(uutSWfrom)=="manual"} {
-    # puts SWver:<$gaSet(SWver)>
-  # }
   
   puts "GetDbrSW barcode:<$barcode> b:<$b>" ; update
   
@@ -1553,7 +1504,7 @@ proc GetDbrSW {barcode} {
       set gaSet(manualCSL) [string toupper [string trim $gaDBox(entVal4)]]
     }
   } else {
-    if {[lindex $b end] == $barcode} {
+    if {[lindex $b end] == $barcode || $b == ""} {
       set gaSet(fail) "No SW definition in IDbarcode"
       return -2
     }
