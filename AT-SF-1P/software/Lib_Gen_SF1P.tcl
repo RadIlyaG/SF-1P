@@ -1425,30 +1425,27 @@ proc GetMac {qty} {
   } else {
     puts "[MyTime] GetMac MACServer.exe" 
     set macFile c:/temp/mac.txt
-    exec $::RadAppsPath/MACServer.exe 0 $qty $macFile 1
-    set ret [catch {open $macFile r} id]
+    # exec $::RadAppsPath/MACServer.exe 0 $qty $macFile 1
+    # set ret [catch {open $macFile r} id]
+    # if {$ret!=0} {
+    #  set gaSet(fail) "Open Mac File fail"
+    #  return -1
+    # }
+    # set buffer [read $id]
+    # close $id
+    # file delete $macFile
+    # set ret [regexp -all {ERROR} $buffer]
+    # if {$ret!=0} {
+    #   set gaSet(fail) "MACServer ERROR"
+    #   return -1
+    # }
+    # set mac [lindex $buffer 0]  ; # 1806F5F4763B
+    foreach {ret resTxt} [Get_Mac $qty] {}
     if {$ret!=0} {
-      set gaSet(fail) "Open Mac File fail"
+      set gaSet(fail) $resTxt
       return -1
     }
-    set buffer [read $id]
-    close $id
-    file delete $macFile
-    set ret [regexp -all {ERROR} $buffer]
-    if {$ret!=0} {
-      set gaSet(fail) "MACServer ERROR"
-      return -1
-    }
-    set mac [lindex $buffer 0]  ; # 1806F5F4763B
- 
-#  19/04/2021 15:42:00
-#     if 1 {
-#       set cmd "0x[string range $mac 6 end]-[expr $qty - 1]" ; ## 0xF4763B - 5 
-#       set theLowerMac [string range $mac 0 5][format %X [expr $cmd]] ; ## 1806F5F47636
-#       set mac $theLowerMac
-#     }
-    
-    return $mac
+    return $resTxt
   }  
 }
 # ***************************************************************************

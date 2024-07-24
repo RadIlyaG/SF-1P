@@ -4,6 +4,8 @@ package require base64
 package require json
 ::http::register https 8445 ::tls::socket
 
+set ::debugWS 1
+
 console show
 proc UpdateDB {barcode uutName hostDescription  date time status  failTestsList failDescription dealtByServer} {
   #***************************************************************************
@@ -356,7 +358,7 @@ proc chk_connection_to_id {{id "EA100448957"}} {
 # Retrive_WS
 # ***************************************************************************
 proc Retrive_WS {url {query "NA"} paramName} {
-  puts "Retrive_WS $url $query $paramName"
+  puts "Retrive_WS \"$url\" \"$query\" \"$paramName\""
   set res_val 0
   set res_txt [list]
   set headers [list Authorization "Basic [base64::encode webservices:radexternal]"]
@@ -377,7 +379,7 @@ proc Retrive_WS {url {query "NA"} paramName} {
     append cmd " -query $query"
   }
   
-  puts "cmd:<$cmd>"
+  if $::debugWS {puts "cmd:<$cmd>"}
   if [catch {eval $cmd} tok] {
     after 2000
     if [catch {eval $cmd} tok] {
@@ -399,10 +401,10 @@ proc Retrive_WS {url {query "NA"} paramName} {
     set res_txt "Fail to get $paramName"; # "http::status: <$st> http::ncode: <$nc>"
   }
   upvar #0 $tok state
-  #parray state
+  if $::debugWS {parray state}
   #puts "$state(body)"
   set body $state(body)
-  set ::b $body
+  if $::debugWS {set ::b $body}
   ::http::cleanup $tok
   
   if {$res_val==0} {
@@ -492,6 +494,108 @@ proc Get_File {path file_name local_file} {
   set resLst [Retrive_WS $url file_$local_file "Get $path/$file_name"]
   return $resLst
 }
+
+# ***************************************************************************
+# Get_Mac
+#  Get_Mac 0
+#  Returns list of two values - result and resultText
+#   result may be -1 if WS fails,
+#                  0 
+#   resultText will have first MAC
+#   Get_Mac 1 will return
+#     0 1806F5879CB6
+# ***************************************************************************
+proc Get_Mac {qty} {
+  puts "\nGet_Mac $qty"
+  set url "https://ws-proxy01.rad.com:8445/MacRegREST/MacRegExt/ws/sp001_mac_address_alloc"
+  set query [::http::formatQuery p_mode 0 p_trace_id 0 p_serial 0 p_idnumber_id 0 p_alloc_qty $qty p_file_version 1]
+  set resLst [Retrive_WS $url $query "Get $qty MACs"]
+  set Error_indx [lsearch [lindex $resLst 1] "Error"]
+  set Error_Val [lindex [lindex $resLst 1] [expr {1+$Error_indx}]]
+  #puts "$resLst $Error_indx $Error_Val"
+  if {[lindex $resLst 0]==0 && $Error_Val==0} {
+    return [list 0 [lindex [lindex $resLst 1] end]]
+  } else {
+    return [list -1 [lindex $resLst 1]]
+  }  
+}
+
+# ***************************************************************************
+# Get_Pages
+# Get_Pages IO3001960310 50190576 0 
+# ***************************************************************************
+proc Get_Pages {id {traceId ""} {macs_qty 10} } {
+  puts "\Get_Pages $id $traceId $macs_qty"
+  
+  set headers [list "content-type" "text/xml" "SOAPAction" ""]
+  set data "<soapenv:Envelope xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
+  append data "xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" "
+  append data "xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" "
+  append data "xmlns:mod=\"http://model.macregid.webservices.rad.com\">\n"
+  append data "<soapenv:Header/>\n"
+  append data "<soapenv:Body>\n"
+  append data "<mod:get_Data_4_Dallas soapenv:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">\n"
+  append data "<ParamStr1 xsi:type=\"xsd:string\">2</ParamStr1>\n"
+  append data "<ParamStr2 xsi:type=\"xsd:string\">$id</ParamStr2>\n"
+  append data "<ParamStr3 xsi:type=\"xsd:string\">0</ParamStr3>\n"
+  append data "<ParamStr4 xsi:type=\"xsd:string\">$traceId</ParamStr4>\n"
+  append data "</mod:get_Data_4_Dallas>\n"
+  append data "</soapenv:Body>\n"
+  append data "</soapenv:Envelope>\n"
+  #puts $data
+  
+  set url "http://ws-proxy01.rad.com:10211/Pages96WS/services/MacWS"
+  set cmd {::http::geturl $url -headers $headers -query $data}
+  if [catch {eval $cmd} tok] {
+    after 2000
+    if [catch {eval $cmd} tok] {
+      puts "tok:<$tok>"
+      set res_val -1
+      set res_txt "Fail to get Pages for $id $traceId"
+      return [list $res_val $res_txt]
+    }
+  }
+  
+  set st [::http::status $tok]
+  set nc [::http::ncode $tok]
+  set body  [::http::data $tok]
+  if $::debugWS {puts "tok:<$tok> st:<$st> nc:<$nc> body:<$body>"}
+  #upvar #0 $tok state
+  ::http::cleanup $tok
+  
+  if $::debugWS {set ::b $body}
+  regsub -all {[<>]} $body " " b1
+  
+  if [string match {*502 Proxy Error*} $b1] {
+    set res_val -1
+    set res_txt "Fail to get Pages for $id $traceId : 502 Proxy Error"
+    return [list $res_val $res_txt]
+  }
+  if ![string match {*ns1:get_Data_4_DallasResponse*} $b1] {
+    set res_val -1
+    set res_txt "Fail to get Pages for $id $traceId"
+    return [list $res_val $res_txt]
+  }
+  if [string match {*ERROR*} $b1] {
+    set res_val -1
+    set res_txt "Fail to get Pages for $id $traceId : ERROR"
+    return [list $res_val $res_txt]
+  }
+  
+  set res 0
+  regexp {(Page 0 - [0-9A-F\s]+) /} $b1 ma page0
+  regexp {(Page 1 - [0-9A-F\s]+) /} $b1 ma page1
+  regexp {(Page 2 - [0-9A-F\s]+) /} $b1 ma page2
+  regexp {(Page 3 - [0-9A-F\s]+) /} $b1 ma page3
+  append resTxt $page0\n
+  append resTxt $page1\n
+  append resTxt $page2\n
+  append resTxt $page3
+   
+  return [list $res $resTxt]
+}
+
+
 
 puts "Get_File //prod-svm1/tds/Install/ATEinstall/bwidget1.8/ arrow.tcl c:/temp/arrow.tcl"
 puts "CheckMac EA1004489579 112233445566"
