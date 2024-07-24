@@ -5687,16 +5687,16 @@ proc VoltagePerf {} {
     set voltL [list 20 48 60]
     set ps_l 1
   } elseif {$gaSet(dutFam.ps)=="12V" || $gaSet(dutFam.ps)=="ACEX"} {
-    set voltL [list 10 24 30]
+    set voltL [list 24 30] ; # 14:35 24/07/2024 10 24 30
     set ps_l 1
   } elseif {$gaSet(dutFam.ps)=="DC"} {
-    set voltL [list 10 48 60]
+    set voltL [list 48 60] ; # 14:35 24/07/2024 10 48 60
     set ps_l 1
   } elseif {$gaSet(dutFam.ps)=="D72V"} {
     set voltL [list 20 48 60 72]
     set ps_l "1 2"
   } elseif {$gaSet(dutFam.ps)=="FDC"} {
-    set voltL [list 10 48 60]
+    set voltL [list 48 60] ; # 14:35 24/07/2024 10 48 60
     set ps_l 1
   }
   
