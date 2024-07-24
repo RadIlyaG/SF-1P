@@ -577,8 +577,10 @@ proc Get_Pages {id {traceId ""} {macs_qty 10} } {
     return [list $res_val $res_txt]
   }
   if [string match {*ERROR*} $b1] {
+    set err ERROR
+    regexp {(ERROR[\w\s\!]+)/} $b1 ma err
     set res_val -1
-    set res_txt "Fail to get Pages for $id $traceId : ERROR"
+    set res_txt "Fail to get Pages for $id $traceId : $err"
     return [list $res_val $res_txt]
   }
   
