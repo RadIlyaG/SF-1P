@@ -1101,7 +1101,7 @@ proc IDPerf {mode} {
   
   if {$gaSet(manualMrktName)=="0"} {
     # set ret [RetriveIdTraceData $gaSet(1.barcode1) MKTItem4Barcode]
-    foreach {ret resTxt} [Get_MrktName  $gaSet(1.barcode1) {}
+    foreach {ret resTxt} [Get_MrktName  $gaSet(1.barcode1)] {}
     if {$ret=="0"} {
       # set market_name [dict get $ret "MKT Item"]
       set market_name $resTxt

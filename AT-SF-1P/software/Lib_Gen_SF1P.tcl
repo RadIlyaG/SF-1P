@@ -699,7 +699,7 @@ proc GetDbrName {} {
   set gaSet(1.useTraceId) 0
   set gaSet(1.barcode1) $barcode
   #  set ret [RetriveIdTraceData $gaSet(1.barcode1) OperationItem4Barcode]
-  foreach {ret resTxt} [Get_OI4Barcode  $gaSet(1.barcode1) {}
+  foreach {ret resTxt} [Get_OI4Barcode  $gaSet(1.barcode1)] {}
   if {$ret=="0"} {
     #  set dbrName [dict get $ret "item"]
     set dbrName $resTxt
@@ -1532,8 +1532,8 @@ proc GetDbrSW {barcode} {
   set gaSet(SWver) $sw
   after 1000
   
-  set swTxt [glob SW*_$barcode.txt]
-  catch {file delete -force $swTxt}
+  # set swTxt [glob SW*_$barcode.txt]
+  # catch {file delete -force $swTxt}
   update
   
   pack forget $gaGui(frFailStatus)
