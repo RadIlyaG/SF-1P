@@ -197,7 +197,7 @@ proc Get_CSL {id} {
 #       0 RIC-LC/8E1/4UTP/ETR/RAD   
 # ***************************************************************************
 proc Get_MrktName {id} {
-  puts "\Get_MrktName $id"
+  puts "\nGet_MrktName $id"
   set barc [format %.11s $id]
   
   set url "https://ws-proxy01.rad.com:8445/ATE_WS/ws/rest/"
@@ -223,7 +223,7 @@ proc Get_MrktName {id} {
 #                  0 if there is Marketing Number (located at resultText)
 # ***************************************************************************
 proc Get_MrktNumber {dbr_assm} {
-  puts "\Get_MrktNumber $dbr_assm"
+  puts "\nGet_MrktNumber $dbr_assm"
   
   set url "https://ws-proxy01.rad.com:8445/ATE_WS/ws/rest/"
   set param MKTPDNByDBRAssembly\?dbrAssembly=$dbr_assm
@@ -247,7 +247,7 @@ proc Get_MrktNumber {dbr_assm} {
 #                  0 
 # ***************************************************************************
 proc Disconnect_Barcode {id {mac ""}} {
-  puts "\Disconnect_Barcode $id $mac"
+  puts "\nDisconnect_Barcode $id $mac"
   set barc [format %.11s $id]
   set url "https://ws-proxy01.rad.com:8445/ATE_WS/ws/rest/"
   set param DisconnectBarcode\?mac=[set mac]&idNumber=[set barc]
@@ -270,7 +270,7 @@ proc Disconnect_Barcode {id {mac ""}} {
 #       0 {pcb SF-1V/PS.REV0.3I product SF1P/PS12V/RG/PS3/TERNA/3PIN/R06}   
 # ***************************************************************************
 proc Get_PcbTraceIdData {id var_list} {
-  puts "\Get_PcbTraceIdData $id"
+  puts "\nGet_PcbTraceIdData $id"
   
   set url "https://ws-proxy01.rad.com:8445/ATE_WS/ws/rest/"
   set param PCBTraceabilityIDData\?barcode=null\&traceabilityID=$id
@@ -609,6 +609,7 @@ proc Get_Pages {id {traceId ""} {macs_qty 10} } {
 # ***************************************************************************
 proc Ping_WebServices03 {} {
   set url "https://ws-proxy01.rad.com:8445/ATE_WS/ws/rest/Ping"
+  puts "Ping_WebServices03 $url"
   set headers [list Authorization "Basic [base64::encode webservices:radexternal]"]
   set cmd {::http::geturl $url -headers $headers}
   
@@ -681,6 +682,33 @@ proc Ping_Pages {}  {
   return [regexp {Server ~~~  = WS-MAC-Pages} $b1]
 }
 
+# ***************************************************************************
+# Get_TraceId
+#  Get_TraceId DA200047522
+#  Returns list of two values - result and resultText
+#   result may be -1 if WS fails,
+#                  0 if there is DBR Assembly Name (located at resultText)
+#   Get_TraceId EA1004489579 will return
+#       0 RIC-LC/8E1/UTP/ACDC
+# ***************************************************************************
+proc Get_TraceId {id} {
+  puts "\nGet_TraceId $id"
+  set barc [format %.11s $id]
+  
+  set url "https://ws-proxy01.rad.com:8445/ATE_WS/ws/traceability/"
+  set param TraceabilityByBarcode\?barcode=[set barc]
+  append url $param
+  set resLst [Retrive_WS $url "NA" "Traceability for $id"]
+  foreach {res resTxt} $resLst {}
+  if {$res!=0} {
+    return $resLst 
+  }
+  if {[llength $resTxt] == 0} {
+    return [list -1 "No Traceability for $id"]
+  }
+  set value [lindex $resTxt [expr {1 + [lsearch $resTxt "pcb_barcode"]} ] ]
+  return [list $res $value] 
+} 
 
 
 puts "Get_File //prod-svm1/tds/Install/ATEinstall/bwidget1.8/ arrow.tcl c:/temp/arrow.tcl"
