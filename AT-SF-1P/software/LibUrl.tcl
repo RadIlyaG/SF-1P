@@ -117,7 +117,7 @@ proc ConvertToUrl {s} {
 #      0 {}
 # ***************************************************************************
 proc Get_SwVersions {id} {
-  puts "\Get_SwVersions $id"
+  puts "\nGet_SwVersions $id"
   set barc [format %.11s $id]
   set url "http://ws-proxy01.rad.com:8081/ExtAppsWS/Proxy/Select"
   set query [::http::formatQuery queryName "qry.get.sw.for_idNumber_2" db inventory params $barc]
@@ -139,6 +139,8 @@ proc Get_SwVersions {id} {
 #  Returns list of two values - result and resultText
 #   result may be -1 if WS fails,
 #                  0 if there is DBR Assembly Name (located at resultText)
+#   Get_OI4Barcode EA1004489579 will return
+#       0 RIC-LC/8E1/UTP/ACDC
 # ***************************************************************************
 proc Get_OI4Barcode {id} {
   puts "\nGet_OI4Barcode $id"
@@ -164,6 +166,8 @@ proc Get_OI4Barcode {id} {
 #  Returns list of two values - result and resultText
 #   result may be -1 if WS fails,
 #                  0 if there is CSL (located at resultText)
+#   Get_CSL EA1004489579 will return
+#       0 A 
 # ***************************************************************************
 proc Get_CSL {id} {
   puts "\Get_CSL $id"
@@ -189,6 +193,8 @@ proc Get_CSL {id} {
 #  Returns list of two values - result and resultText
 #   result may be -1 if WS fails,
 #                  0 if there is MKT Name (located at resultText)
+#   Get_MrktName EA1004489579 will return
+#       0 RIC-LC/8E1/4UTP/ETR/RAD   
 # ***************************************************************************
 proc Get_MrktName {id} {
   puts "\Get_MrktName $id"
@@ -211,6 +217,7 @@ proc Get_MrktName {id} {
 # ***************************************************************************
 # Get_MrktNumber
 #  Get_MrktNumber ETX-1P/ACEX/1SFP1UTP/4UTP/WF
+#  Get_MrktNumber ETX-2I-10G-B_ATT/19/DC/8SFPP
 #  Returns list of two values - result and resultText
 #   result may be -1 if WS fails,
 #                  0 if there is Marketing Number (located at resultText)
@@ -463,7 +470,7 @@ proc Get_ConfigurationFile {dbr_assm localUCF} {
     after 500
   }
   
-  set url "http://ws-proxy01.rad.com:10211/ATE_WS/ws/configDownload/ConfigFile?"
+  set url "https://ws-proxy01.rad.com:8445/ATE_WS/ws/configDownload/ConfigFile?"
   set param "dbrAssembly=[set dbr_assm]"
   append url $param
   set resLst [Retrive_WS $url file_$localUCF "Get Configuration File for $dbr_assm"]
@@ -525,7 +532,7 @@ proc Get_Mac {qty} {
 # Get_Pages IO3001960310 50190576 0 
 # ***************************************************************************
 proc Get_Pages {id {traceId ""} {macs_qty 10} } {
-  puts "\Get_Pages $id $traceId $macs_qty"
+  puts "\nGet_Pages $id $traceId $macs_qty"
   
   set headers [list "content-type" "text/xml" "SOAPAction" ""]
   set data "<soapenv:Envelope xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
@@ -595,6 +602,83 @@ proc Get_Pages {id {traceId ""} {macs_qty 10} } {
   append resTxt $page3
    
   return [list $res $resTxt]
+}
+
+# ***************************************************************************
+# Ping_WebServices03
+# ***************************************************************************
+proc Ping_WebServices03 {} {
+  set url "https://ws-proxy01.rad.com:8445/ATE_WS/ws/rest/Ping"
+  set headers [list Authorization "Basic [base64::encode webservices:radexternal]"]
+  set cmd {::http::geturl $url -headers $headers}
+  
+  if [catch {eval $cmd} tok] {
+    after 2000
+    if [catch {eval $cmd} tok] {
+      puts "tok:<$tok>"
+      return -1
+    }
+  }
+  set st [::http::status $tok]
+  set nc [::http::ncode $tok]
+  upvar #0 $tok state
+  
+  if $::debugWS {parray state}
+  #puts "$state(body)"
+  set body $state(body)
+  if $::debugWS {set ::b $body}
+  
+  ::http::cleanup $tok
+  set asadict [::json::json2dict $body]
+  foreach {name whatis} $asadict {
+    foreach {par val} [lindex $whatis 0] {
+      if {[regexp {Server ~~~  = webservices03} $val]} {
+        set ret 0
+        break
+      }                 
+    }
+  }
+  return $ret
+}
+# ***************************************************************************
+# Ping_Pages
+# ***************************************************************************
+proc Ping_Pages {}  {
+  puts "\nPing_Pages"
+  
+  set headers [list "content-type" "text/xml" "SOAPAction" ""]
+  set data "<soapenv:Envelope xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
+  append data "xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" "
+  append data "xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" "
+  append data "xmlns:mod=\"http://model.macregid.webservices.rad.com\">\n"
+  #append data "xmlns:mod=\"http://model.chinaws.webservices.rad.com\">\n"
+  append data "<soapenv:Header/>\n"
+  append data "<soapenv:Body>\n"
+  append data "<mod:ping soapenv:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\"/>\n"
+  append data "</soapenv:Body>\n"
+  append data "</soapenv:Envelope>\n"
+  #puts $data
+  
+  set url "https://ws-proxy01.rad.com:8445/Pages96WS/services/MacWS"
+  set cmd {::http::geturl $url -headers $headers -query $data}
+  if [catch {eval $cmd} tok] {
+    after 2000
+    if [catch {eval $cmd} tok] {
+      puts "tok:<$tok>"
+      return -1
+    }
+  }
+  
+  set st [::http::status $tok]
+  set nc [::http::ncode $tok]
+  set body  [::http::data $tok]
+  if $::debugWS {puts "tok:<$tok> st:<$st> nc:<$nc> body:<$body>"}
+  #upvar #0 $tok state
+  ::http::cleanup $tok
+  
+  if $::debugWS {set ::b $body}
+  regsub -all {[<>]} $body " " b1
+  return [regexp {Server ~~~  = WS-MAC-Pages} $b1]
 }
 
 
