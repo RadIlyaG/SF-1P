@@ -5642,7 +5642,7 @@ proc PowerProtection {} {
   } elseif {$gaSet(dutFam.ps)=="12V"} {
     set volt 36
   } elseif {$gaSet(dutFam.ps)=="D72V"} {
-    set volt 75
+    set volt 74; # 09:52 31/07/202475
   }
   
   set ret [IT6900_on_off script off "1 2"]
