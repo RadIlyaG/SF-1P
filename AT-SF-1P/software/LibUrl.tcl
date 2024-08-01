@@ -6,7 +6,7 @@ package require json
 
 set ::debugWS 1
 
-console show
+# console show
 proc UpdateDB {barcode uutName hostDescription  date time status  failTestsList failDescription dealtByServer} {
   #***************************************************************************
   #** UpdateDB

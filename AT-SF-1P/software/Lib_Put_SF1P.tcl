@@ -5638,39 +5638,52 @@ proc PowerProtection {} {
   puts "\n[MyTime] PowerProtection"; update
   set com $gaSet(comDut)
   if {$gaSet(dutFam.ps)=="WDC"} {
-    set volt 72
+    set volts [list 70 72 73]
   } elseif {$gaSet(dutFam.ps)=="12V"} {
-    set volt 36
+    set volts [list 34 36 37]
   } elseif {$gaSet(dutFam.ps)=="D72V"} {
-    set volt 74; # 09:52 31/07/202475
+    set volts [list 72.5 73.5 75.0]; # 09:52 31/07/202475
   }
-  
-  set ret [IT6900_on_off script off "1 2"]
-  if {$ret!="-1"} {
-    set ret [IT6900_set script $volt 1]
-  }  
-  if {$ret!="-1"} {
-    after 4000
-    set ret [IT6900_on_off script on 1]
-  }  
-  
-  if {$ret!="-1"} {
-    after 2000
-    set ret [IT9600_current 0]
-    puts "IT9600_current ret: $ret"
-    #Send $com \r "stam" 5
-    #set buffLen [string length $buffer]
-    #puts "Buffer length: $buffLen"
-    #if {$buffLen>0} {}
-    if {$ret==0} {
-      #set gaSet(fail) "UUT is responsing when $volt VDC supplied"
-      set gaSet(fail) "UUT's Supply's current isn't 0"
-      set ret -1
-    } else {
-      set ret 0
-      set gaSet(fail)  ""
-      AddToPairLog $gaSet(pair) "Voltage Protection ${volt}VDC PASS"
-    }
+    
+  foreach currShBe {notZero zero zero} volt $volts {
+    set ret [IT6900_on_off script off "1 2"]
+    if {$ret!="-1"} {
+      ##set ret [IT6900_set script 30 2]
+      set ret [IT6900_set script $volt 1]
+    }  
+    if {$ret!="-1"} {
+      after 4000
+      ##set ret [IT6900_on_off script on 2]
+      set ret [IT6900_on_off script on 1]
+    }  
+    
+    if {$ret!="-1"} {
+      after 2000
+      set ret [IT9600_current 0]
+      puts "IT9600_current ret: $ret currShBe:<$currShBe>"
+      if {$currShBe=="notZero"} {
+        if {$ret==0} {
+          set gaSet(fail) ""
+          AddToPairLog $gaSet(pair) "Turn OFF Voltage Protection ${volt}VDC, PASS"
+          set ret 0
+        } else {
+          set ret -1
+          set gaSet(fail)  "UUT's Supply's current is 0"
+          AddToPairLog $gaSet(pair) "Turn OFF Voltage Protection ${volt}VDC, FAIL"
+          break
+        }
+      } elseif {$currShBe=="zero"} {
+        if {$ret==0} {
+          set gaSet(fail) "UUT's Supply's current isn't 0"
+          set ret -1
+          AddToPairLog $gaSet(pair) "Turn ON Voltage Protection ${volt}VDC, FAIL"
+        } else {
+          set ret 0
+          set gaSet(fail)  ""
+          AddToPairLog $gaSet(pair) "Turn ON Voltage Protection ${volt}VDC, PASS"
+        }
+      }
+    } 
   }  
   return $ret
 }

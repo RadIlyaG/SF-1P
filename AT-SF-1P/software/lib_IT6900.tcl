@@ -218,5 +218,6 @@ proc IT9600_current {{set_normal 1}} {
   } else {
     set ret 0
   }
+  puts "ret:${ret}. ret==-1 if in both PSs current< 0.05, otherwise ret==0"
   return $ret
 }
