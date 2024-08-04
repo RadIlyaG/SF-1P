@@ -687,9 +687,9 @@ proc Ping_Pages {}  {
 #  Get_TraceId DA200047522
 #  Returns list of two values - result and resultText
 #   result may be -1 if WS fails,
-#                  0 if there is DBR Assembly Name (located at resultText)
-#   Get_TraceId EA1004489579 will return
-#       0 RIC-LC/8E1/UTP/ACDC
+#                  0 if there is TraceabilityID (located at resultText)
+#   Get_TraceId DA200047522 will return
+#       0 21146247C
 # ***************************************************************************
 proc Get_TraceId {id} {
   puts "\nGet_TraceId $id"
