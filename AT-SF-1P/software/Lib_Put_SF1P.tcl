@@ -1101,7 +1101,7 @@ proc IDPerf {mode} {
   
   if {$gaSet(manualMrktName)=="0"} {
     # set ret [RetriveIdTraceData $gaSet(1.barcode1) MKTItem4Barcode]
-    foreach {ret resTxt} [Get_MrktName  $gaSet(1.barcode1)] {}
+    foreach {ret resTxt} [::RLWS::Get_MrktName  $gaSet(1.barcode1)] {}
     if {$ret=="0"} {
       # set market_name [dict get $ret "MKT Item"]
       set market_name $resTxt
@@ -5591,7 +5591,7 @@ proc TpmCheck {} {
   
   if {$gaSet(manualCSL)=="0"} {
     # set ret [RetriveIdTraceData  $gaSet(1.barcode1) CSLByBarcode]
-    foreach {ret resTxt} [Get_CSL $gaSet(1.barcode1)] {}
+    foreach {ret resTxt} [::RLWS::Get_CSL $gaSet(1.barcode1)] {}
   } else {
     # set ret [dict set di CSL $gaSet(manualCSL)]
     set resTxt $gaSet(manualCSL)

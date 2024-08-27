@@ -1,0 +1,56 @@
+#!/bin/bash
+
+BOOT_ARGS=$(cat /proc/cmdline)
+NFS_TYPE='pure_nfs'
+if [[ "$BOOT_ARGS" == *"$NFS_TYPE"* ]]; then
+  exit 0
+fi
+
+SW_BANK="/dev/mmcblk0p3"
+ROOTFS="/dev/mmcblk0p5"
+
+mount "$SW_BANK" /media > /dev/null
+
+if [ -f '/media/sw/sw_pack/sw-pack_version.txt' ]; then
+        version=$(sed '1q;d' /media/sw/sw_pack/sw-pack_version.txt);
+        version_name=$(sed '2q;d' /media/sw/sw_pack/sw-pack_version.txt);
+else
+        echo "no sw_pack_verion.txt indicator"
+        echo "5" > /media/sw/sw_pack/bootIndex.txt;
+        reboot -f;
+fi;
+
+echo "Performing upgrade to software pack ${version_name}"
+mount "$ROOTFS" /mnt > /dev/null
+echo "Cleaning rootfs"
+rm -rf /mnt/*;
+
+echo "Extracting software..."
+tar --xattrs-include=security.capability --selinux -xzf /media/sw/sw_pack/${version} -C /mnt -m;
+sync;
+
+nfs_pt_flag="/media/nfs_pt1"
+vcpe_ver=$(cat /media/sw/sw_info)
+if [[ "$vcpe_ver" == *"6."* && -e "$nfs_pt_flag" ]]; then
+        fstab_ver=/mnt/etc/fstab_6.0_8g
+        if [ -e /media/flash_32 ]; then
+                fstab_ver=/mnt/etc/fstab_6.0_32g
+        fi
+else
+        fstab_ver=/mnt/etc/fstab_5.2
+fi
+if [ -f $fstab_ver ]; then
+        rm -f /mnt/etc/fstab;
+        mv $fstab_ver /mnt/etc/fstab;
+fi
+sync;
+
+umount /mnt;
+
+echo "Done extracting"
+echo "5" > /media/sw/sw_pack/bootIndex.txt;
+sync;
+umount /media
+
+echo "Software upgrade complete rebooting..."
+reboot -f;

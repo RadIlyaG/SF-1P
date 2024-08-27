@@ -1,0 +1,40 @@
+<!DOCTYPE html []>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="author" content="MarkdownViewer++" />
+    <title>SW.md</title>
+    <style type="text/css">
+            
+/* Avoid page breaks inside the most common attributes, especially for exports (i.e. PDF) */
+td, h1, h2, h3, h4, h5, p, ul, ol, li {
+    page-break-inside: avoid; 
+}
+
+        </style>
+  </head>
+  <body>
+    <h1 id="software-description">Software description</h1>
+    <h2 id="installs">Installs</h2>
+    <ul>
+      <li>Windows 10/11</li>
+      <li>TeraTerminal</li>
+      <li>The Tester local Net’s Interface should have IPv4 169.254.1.10, and it’s name should be “SSH net”</li>
+      <li>TesterWin10_2.6_miniPC (TclTk8.6,  RLSerial, RLCom, RLUsbPio, RLUsbMmux, RLTime, RLStatus, RLSound, Plink)</li>
+      <li>Java 1.8.0_191, RAD Oracle Local Client</li>
+      <li>Python 3.9<br /><img src="./Python_Path.png" alt="Python Enviroment Settings" /></li>
+    </ul>
+    <h2 id="at-software-package">AT software package</h2>
+    <p>C:\AT-SF1P\software</p>
+    <h2 id="operation-files">Operation files</h2>
+    <ul>
+      <li>1-Tester.tcl</li>
+      <li>2-Tester.tcl</li>
+    </ul>
+    <h2 id="description">Description</h2>
+    <p>The Tester performs tests of the SF-1P.<br />
+The 6 EthPorts (SFP Port and the UTP Ports) are checking by 2 EtxGeneraors.<br />
+The HW definitions – COM and PIO ports – are defined in HWinit.tcl file, which located at folder C:\ AT-SF1P\software [PC name]. The <code>[PC name]</code> is defined by <code>[info host]</code>.<br />
+Programmable Power Supply IT6933A used to perform Voltage Test. Its drive (ni-visa_24.0_online.exe) is located at <a href="files://prod-svm1/Tds/Install/ATEinstall/IT6900_driver">TDS</a>.</p>
+  </body>
+</html>

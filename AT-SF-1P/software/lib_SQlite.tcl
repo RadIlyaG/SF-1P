@@ -86,7 +86,7 @@ proc SQliteAddLine {} {
 
   for {set tr 1} {$tr <= 6} {incr tr} {
     #if [catch {UpdateDB $barcode $uut $hostDescription $date $tim-$gaSet(ButRunTime) $status $failTestsList $failReason $operator} res] {}
-    if [catch {UpdateDB2 $barcode $uut $hostDescription $date $tim-$gaSet(ButRunTime) $status $failTestsList $failReason $operator $traceID $poNumber "" "" ""} res] {
+    if [catch {::RLWS::UpdateDB2 $barcode $uut $hostDescription $date $tim-$gaSet(ButRunTime) $status $failTestsList $failReason $operator $traceID $poNumber "" "" ""} res] {
       set res "Try${tr}_fail.$res"
       puts "[MyTime] Web DataBase is not updated. Try:<$tr>. Res:<$res>" ; update
       after [expr {int(rand()*3000+60)}] 
@@ -152,7 +152,7 @@ proc AddLine {} {
   set operator "ILYA GINZBURG"
   
   for {set tr 1} {$tr <= 6} {incr tr} {
-    if [catch {UpdateDB $barcode $uut $hostDescription $date $tim $status $failTestsList $failReason $operator} res] {
+    if [catch {::RLWS::UpdateDB $barcode $uut $hostDescription $date $tim $status $failTestsList $failReason $operator} res] {
       set res "Try${tr}_fail.$res"
       puts "[MyTime] Web DataBase is not updated. Try:<$tr>. Res:<$res>" ; update
       after [expr {int(rand()*3000+60)}] 
@@ -248,7 +248,7 @@ proc ImeiSQliteAddLine {} {
   }
   
   #set ret [RetriveIdTraceData $Barcode MKTItem4Barcode]
-  foreach {ret resTxt} [Get_MrktName  $gaSet(1.barcode1)] {}
+  foreach {ret resTxt} [::RLWS::Get_MrktName  $gaSet(1.barcode1)] {}
   puts "ImeiSQliteAddLine ret:<$ret> resTxt:<$resTxt>"
   if {$ret=="-1"} {
     return -1

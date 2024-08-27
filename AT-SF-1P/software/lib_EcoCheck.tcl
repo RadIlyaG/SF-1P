@@ -16,7 +16,7 @@ proc MainEcoCheck {barcode} {
   if {$ret!=0} {return $ret}
   
   # set res [Retrive_OperationItem4Barcode $barcode]
-  foreach {res_val res_txt} [Get_OI4Barcode  $barcode] {}
+  foreach {res_val res_txt} [::RLWS::Get_OI4Barcode  $barcode] {}
   puts "MainEcoCheck OperationItem4Barcode res_val:<$res_val> res_txt:<$res_txt>"
   if {$res_val=="-1"} {
     return $res_txt
@@ -24,7 +24,7 @@ proc MainEcoCheck {barcode} {
     set dbr_asmbl $res_txt
   }
   # set res [Retrive_MktPdn $dbr_asmbl]
-  foreach {res_val res_txt} [Get_MrktNumber $dbr_asmbl] {}
+  foreach {res_val res_txt} [::RLWS::Get_MrktNumber $dbr_asmbl] {}
   puts "MainEcoCheck MktPdn res_val:<$res_val> res_txt:<$res_txt>"
   if {$res_val=="-1"} {
     return $res_txt

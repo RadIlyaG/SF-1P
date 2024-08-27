@@ -699,7 +699,7 @@ proc GetDbrName {} {
   set gaSet(1.useTraceId) 0
   set gaSet(1.barcode1) $barcode
   #  set ret [RetriveIdTraceData $gaSet(1.barcode1) OperationItem4Barcode]
-  foreach {ret resTxt} [Get_OI4Barcode  $gaSet(1.barcode1)] {}
+  foreach {ret resTxt} [::RLWS::Get_OI4Barcode  $gaSet(1.barcode1)] {}
   if {$ret=="0"} {
     #  set dbrName [dict get $ret "item"]
     set dbrName $resTxt
@@ -935,7 +935,7 @@ proc RetriveDutFam {{dutInitName ""}} {
   
   set gaSet(dutFam.cell) 0
   ## 15:56 25/12/2023 foreach cell [list HSP L1 L2 L3 L4 L450A L450B 5G L4P] {}
-  foreach cell [list HSP L1 L2 L3 L4 L450A 5G] {
+  foreach cell [list HSP L1 L2 L3 L4 L450A 5G LTA] {
     set qty [llength [lsearch -all [split $dutInitName .] $cell]]
     if $qty {
       set gaSet(dutFam.cell) $qty$cell
@@ -982,7 +982,7 @@ proc RetriveDutFam {{dutInitName ""}} {
   set idx [lsearch $fieldsL $gaSet(dutFam.rg)]
   set fieldsL [lreplace $fieldsL $idx $idx]
   
-  set qty [regexp -all {\.(LR[1-6AB])\.} $dutInitName ma lora]
+  set qty [regexp -all {\.(LR[1-9AB])\.} $dutInitName ma lora]
   if $qty {
     set gaSet(dutFam.lora) $lora
     switch -exact -- $lora {
@@ -993,6 +993,7 @@ proc RetriveDutFam {{dutInitName ""}} {
       LR6 {set gaSet(dutFam.lora.region) as923; set gaSet(dutFam.lora.fam) 9XX; set gaSet(dutFam.lora.band) "AS 923-925"}
       LRA {set gaSet(dutFam.lora.region) us915; set gaSet(dutFam.lora.fam) 9XX; set gaSet(dutFam.lora.band) "US 902-928 Sub-band 2"}
       LRB {set gaSet(dutFam.lora.region) eu868; set gaSet(dutFam.lora.fam) 8XX; set gaSet(dutFam.lora.band) "EU 863-870"}
+      LR9 {set gaSet(dutFam.lora.region) us915; set gaSet(dutFam.lora.fam) 9XX; set gaSet(dutFam.lora.band) "US 915-928 Sub-band 2"}
     }
     ## 15:57 25/12/2023  LRC {set gaSet(dutFam.lora.region) eu433; set gaSet(dutFam.lora.fam) 4XX; set gaSet(dutFam.lora.band) "EU 433"}
   } else {
@@ -1440,7 +1441,7 @@ proc GetMac {qty} {
     #   return -1
     # }
     # set mac [lindex $buffer 0]  ; # 1806F5F4763B
-    foreach {ret resTxt} [Get_Mac $qty] {}
+    foreach {ret resTxt} [::RLWS::Get_Mac $qty] {}
     if {$ret!=0} {
       set gaSet(fail) $resTxt
       return -1
@@ -1474,7 +1475,7 @@ proc GetDbrSW {barcode} {
   set gaSet(manualMrktName) 0
   set gaSet(manualCSL) 0
   # catch {exec $gaSet(javaLocation)\\java -jar $::RadAppsPath/SWVersions4IDnumber.jar $barcode} b
-  foreach {res b} [Get_SwVersions $barcode] {}
+  foreach {res b} [::RLWS::Get_SwVersions $barcode] {}
   after 1000
   
   puts "GetDbrSW barcode:<$barcode> b:<$b>" ; update

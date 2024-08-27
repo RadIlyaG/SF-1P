@@ -415,7 +415,7 @@ proc IdMacLinkNoLink {barcode} {
   global gaSet
   puts "\nIdMacLinkNoLink $barcode"
   
-  foreach {res resTxt} [CheckMac $barcode AABBCCFFEEDD] {}
+  foreach {res resTxt} [::RLWS::CheckMac $barcode AABBCCFFEEDD] {}
   if {$res<0} {
     set ret "error"
     set gaSet(fail) $resTxt

@@ -822,7 +822,7 @@ proc ButRun {} {
     puts "\nButRun IdBarcode:<$IdBarcode> traceId:<$traceId>"
     if {$gaSet(manualCSL)=="0"} {
       #  set ret [RetriveIdTraceData  $IdBarcode CSLByBarcode]
-      foreach {ret resTxt} [Get_CSL $IdBarcode] {}
+      foreach {ret resTxt} [::RLWS::Get_CSL $IdBarcode] {}
     } else {
       set ret 0
       set resTxt $gaSet(manualCSL)

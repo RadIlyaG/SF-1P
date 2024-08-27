@@ -141,6 +141,7 @@ package require ftp
 package require http
 package require tls
 package require base64
+package require twapi
 ::http::register https 8445 ::tls::socket
 ::http::register https 8443 ::tls::socket
 package require json
