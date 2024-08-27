@@ -1824,7 +1824,7 @@ proc LoadModem {mdm} {
 # LoadModemFiles
 # ***************************************************************************
 proc LoadModemFiles {} {
-  foreach mdm [list HSP L1 L2 L3 L4 L450A L450B 5G L4P] {
+  foreach mdm [list HSP L1 L2 L3 L4 L450A L450B 5G L4P LTA] {
     set ret [LoadModem $mdm]
     if {$ret!=0} {return $ret}
   } 

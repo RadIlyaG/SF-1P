@@ -1622,6 +1622,7 @@ proc GpsPerf {} {
         }
       } else {
         set ret -1
+        puts "Tracking Status not readable"
       }  
     }
       
@@ -4160,9 +4161,9 @@ proc CellularModemPerf_RadOS_Sim12 {actSim disSim} {
     
     set gaSet(fail) "Read Firmware fail"
     set val ""
-    set res [regexp {Firmware : Revision:\s+([\w\._/]+)} $buffer ma val]  
+    set res [regexp {Firmware : Revision:\s+([\w\._/\s]+)\sMode} $buffer ma val]  
     if {$res==0} {
-      set res [set res [regexp {Firmware :\s+([\w\._/]+)} $buffer ma val]]  
+      set res [set res [regexp {Firmware :\s+([\w\._/\s]+)\sMode} $buffer ma val]]  
       if {$res==0} {return -1}  
     }  
     puts "Firmware ma:<$ma> val:<$val>"; update  
@@ -4466,7 +4467,7 @@ proc CellularModemPerf_RadOS_Sim12_Dual {actLte} {
     set val ""
     set res [regexp {Firmware : Revision:\s+(\w+)} $buffer ma val]  
     if {$res==0} {
-      set res [set res [regexp {Firmware :\s+([\w\._/]+)} $buffer ma val]]  
+      set res [set res [regexp {Firmware :\s+([\w\._/\s]+)\sMode} $buffer ma val]]  
       if {$res==0} {return -1}  
     }  
     puts "Firmware ma:<$ma> val:<$val>"; update  
@@ -4909,6 +4910,9 @@ proc LoraModuleConf {} {
   if {$ret!=0} {return $ret}
   set gw "1806f5fffeb80" ; # 1806f5fffeb80a11
   set loraType [string tolower [string index $gaSet(dutFam.lora) end]]
+  if {$loraType==9} {
+    set loraType a
+  }
   append gw $loraType
   set pcNumb [lindex [split [info host] -] end-1]; # at-sf1p-1-10 -> 1
   append gw $pcNumb
