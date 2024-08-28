@@ -5642,9 +5642,9 @@ proc PowerProtection {} {
   puts "\n[MyTime] PowerProtection"; update
   set com $gaSet(comDut)
   if {$gaSet(dutFam.ps)=="WDC"} {
-    set volts [list 70 72 73]
+    set volts [list 67 72 73]
   } elseif {$gaSet(dutFam.ps)=="12V"} {
-    set volts [list 34 36 37]
+    set volts [list 31 36 37]
   } elseif {$gaSet(dutFam.ps)=="D72V"} {
     set volts [list 72.5 73.5 75.0]; # 09:52 31/07/202475
   }
