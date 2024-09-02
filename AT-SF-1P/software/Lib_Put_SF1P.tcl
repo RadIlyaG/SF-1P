@@ -4675,7 +4675,7 @@ proc BootLedsPerf {} {
   # all ON
   catch {Send $com "mii write 2 1 0x80ff\r" "PCPE"}
   catch {Send $com "mii write 2 0 0x96b6\r" "PCPE"}  
-  if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC"} {
+  if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC" || $gaSet(dutFam.sf)=="ETX-1P_A"} {
     # WAN2 led
     catch {Send $com "mii write 2 0 0x9676\r" "PCPE"}  
   } 
@@ -4700,7 +4700,7 @@ proc BootLedsPerf {} {
   # all OFF
   catch {Send $com "mii write 2 1 0x80ee\r" "PCPE"}
   catch {Send $com "mii write 2 0 0x96b6\r" "PCPE"}
-  if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC"} {
+  if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC" || $gaSet(dutFam.sf)=="ETX-1P_A"} {
     # WAN2 led
     catch {Send $com "mii write 2 0 0x9676\r" "PCPE"}  
   }

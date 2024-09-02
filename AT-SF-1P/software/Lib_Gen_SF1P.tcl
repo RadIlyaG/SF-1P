@@ -862,10 +862,12 @@ proc RetriveDutFam {{dutInitName ""}} {
   set idx [lsearch $fieldsL $gaSet(dutFam.sf)]
   set fieldsL [lreplace $fieldsL $idx $idx]
   
-  if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC"} {
+  if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC" || $gaSet(dutFam.sf)=="ETX-1P_A"} {
     set gaSet(dutFam.box) "ETX-1P"
     if ![regexp {1P\.([A-Z0-9]+)\.} $dutInitName ma gaSet(dutFam.ps)] {
-      regexp {1P_SFC\.([A-Z0-9]+)\.} $dutInitName ma gaSet(dutFam.ps)
+      if ![regexp {1P_SFC\.([A-Z0-9]+)\.} $dutInitName ma gaSet(dutFam.ps)] {
+        regexp {1P_A\.([A-Z0-9]+)\.} $dutInitName ma gaSet(dutFam.ps)
+      }
     }
   } else {
     regexp {P[_A-Z]*\.(E\d)\.} $dutInitName ma gaSet(dutFam.box)  
@@ -879,7 +881,7 @@ proc RetriveDutFam {{dutInitName ""}} {
   }
   #set fieldsL [concat $fieldsL "D72V" "FDC"]
 
-  if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC"} {
+  if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC" || $gaSet(dutFam.sf)=="ETX-1P_A"} {
     set gaSet(dutFam.wanPorts)  "1SFP1UTP"
     set gaSet(dutFam.lanPorts)  "4UTP"
   } else {

@@ -21,7 +21,7 @@ proc BuildTests {} {
   set lTestsAllTests [list]
   set lTestNames [list]
   
-  if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC"} {
+  if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC" || $gaSet(dutFam.sf)=="ETX-1P_A"} {
     lappend lTestNames FDbutton_on_start
   }
 
@@ -32,7 +32,7 @@ proc BuildTests {} {
   }
    
   if $gaSet(showBoot) {
-    if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC"} {
+    if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC" || $gaSet(dutFam.sf)=="ETX-1P_A"} {
       ## no CD card Contact
     } else {  
       lappend lTestNames MicroSD  
@@ -40,12 +40,12 @@ proc BuildTests {} {
     lappend lTestNames SOC_Flash_Memory SOC_i2C 
   }
   
-  if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC"} {
+  if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC" || $gaSet(dutFam.sf)=="ETX-1P_A"} {
     ## 15:52 18/10/2023 lappend lTestNames BrdEeprom
   }
   ## no BrdEeprom in SFP
   
-  if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC"} {
+  if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC" || $gaSet(dutFam.sf)=="ETX-1P_A"} {
     ## no DRY Contact
   } else {  
     if {$gaSet(dutFam.dryCon)=="FULL"} {
@@ -149,7 +149,7 @@ proc BuildTests {} {
   if $gaSet(showBoot) {
     lappend lTestNames FrontPanelLeds 
   } else {
-    if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC"} {
+    if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC" || $gaSet(dutFam.sf)=="ETX-1P_A"} {
       ## we did it at start
     } else {
       lappend lTestNames FDbutton
