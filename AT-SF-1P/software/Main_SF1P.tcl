@@ -24,11 +24,22 @@ proc BuildTests {} {
   if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC" || $gaSet(dutFam.sf)=="ETX-1P_A"} {
     lappend lTestNames FDbutton_on_start
   }
-
-  if {$gaSet(it6900.1) == "" && $gaSet(it6900.2) == ""} {
+ 
+  if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC" || $gaSet(dutFam.sf)=="ETX-1P_A"} {
     lappend lTestNames PowerOffOn
   } else {
-    lappend lTestNames Voltage
+    if {$gaSet(it6900.1) == "" && $gaSet(it6900.2) == ""} {
+      #11:08 22/09/2024
+      #lappend lTestNames PowerOffOn
+      set glTests [list] 
+      set gaSet(startFrom) ""
+      $gaGui(startFrom) configure -values $glTests
+      set gaSet(fail) "No Programmable Power Supply connected"
+      Status $gaSet(fail) red
+      return -2
+    } else {
+      lappend lTestNames Voltage
+    }
   }
    
   if $gaSet(showBoot) {
@@ -173,6 +184,7 @@ proc BuildTests {} {
   set gaSet(startFrom) [lindex $glTests 0]
   $gaGui(startFrom) configure -values $glTests -height [llength $glTests]
   
+  return 0
 }
 
 

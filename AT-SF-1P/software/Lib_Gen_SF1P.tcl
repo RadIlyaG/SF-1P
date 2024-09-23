@@ -774,12 +774,14 @@ proc GetDbrName {} {
   AddToPairLog $gaSet(pair) "$gaSet(DutFullName)"
   AddToPairLog $gaSet(pair) "UUT - $barcode"
   
-  BuildTests
-  set ret [IT9600_normalVoltage 1 1]
-  if {$ret!="-1"} {
-    set ret 0
+  set ret [BuildTests]
+  if {$ret==0} {
+    set ret [IT9600_normalVoltage 1 1]
+    if {$ret!="-1"} {
+      set ret 0
+    }
+    puts "\nGetDbrName ret after IT9600_normalVoltage:<$ret>"
   }
-  puts "\nGetDbrName ret after IT9600_normalVoltage:<$ret>"
   
   focus -force $gaGui(tbrun)
   if {$ret==0} {
