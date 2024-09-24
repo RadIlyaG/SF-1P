@@ -79,10 +79,10 @@ proc SQliteAddLine {} {
   if [info exists gaSet(1.traceId)] {
     set traceID $gaSet(1.traceId) 
   } else {
-    set traceID 0
+    set traceID ""
   }
   
-  set poNumber 0
+  set poNumber ""
 
   for {set tr 1} {$tr <= 6} {incr tr} {
     #if [catch {UpdateDB $barcode $uut $hostDescription $date $tim-$gaSet(ButRunTime) $status $failTestsList $failReason $operator} res] {}

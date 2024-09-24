@@ -106,7 +106,7 @@ Please confirm you know products should not be released to the customer with thi
       }      
       {separator}    
       {radiobutton "Don't use exist Barcodes" init {} {} -command {} -variable gaSet(useExistBarcode) -value 0}
-      {radiobutton "Use exist Barcodes" init {} {} -command {GetDbrName} -variable gaSet(useExistBarcode) -value 1}      
+      {radiobutton "Use exist Barcodes" init {} {} -command {} -variable gaSet(useExistBarcode) -value 1}      
       {separator}
       {radiobutton "One test ON"  init {} {} -value 1 -variable gaSet(oneTest)}
       {radiobutton "One test OFF" init {} {} -value 0 -variable gaSet(oneTest)}
@@ -148,6 +148,8 @@ Please confirm you know products should not be released to the customer with thi
   # {separator}
       # {radiobutton "J21 1-2 (Show Boot)"  init {} {} -value 1 -variable gaSet(showBoot) -command ToggleShowBoot}
       # {radiobutton "J21 2-3 (Hide Boot)"  init {} {} -value 0 -variable gaSet(showBoot) -command ToggleShowBoot}
+      
+  # {radiobutton "Use exist Barcodes" init {} {} -command {GetDbrName} -variable gaSet(useExistBarcode) -value 1}
       
 
   set mainframe [MainFrame .mainframe -menu $descmenu]
@@ -286,7 +288,7 @@ Please confirm you know products should not be released to the customer with thi
   bind . <Alt-i> {GuiInventory}
   bind . <Alt-r> {ButRun}
   bind . <Alt-s> {ButStop}
-  bind . <Alt-b> {set gaSet(useExistBarcode) 1; GetDbrName}
+  bind . <Alt-b> {set gaSet(useExistBarcode) 1} ; #; GetDbrName
   bind . <Control-p> {ToolsPower on}
   bind . <Alt-o> {set gaSet(oneTest) 1}
   
@@ -737,7 +739,7 @@ proc ButRun {} {
   if {$ret!=0} {
     set ret -3
   } elseif {$ret==0} {
-    set ret 0 ; # in GetDbrName [ReadBarcode]
+    set ret [ReadBarcode] ; #0 ; # in GetDbrName [ReadBarcode]
     parray gaSet *arco*
     parray gaSet *rato*
 #   if {$ret=="-1"} {
@@ -767,7 +769,7 @@ proc ButRun {} {
       RLSound::Play information
       set txt "Be aware!\r\rYou are about to perform tests in Debug mode.\r\r\
       If you are not sure, in the GUI's \'Tools\'->\'Release / Debug mode\' choose \"Release Mode\""
-      set res [DialogBoxRamzor -icon images/info -type "Continue Abort" -text $txt -default 1 -aspect 2000 -title "Release / Debug mode"]
+      set res [DialogBoxRamzor -icon images/info -type "Continue Abort" -text $txt -default 0 -aspect 2000 -title "Release / Debug mode"]
       if {$res=="Abort"} {
         set ret -1
         set gaSet(fail) "Debug mode abort"
@@ -984,7 +986,7 @@ proc ButRun {} {
   if $gaSet(demo) {
     wm title . "DEMO!!! $gaSet(pair)"
   } else {
-    wm title . "$gaSet(pair) : "
+    # 16:13 23/09/2024 wm title . "$gaSet(pair) : "
   }
   
   # if {$gaSet(eraseTitle)==1} {

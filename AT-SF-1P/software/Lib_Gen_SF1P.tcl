@@ -698,7 +698,6 @@ proc GetDbrName {} {
   set gaSet(1.traceId) ""
   set gaSet(1.useTraceId) 0
   set gaSet(1.barcode1) $barcode
-  #  set ret [RetriveIdTraceData $gaSet(1.barcode1) OperationItem4Barcode]
   foreach {ret resTxt} [::RLWS::Get_OI4Barcode  $gaSet(1.barcode1)] {}
   if {$ret=="0"} {
     #  set dbrName [dict get $ret "item"]
@@ -724,7 +723,7 @@ proc GetDbrName {} {
   set gaSet(DutFullName) $dbrName
   set gaSet(DutInitName) $initName.tcl
   
-  file delete -force MarkNam_$barcode.txt
+  #file delete -force MarkNam_$barcode.txt
   #file mkdir [regsub -all / $res .]
   
   if {[file exists uutInits/$gaSet(DutInitName)]} {
