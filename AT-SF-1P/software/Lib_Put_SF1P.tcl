@@ -4164,7 +4164,10 @@ proc CellularModemPerf_RadOS_Sim12 {actSim disSim} {
     set res [regexp {Firmware : Revision:\s+([\w\._/\s]+)\sMode} $buffer ma val]  
     if {$res==0} {
       set res [set res [regexp {Firmware :\s+([\w\._/\s]+)\sMode} $buffer ma val]]  
-      if {$res==0} {return -1}  
+      if {$res==0} {
+        set res [regexp {Firmware : Revision:\s+([\w\._/]+)\s} $buffer ma val]  
+        if {$res==0} {return -1}  
+      }  
     }  
     puts "Firmware ma:<$ma> val:<$val>"; update  
     AddToPairLog $gaSet(pair) "Firmware of SIM-${actSim}: $val"  
@@ -4468,7 +4471,10 @@ proc CellularModemPerf_RadOS_Sim12_Dual {actLte} {
     set res [regexp {Firmware : Revision:\s+(\w+)} $buffer ma val]  
     if {$res==0} {
       set res [set res [regexp {Firmware :\s+([\w\._/\s]+)\sMode} $buffer ma val]]  
-      if {$res==0} {return -1}  
+      if {$res==0} {
+        set res [regexp {Firmware : Revision:\s+([\w\._/]+)\s} $buffer ma val]  
+        if {$res==0} {return -1}  
+      }  
     }  
     puts "Firmware ma:<$ma> val:<$val>"; update  
     AddToPairLog $gaSet(pair) "Firmware of LTE-$actLte: $val"  
