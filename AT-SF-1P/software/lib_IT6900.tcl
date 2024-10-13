@@ -40,7 +40,7 @@ proc Retrive_normalVoltage {} {
     set volt 24
   } elseif {$gaSet(dutFam.ps)=="DC"} {
     set volt 24
-  } elseif {$gaSet(dutFam.ps)=="D72V"} {
+  } elseif {$gaSet(dutFam.ps)=="D72V" || $gaSet(dutFam.ps)=="D60V"} {
     set volt 48
   } elseif {$gaSet(dutFam.ps)=="FDC"} {
     set volt 48
@@ -201,6 +201,11 @@ proc IT9600_current {{set_normal 1}} {
   foreach ps {1 2} {
     puts "Measure Current on PS-$ps"
     set addr $gaSet(it6900.$ps)
+    puts "PS:<$ps>, addr:<$addr>"
+    if {$ps==2 && $addr==""} {
+      set ret2 -1
+      break
+    }
     set curr [exec python.exe lib_IT6900.py $addr query meas:curr?]
     puts "PS-$ps curr_ret:<$curr>"
     set curr$ps [lindex [split $curr \n] end]

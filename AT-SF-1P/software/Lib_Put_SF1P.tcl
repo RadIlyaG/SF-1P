@@ -4519,7 +4519,7 @@ proc CellularModemPerf_RadOS_Sim12_Dual {actLte} {
     set ret [Login2Linux]
     if {$ret!=0} {return $ret}
     set w 5; Wait "Wait $w seconds for Network" $w
-    foreach wwan {wwan0 wwan1} {
+    foreach wwan {wwan0_1 wwan1_1} {
       for {set i 1} {$i<=5} {incr i} {
         puts "Ping $i"  
         set gaSet(fail) "Send ping to 8.8.8.8 from $wwan fail"     
@@ -4912,6 +4912,8 @@ proc LoraModuleConf {} {
   if {$ret!=0} {return $ret}
   set ret [Send $com "shutdown\r" "lora-gateway" 20]
   if {$ret!=0} {return $ret}
+  set ret [Send $com "operation-mode udp-forward\r" "lora-gateway"]
+  if {$ret!=0} {return $ret}
   set ret [Send $com "server ip-address $gaSet(ChirpStackIP.$gaSet(dutFam.lora.fam)) port 1700\r" "lora-gateway"]
   if {$ret!=0} {return $ret}
   set gw "1806f5fffeb80" ; # 1806f5fffeb80a11
@@ -4927,6 +4929,10 @@ proc LoraModuleConf {} {
   set gaSet(ChirpStackIPGW) $gw
   set ret [Send $com "gateway-id string $gw\r" "lora-gateway"]; #gaSet(ChirpStackIPGW)
   if {$ret!=0} {return $ret}
+  if [string match {*command not recognized*} $buffer] {
+    set gaSet(fail) "Fail to config gateway-id"
+    return -1
+  }
   # set ret [Send $com "no shutdown\r" "lora-gateway"]
   # if {$ret!=0} {return $ret}
   set ret [Send $com "exit all\r" "-1p"]
@@ -5648,10 +5654,10 @@ proc PowerProtection {} {
   puts "\n[MyTime] PowerProtection"; update
   set com $gaSet(comDut)
   if {$gaSet(dutFam.ps)=="WDC"} {
-    set volts [list 67 72 73]
+    set volts [list 67 68 69] ; # 14:01 08/10/2024  67 72 73
   } elseif {$gaSet(dutFam.ps)=="12V"} {
     set volts [list 31 36 37]
-  } elseif {$gaSet(dutFam.ps)=="D72V"} {
+  } elseif {$gaSet(dutFam.ps)=="D72V" || $gaSet(dutFam.ps)=="D60V"} {
     set volts [list 72.5 73.5 75.0]; # 09:52 31/07/202475
   }
     
@@ -5715,7 +5721,7 @@ proc VoltagePerf {} {
   } elseif {$gaSet(dutFam.ps)=="DC"} {
     set voltL [list 48 60] ; # 14:35 24/07/2024 10 48 60
     set ps_l 1
-  } elseif {$gaSet(dutFam.ps)=="D72V"} {
+  } elseif {$gaSet(dutFam.ps)=="D72V" || $gaSet(dutFam.ps)=="D60V"} {
     set voltL [list 20 48 60 72]
     set ps_l "1 2"
   } elseif {$gaSet(dutFam.ps)=="FDC"} {
@@ -5725,7 +5731,7 @@ proc VoltagePerf {} {
   
   foreach volt $voltL {
     foreach ps $ps_l {
-      if {$gaSet(dutFam.ps)=="D72V" && $ps==2 && ($volt==48 || $volt==60)} {
+      if {($gaSet(dutFam.ps)=="D72V" || $gaSet(dutFam.ps)=="D60V") && $ps==2 && ($volt==48 || $volt==60)} {
         set ret 0
         continue  
       }
@@ -5872,3 +5878,289 @@ proc PowerOffOnPerf_login {} {
   }
   return $ret
 }
+
+# ***************************************************************************
+# Dns_config
+# ***************************************************************************
+proc Dns_config {} {
+  global gaSet buffer
+  puts "\n[MyTime] Dns_config"
+  set com $gaSet(comDut)
+  
+  set ret [Login]
+  if {$ret!=0} {return $ret}
+  
+  set ret [Send $com "exit all\r" -1p]
+  if {$ret!=0} {
+    set gaSet(fail) "Can't perform 'exit all'"
+    return $ret
+  }
+  
+  set gaSet(fail) "Fail to config cellular lte"
+  set ret [Send $com "configure port cellular lte sim 1 apn-name statreal\r" "1p\#"]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "configure port cellular lte no shutdown\r" "1p\#"]
+  if {$ret!=0} {return $ret}
+  
+  set gaSet(fail) "Fail to config router 1"
+  set ret [Send $com "configure router 1 interface 1 bind cellular lte\r" "1p\#"]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "configure router 1 interface 1 dhcp\r" "1p\#"]
+  if {$ret!=0} {return $ret }
+  set ret [Send $com "configure router 1 interface 1 no shutdown\r" "1p\#"]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "configure router 1 dns-name-server 8.8.8.8\r" "1p\#"]
+  if {$ret!=0} {
+    set gaSet(fail) "Fail to config dns-name-server"
+    return $ret
+  }
+  
+  for {set i 1} {$i<=40} {incr i} {
+    set ret [Send $com "ping google.com\r" "1p\#" 20]
+    if {$ret!=0} {
+      set gaSet(fail) "Fail to ping google.com"
+      return $ret
+    }
+    if {[string match {*Reply from*} $buffer] && [string match {*bytes = 32*} $buffer]} {
+      set ret 0
+      break
+    } else {
+      after 3000 
+    }    
+  }
+  return 0
+}  
+
+# ***************************************************************************
+# DateTime_set
+# ***************************************************************************
+proc DateTime_set {} {
+  global gaSet buffer
+  puts "\n[MyTime] DateTime_set"
+  set com $gaSet(comDut)
+  set ret [Send $com "exit all\r" -1p]
+  if {$ret!=0} {
+    set gaSet(fail) "Can't perform 'exit all'"
+    return $ret
+  }
+  set ret [Send $com "configure system date-and-time\r" "date-time"]
+  if {$ret!=0} {
+    set gaSet(fail) "Can't reach date-time"
+    return $ret
+  }
+  
+  set ret [Send $com "date [clock format [clock seconds] -format %Y-%m-%d]\r" "date-time"]
+  if {$ret!=0} {
+    set gaSet(fail) "Fail to set date"
+    return $ret
+  }
+  set ret [Send $com "time [clock format [clock seconds] -format %H:%M:%S]\r" "date-time"]
+  if {$ret!=0} {
+    set gaSet(fail) "Fail to set time"
+    return $ret
+  }
+  set ret [Send $com "show summer-time\r" "date-time"]
+  if {$ret!=0} {
+    set gaSet(fail) "Fail to set time"
+    return $ret
+  }
+  set res [regexp {Current date:\s+([\w\s\:]+)\s+} $buffer ma val]
+  if {$res==0} {
+    set gaSet(fail) "Fail to read Current Date"
+    return -1
+  }
+  AddToPairLog $gaSet(pair) "$ma" 
+  return 0  
+}
+# ***************************************************************************
+# Cert_createRSA
+# ***************************************************************************
+proc Cert_createRSA {} {
+  global gaSet buffer
+  puts "\n[MyTime] Cert_createRSA"
+  set com $gaSet(comDut)
+  set ret [Send $com "exit all\r" -1p]
+  if {$ret!=0} {
+    set gaSet(fail) "Can't perform 'exit all'"
+    return $ret
+  }
+  set ret [Send $com "configure crypto key generate-rsa label DeviceKey\r" "SF-1p\#" 30]
+  if {$ret!=0} {
+    set gaSet(fail) "Fail to Generate RSA Key"
+    return $ret
+  }
+  return 0
+}
+# ***************************************************************************
+# Cert_cryptoCa
+# ***************************************************************************
+proc Cert_cryptoCa {} {
+  global gaSet buffer
+  puts "\n[MyTime] Cert_cryptoCa"
+  set com $gaSet(comDut)
+  set ret [Send $com "exit all\r" -1p]
+  if {$ret!=0} {
+    set gaSet(fail) "Can't perform 'exit all'"
+    return $ret
+  }
+  set ret [Send $com "configure crypto ca CAServerName\r" "(CAServerName)"]
+  if {$ret!=0} {
+    set gaSet(fail) "Fail to create CAServerName"
+    return $ret
+  }
+  set ret [Send $com "address url crl.device-care.net\r" "(CAServerName)"]
+  if {$ret!=0} {
+    set gaSet(fail) "Fail to add address"
+    return $ret
+  }
+  set ret [Send $com "protocol scep\r" "(CAServerName)"]
+  if {$ret!=0} {
+    set gaSet(fail) "Fail to add protocol"
+    return $ret
+  }
+  
+  return 0
+}
+# ***************************************************************************
+# Cert_AuthenticateCa
+# ***************************************************************************
+proc Cert_AuthenticateCa {} {
+  global gaSet buffer
+  puts "\n[MyTime] Cert_AuthenticateCa"
+  set com $gaSet(comDut)
+  set ret [Send $com "exit all\r" -1p]
+  if {$ret!=0} {
+    set gaSet(fail) "Can't perform 'exit all'"
+    return $ret
+  }
+  set ret [Send $com "configure crypto pki\r" "pki"]
+  if {$ret!=0} {
+    set gaSet(fail) "Fail to reach pki"
+    return $ret
+  }
+  set ret [Send $com "authenticate certificate-name CaCertificate certificate-url http://crl.device-care.net/certsrv/mscep/\r" "yes/no"]
+  if [string match {*Certificate name already exists*} $buffer] {
+    set ret [Send $com "delete-certificate certificate-name CaCertificate\r" "pki\#"]
+    if {$ret!=0} {
+      set gaSet(fail) "Fail to delete-certificate"
+      return $ret
+    }
+    set ret [Send $com "authenticate certificate-name CaCertificate certificate-url http://crl.device-care.net/certsrv/mscep/\r" "yes/no"]
+  
+  }
+  if {$ret!=0} {
+    set gaSet(fail) "Fail to get authenticate certificate"
+    return $ret
+  }
+  set buf $buffer
+  
+  set ret [Send $com "y\r" "pki#"]
+  if {$ret!=0} {
+    set gaSet(fail) "Fail to accept certificate"
+    return $ret
+  }
+  
+  set res [regexp {fingerprint:(\w+)\s} $buf ma val]
+  if {$res==0} {
+    set gaSet(fail) "Fail to get fingerprint"
+    return -1
+  }
+  AddToPairLog $gaSet(pair) "Certificate's fingerprint: $val"
+  
+  return 0
+}
+# ***************************************************************************
+# Cert_GetLoraGateway
+# ***************************************************************************
+proc Cert_GetLoraGateway {} {
+  global gaSet buffer
+  set ::loraGatewayId 0
+  puts "\n[MyTime] Cert_GetLoraGateway"
+  set com $gaSet(comDut)
+  set ret [Send $com "exit all\r" -1p]
+  if {$ret!=0} {
+    set gaSet(fail) "Can't perform 'exit all'"
+    return $ret
+  }
+  set ret [Send $com "config port lora 1 gateway\r" "lora-gateway\#"]
+  set ret [Send $com "show status\r" "lora-gateway\#"]
+  if {$ret!=0} {
+    set gaSet(fail) "Fail to reach lora 1 status"
+    return $ret
+  }
+  set res [regexp {\(EUI\)[\s\:]+(\w+)\s} $buffer ma val]
+  puts "res:<$res> ma:<$ma> val:<$val>"
+  if {$res==0} {
+    set gaSet(fail) "Fail to read Gateway ID"
+    return -1
+  }
+  set ::loraGatewayId $val
+  AddToPairLog $gaSet(pair) "Lora Gateway ID: $val" 
+  return 0
+}  
+# ***************************************************************************
+# Cert_GetPassword
+# ***************************************************************************
+proc Cert_GetPassword {} {
+  global gaSet buffer gaGetOpDBox
+  set ::enroll_password 0
+  puts "\n[MyTime] Cert_GetPassword"
+   
+  RLSound::Play information
+  set ret [GetOpDlg -title "Enrollment Challenge Password" -text "Paste the password" -type "Ok Cancel" -icon "/images/uut48.ico"]     
+  #puts "\n<$ret> was clicked\n" 
+  if {$ret=="Cancel"} {
+    return -2
+  }
+  set ::enroll_password [string trim $gaGetOpDBox(entVal1)]
+  puts "enroll_password:<$::enroll_password>" 
+  
+  AddToPairLog $gaSet(pair) "Enrollment Challenge Password: $::enroll_password" 
+  return 0
+}
+
+# ***************************************************************************
+# Cert_EnrollCerificate
+# ***************************************************************************
+proc Cert_EnrollCerificate {} {
+  global gaSet buffer
+  puts "\n[MyTime] Cert_EnrollCerificate"
+  set com $gaSet(comDut)
+  
+  set ret [Login]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "exit all\r" -1p]
+  if {$ret!=0} {
+    set gaSet(fail) "Can't perform 'exit all'"
+    return $ret
+  }
+  set ret [Send $com "configure crypto pki\r" "pki"]
+  if {$ret!=0} {
+    set gaSet(fail) "Fail to reach pki"
+    return $ret
+  }
+  
+  set cmd "enroll certificate-folder-url http://crl.device-care.net/certsrv/mscep/ certificate-name SelfCertificate"
+  append cmd " common-name $::loraGatewayId  locality B7 state IL email noam_b4@rad.com"
+  append cmd " organization RAD organizational-unit QA country IL challenge-password $::enroll_password"
+  
+  puts "\n$cmd\n"
+  AddToPairLog $gaSet(pair) "Enroll string: $cmd" 
+  
+  set ret [Send $com "$cmd\r" "yes/no" 15]
+  if {$ret!=0} {
+    set gaSet(fail) "Fail to obtain certificate from the CA"
+    return $ret
+  }
+  set ret [Send $com "y\r" "pki"]
+  if {$ret!=0} {
+    set gaSet(fail) "Fail to accept certificate"
+    return $ret
+  }
+  
+  set ret [Send $com "show certificate-summary\r\r" "pki"]
+  AddToPairLog $gaSet(pair) $buffer
+  
+  return 0
+}  
+ 

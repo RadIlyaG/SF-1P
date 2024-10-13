@@ -154,6 +154,10 @@ proc BuildTests {} {
     lappend lTestNames PLC
   }
   
+  if {$gaSet(DutFullName) == "ETX-1P_A/ACEX/1SFP1UTP/4UTP/LR9/G/LTA/2R"} {
+    lappend lTestNames Certificate  
+  }
+  
   if {[string index $gaSet(dutFam.cell) 0] !=0} {
     lappend lTestNames LteLeds
   }
@@ -992,7 +996,7 @@ proc Voltage {run} {
   set ret [IT9600_current 1]
   
   if {$ret==0} {
-    if {$gaSet(dutFam.ps)=="WDC" || $gaSet(dutFam.ps)=="12V" || $gaSet(dutFam.ps)=="D72V"} {
+    if {$gaSet(dutFam.ps)=="WDC" || $gaSet(dutFam.ps)=="12V" || $gaSet(dutFam.ps)=="D72V" || $gaSet(dutFam.ps)=="D60V"} {
       set ret [PowerProtection]
     } else {
       set ret 0
@@ -1045,5 +1049,44 @@ proc DryContactAlarmGo {run} {
   if {$ret==0} {
     set ret [DryContactAlarmcheckGo]
   }
+  return $ret
+}
+# ***************************************************************************
+# Certificate
+# ***************************************************************************
+proc Certificate {run} {
+  global gaSet buffer
+  set ::sendSlow 0
+  MuxMngIO nc
+  set com $gaSet(comDut)
+  Send $com "\r" stam 0.25
+  Send $com "\r" stam 0.25
+  set ret 0
+  if {$ret==0} {
+    #set ret [CellularLte_RadOS_Sim12]
+  }
+  if {$ret==0} {
+    set ret [Dns_config]
+  }
+  if {$ret==0} {
+    set ret [DateTime_set]
+  }
+  if {$ret==0} {
+    set ret [Cert_createRSA]
+  }
+  if {$ret==0} {
+    set ret [Cert_cryptoCa]
+  }
+  if {$ret==0} {
+    set ret [Cert_AuthenticateCa]
+  }
+  
+  if {$ret==0} {
+    set ret [Cert_GetPassword]
+  }
+  if {$ret==0} {
+    set ret [Cert_EnrollCerificate]
+  }
+  
   return $ret
 }
