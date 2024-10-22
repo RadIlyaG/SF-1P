@@ -125,10 +125,12 @@ proc SendDataToLoraDev {{data aabbccdd}} {
 
 # ***************************************************************************
 # GetJwtToken
+# GetJwtToken 172.18.94.105
+# GetJwtToken 172.18.94.26
 # ***************************************************************************
-proc GetJwtToken {} {
+proc GetJwtToken {ip} {
   global gaSet
-  set url http://172.18.93.38:8080/api/internal/login
+  set url http://$ip:8080/api/internal/login
   set json "{\"email\": \"admin\", \"password\": \"admin\"}"
   
   set ret [catch {exec curl -X POST --header "Content-Type: application/json" --header "Accept: application/json" --header "Grpc-Metadata-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhcyIsImV4cCI6MTY3MzUzMjE0NCwiaWQiOjEsImlzcyI6ImFzIiwibmJmIjoxNjczNDQ1NzQ0LCJzdWIiOiJ1c2VyIiwidXNlcm5hbWUiOiJhZG1pbiJ9.t13pZDY8vJdTB1UObWIr9n4Ijtirj21XdIiCfy7VsCA" -d $json $url} res]
@@ -195,6 +197,75 @@ proc GetDeviceQueueItem {} {
   
   puts "\GetDeviceQueueItem ret:<$ret>  res:<$res> " 
 }
+
+# ***************************************************************************
+# DeleteGateway
+#  DeleteGateway 1806f5fffeb80abc
+# ***************************************************************************
+proc DeleteGateway {gwid} {
+  global gaSet
+  set url http://172.18.94.105:8080/api/gateways/$gwid
+  set ret [catch {exec curl -X DELETE --header "Accept: application/json" --header "Grpc-Metadata-Authorization: Bearer $gaSet(LoraSrvr.jwt) " $url} res]
+  puts "DeleteGateway ret:<$ret>  res:<$res> "
+  #curl -X DELETE --header 'Accept: application/json' --header 'Grpc-Metadata-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhcyIsImV4cCI6MTcyODk5NjA2NiwiaWQiOjEsImlzcyI6ImFzIiwibmJmIjoxNzI4OTA5NjY2LCJzdWIiOiJ1c2VyIiwidXNlcm5hbWUiOiJhZG1pbiJ9.sCj5YyHo9hXjPUqtgALnwvpUkuAzQWj65Z3MxTZK6X8' 'http://172.18.94.105:8080/api/gateways/1806f5fffeb80abc'
+
+}
+
+# ***************************************************************************
+# AddGateway
+  # AddGateway 1806f5fffeb80abc
+  serviceProfileID == \"7f865cfb-4ef6-4cb5-a416-a123cd6c0a22\" for GW_915MHz
+  serviceProfileID == \"2edad469-d273-46e4-acd2-a4e4a46902f6\" for GW-PORFILE
+# ***************************************************************************
+proc AddGateway {gwid} {
+  global gaSet
+  set url http://172.18.94.105:8080/api/gateways
+  set json "{\"gateway\": {\"description\": \"ilya_descr\", \ 
+     \"discoveryEnabled\": false, \ 
+     \"gatewayProfileID\": \"50fffc41-1b08-417b-83a8-8594c73475be\", \ 
+     \"id\": \"$gwid\", \ 
+     \"location\": { \ 
+       \"accuracy\": 0, \ 
+       \"altitude\": 0, \ 
+       \"latitude\": 0, \ 
+       \"longitude\": 0, \ 
+       \"source\": \"UNKNOWN\" \ 
+     }, \
+     \"metadata\": {}, \ 
+     \"name\": \"name_ilya\", \ 
+     \"networkServerID\": \"1\", \ 
+     \"organizationID\": \"1\", \ 
+     \"serviceProfileID\": \"7f865cfb-4ef6-4cb5-a416-a123cd6c0a22\", \ 
+     \"tags\": {} \ 
+  
+     }}"
+  set ret [catch {exec curl -X POST --header "Accept: application/json" --header "Grpc-Metadata-Authorization: Bearer $gaSet(LoraSrvr.jwt) " -d $json $url} res]
+  puts "AddGateway ret:<$ret>  res:<$res> "
+}  
+  
+  if 0 {
+  curl -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' --header 'Grpc-Metadata-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhcyIsImV4cCI6MTcyODk5NjA2NiwiaWQiOjEsImlzcyI6ImFzIiwibmJmIjoxNzI4OTA5NjY2LCJzdWIiOiJ1c2VyIiwidXNlcm5hbWUiOiJhZG1pbiJ9.sCj5YyHo9hXjPUqtgALnwvpUkuAzQWj65Z3MxTZK6X8' -d '{ \ 
+   "gateway": { \ 
+     "description": "ilya_descr", \ 
+     "discoveryEnabled": true, \ 
+     "gatewayProfileID": "50fffc41-1b08-417b-83a8-8594c73475be", \ 
+     "id": "1806f5fffeb80abc", \ 
+     "location": { \ 
+       "accuracy": 0, \ 
+       "altitude": 0, \ 
+       "latitude": 0, \ 
+       "longitude": 0, \ 
+       "source": "UNKNOWN" \ 
+     }, \ 
+     "metadata": {}, \ 
+     "name": "name_ilya", \ 
+     "networkServerID": "1", \ 
+     "organizationID": "1", \ 
+     "serviceProfileID": "7f865cfb-4ef6-4cb5-a416-a123cd6c0a22", \ 
+     "tags": {} \ 
+   } \ 
+ }' 'http://172.18.94.105:8080/api/gateways'
+} 
 
 
 if 0 {
@@ -277,6 +348,29 @@ catch {exec curl -X POST --header "Content-Type: application/json" --header "Acc
   catch {exec $gaSet(curl) -X POST  --header "Content-Type: application/json" --header "Accept: application/json" \
     -d $deviceQueueItem http://172.18.93.56:5000/sendToLora} resBody
    
+  curl -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' --header 'Grpc-Metadata-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhcyIsImV4cCI6MTcyODk5NjA2NiwiaWQiOjEsImlzcyI6ImFzIiwibmJmIjoxNzI4OTA5NjY2LCJzdWIiOiJ1c2VyIiwidXNlcm5hbWUiOiJhZG1pbiJ9.sCj5YyHo9hXjPUqtgALnwvpUkuAzQWj65Z3MxTZK6X8' -d '{ \ 
+   "gateway": { \ 
+     "description": "ilya_descr", \ 
+     "discoveryEnabled": true, \ 
+     "gatewayProfileID": "50fffc41-1b08-417b-83a8-8594c73475be", \ 
+     "id": "1806f5fffeb80abc", \ 
+     "location": { \ 
+       "accuracy": 0, \ 
+       "altitude": 0, \ 
+       "latitude": 0, \ 
+       "longitude": 0, \ 
+       "source": "UNKNOWN" \ 
+     }, \ 
+     "metadata": {}, \ 
+     "name": "name_ilya", \ 
+     "networkServerID": "1", \ 
+     "organizationID": "1", \ 
+     "serviceProfileID": "7f865cfb-4ef6-4cb5-a416-a123cd6c0a22", \ 
+     "tags": {} \ 
+   } \ 
+ }' 'http://172.18.94.105:8080/api/gateways' 
+ 
+  curl -X DELETE --header 'Accept: application/json' --header 'Grpc-Metadata-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhcyIsImV4cCI6MTcyODk5NjA2NiwiaWQiOjEsImlzcyI6ImFzIiwibmJmIjoxNzI4OTA5NjY2LCJzdWIiOiJ1c2VyIiwidXNlcm5hbWUiOiJhZG1pbiJ9.sCj5YyHo9hXjPUqtgALnwvpUkuAzQWj65Z3MxTZK6X8' 'http://172.18.94.105:8080/api/gateways/1806f5fffeb80abc'
 } 
 
    

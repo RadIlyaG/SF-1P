@@ -1069,6 +1069,9 @@ proc Certificate {run} {
     set ret [Dns_config]
   }
   if {$ret==0} {
+    set ret [Cert_GetLoraGateway]
+  }
+  if {$ret==0} {
     set ret [DateTime_set]
   }
   if {$ret==0} {

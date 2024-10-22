@@ -3586,7 +3586,7 @@ proc SshPerform {} {
   for {set i 1} {$i <= 10} {incr i} {
     if {$gaSet(act)==0} {return -2}
     Status "SSH login ($i)"
-    catch {exec plink -ssh -P 22 su@169.254.1.1 -pw 1234} res
+    catch {exec C:/Windows/SysWOW64/plink -ssh -P 22 su@169.254.1.1 -pw 1234} res
     puts "i:$i psw1234 res<$res>" ; update
     if {[string match {*SF-1p#*} $res] || [string match {*ETX-1p#*} $res]} {
       set ret 0
@@ -5890,32 +5890,50 @@ proc Dns_config {} {
   set ret [Login]
   if {$ret!=0} {return $ret}
   
-  set ret [Send $com "exit all\r" -1p]
+  set ret [Send $com "exit all\r" "-1p\#"]
   if {$ret!=0} {
     set gaSet(fail) "Can't perform 'exit all'"
     return $ret
   }
   
   set gaSet(fail) "Fail to config cellular lte"
-  set ret [Send $com "configure port cellular lte sim 1 apn-name statreal\r" "1p\#"]
+  set ret [Send $com "configure port cellular lte\r" "(lte)"]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "configure port cellular lte no shutdown\r" "1p\#"]
+  set ret [Send $com "shutdown\r" "(lte)"]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "mode sim 1\r" "(lte)"]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "sim 1 apn-name statreal\r" "(lte)"]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "no shutdown\r" "(lte)"]
   if {$ret!=0} {return $ret}
   
   set gaSet(fail) "Fail to config router 1"
-  set ret [Send $com "configure router 1 interface 1 bind cellular lte\r" "1p\#"]
+   set ret [Send $com "exit all\r" "-1p\#"]
+  if {$ret!=0} {
+    set gaSet(fail) "Can't perform 'exit all'"
+    return $ret
+  }
+  set ret [Send $com "configure router 1 interface 1\r" "(1)"]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "configure router 1 interface 1 dhcp\r" "1p\#"]
+  set ret [Send $com "shutdown\r" "(1)"]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "bind cellular lte\r" "(1)"]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "dhcp\r" "(1)"]
   if {$ret!=0} {return $ret }
-  set ret [Send $com "configure router 1 interface 1 no shutdown\r" "1p\#"]
+  set ret [Send $com "no shutdown\r" "(1)"]
   if {$ret!=0} {return $ret}
+  set ret [Send $com "exit all\r" "-1p\#"]
   set ret [Send $com "configure router 1 dns-name-server 8.8.8.8\r" "1p\#"]
   if {$ret!=0} {
     set gaSet(fail) "Fail to config dns-name-server"
     return $ret
   }
   
-  for {set i 1} {$i<=40} {incr i} {
+  set maxPings 40
+  for {set i 1} {$i<=$maxPings} {incr i} {
+    Status "Ping google.com ($i/$maxPings)"
     set ret [Send $com "ping google.com\r" "1p\#" 20]
     if {$ret!=0} {
       set gaSet(fail) "Fail to ping google.com"
@@ -5936,7 +5954,7 @@ proc Dns_config {} {
 # ***************************************************************************
 proc DateTime_set {} {
   global gaSet buffer
-  puts "\n[MyTime] DateTime_set"
+  Status "Set Date and Time"
   set com $gaSet(comDut)
   set ret [Send $com "exit all\r" -1p]
   if {$ret!=0} {
@@ -5977,14 +5995,24 @@ proc DateTime_set {} {
 # ***************************************************************************
 proc Cert_createRSA {} {
   global gaSet buffer
-  puts "\n[MyTime] Cert_createRSA"
+  Status "Create RSA label"
   set com $gaSet(comDut)
-  set ret [Send $com "exit all\r" -1p]
+  set ret [Send $com "exit all\r" "-1p\#"]
   if {$ret!=0} {
     set gaSet(fail) "Can't perform 'exit all'"
     return $ret
   }
-  set ret [Send $com "configure crypto key generate-rsa label DeviceKey\r" "SF-1p\#" 30]
+  set ret [Send $com "configure crypto key\r" "key\#"]
+  if {$ret!=0} {
+    set gaSet(fail) "Fail to reach RSA Key"
+    return $ret
+  }
+  set ret [Send $com "delete-rsa label DeviceKey\r" "key\#"]
+   if {$ret!=0} {
+    set gaSet(fail) "Fail to reach RSA Key"
+    return $ret
+  }
+  set ret [Send $com "generate-rsa label DeviceKey\r" "Finished generating 2048" 30]
   if {$ret!=0} {
     set gaSet(fail) "Fail to Generate RSA Key"
     return $ret
@@ -5996,7 +6024,7 @@ proc Cert_createRSA {} {
 # ***************************************************************************
 proc Cert_cryptoCa {} {
   global gaSet buffer
-  puts "\n[MyTime] Cert_cryptoCa"
+  Status "Create CAServerName"
   set com $gaSet(comDut)
   set ret [Send $com "exit all\r" -1p]
   if {$ret!=0} {
@@ -6026,7 +6054,7 @@ proc Cert_cryptoCa {} {
 # ***************************************************************************
 proc Cert_AuthenticateCa {} {
   global gaSet buffer
-  puts "\n[MyTime] Cert_AuthenticateCa"
+  Status "Authenticate CaCertificate"
   set com $gaSet(comDut)
   set ret [Send $com "exit all\r" -1p]
   if {$ret!=0} {
@@ -6038,18 +6066,25 @@ proc Cert_AuthenticateCa {} {
     set gaSet(fail) "Fail to reach pki"
     return $ret
   }
-  set ret [Send $com "authenticate certificate-name CaCertificate certificate-url http://crl.device-care.net/certsrv/mscep/\r" "yes/no"]
-  if [string match {*Certificate name already exists*} $buffer] {
-    set ret [Send $com "delete-certificate certificate-name CaCertificate\r" "pki\#"]
-    if {$ret!=0} {
-      set gaSet(fail) "Fail to delete-certificate"
-      return $ret
-    }
-    set ret [Send $com "authenticate certificate-name CaCertificate certificate-url http://crl.device-care.net/certsrv/mscep/\r" "yes/no"]
   
+  for {set i 1} {$i<=6} {incr i} {
+    puts "Try $i to authenticate CaCertificate"
+    set ret [Send $com "authenticate certificate-name CaCertificate certificate-url http://crl.device-care.net/certsrv/mscep/\r" "yes/no"]
+    if [string match {*Certificate name already exists*} $buffer] {
+      set ret [Send $com "delete-certificate certificate-name CaCertificate\r" "pki\#"]
+      if {$ret!=0} {
+        set gaSet(fail) "Fail to delete-certificate"
+        return $ret
+      }
+      set ret [Send $com "authenticate certificate-name CaCertificate certificate-url http://crl.device-care.net/certsrv/mscep/\r" "yes/no"]
+      if {$ret==0} {break}
+      after 2000
+    }
+    if {$ret==0} {break}
+    after 2000
   }
   if {$ret!=0} {
-    set gaSet(fail) "Fail to get authenticate certificate"
+    set gaSet(fail) "Fail to authenticate certificate"
     return $ret
   }
   set buf $buffer
@@ -6075,7 +6110,7 @@ proc Cert_AuthenticateCa {} {
 proc Cert_GetLoraGateway {} {
   global gaSet buffer
   set ::loraGatewayId 0
-  puts "\n[MyTime] Cert_GetLoraGateway"
+  Status "Get Lora GatewayID"
   set com $gaSet(comDut)
   set ret [Send $com "exit all\r" -1p]
   if {$ret!=0} {
@@ -6104,10 +6139,10 @@ proc Cert_GetLoraGateway {} {
 proc Cert_GetPassword {} {
   global gaSet buffer gaGetOpDBox
   set ::enroll_password 0
-  puts "\n[MyTime] Cert_GetPassword"
+  Status "Get Challenge Password"
    
   RLSound::Play information
-  set ret [GetOpDlg -title "Enrollment Challenge Password" -text "Paste the password" -type "Ok Cancel" -icon "/images/uut48.ico"]     
+  set ret [GetOpDlg -title "Enrollment Challenge Password" -text "Paste the Enrollment Challenge Password" -type "Ok Cancel" -icon "/images/uut48.ico"]     
   #puts "\n<$ret> was clicked\n" 
   if {$ret=="Cancel"} {
     return -2
@@ -6124,7 +6159,7 @@ proc Cert_GetPassword {} {
 # ***************************************************************************
 proc Cert_EnrollCerificate {} {
   global gaSet buffer
-  puts "\n[MyTime] Cert_EnrollCerificate"
+  Status "Enroll Cerificate"
   set com $gaSet(comDut)
   
   set ret [Login]
