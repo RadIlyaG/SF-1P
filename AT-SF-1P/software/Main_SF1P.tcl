@@ -8,7 +8,7 @@ proc BuildTests {} {
     puts "\n[MyTime] BuildTests DutInitName doesn't exists or empty. Return -1\n"
     return -1
   }
-  puts "\n[MyTime] BuildTests DutInitName:$gaSet(DutInitName)\n"
+  puts "\n[MyTime] BuildTests DutInitName:$gaSet(DutInitName) gaSet(testmode):$gaSet(testmode)\n"
   
   set ret [RetriveDutFam]
   if {$ret!=0} {
@@ -20,6 +20,10 @@ proc BuildTests {} {
     
   set lTestsAllTests [list]
   set lTestNames [list]
+  if {$gaSet(testmode) == "dataPwrOnOff"} {
+    lappend lTestNames DataPwrOnOff
+  
+  } else {
   
   if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC" || $gaSet(dutFam.sf)=="ETX-1P_A"} {
     lappend lTestNames FDbutton_on_start
@@ -156,6 +160,7 @@ proc BuildTests {} {
   
   if {$gaSet(DutFullName) == "ETX-1P_A/ACEX/1SFP1UTP/4UTP/LR9/G/LTA/2R"} {
     lappend lTestNames Certificate  
+    ## lappend lTestNames DigitalSerialNumber  ; # done in Factory_Settings
   }
   
   if {[string index $gaSet(dutFam.cell) 0] !=0} {
@@ -170,9 +175,10 @@ proc BuildTests {} {
       lappend lTestNames FDbutton
     }
   }
-  lappend lTestNames  Factory_Settings SSH
+  lappend lTestNames Factory_Settings SSH
   if !$gaSet(demo) {
     lappend lTestNames Mac_BarCode
+  }
   }
 
   eval lappend lTestsAllTests $lTestNames
@@ -413,7 +419,12 @@ proc DataTransmission {run} {
   puts "\nAfter Etx204Check 10: ret:<$ret> fail:<$gaSet(fail)>"
   if {$ret!=0} {return $ret}
   
-  set ret [Wait "Data is running" 60 white]
+  if {$gaSet(testmode) == "dataPwrOnOff"} {
+    set min $gaSet(PowerOnOff.dur)
+  } else {
+    set min 1
+  }
+  set ret [Wait "Data is running" [expr {60 * $min}] white]
   if {$ret!=0} {return $ret}  
   set ret [Etx204Check]
   puts "\nAfter Etx204Check 60: ret:<$ret> fail:<$gaSet(fail)>"
@@ -468,11 +479,25 @@ proc Factory_Settings {run} {
     set ret [ReadImei]
     if {$ret!=0} {return $ret}
   }
+  if {$gaSet(DutFullName) == "ETX-1P_A/ACEX/1SFP1UTP/4UTP/LR9/G/LTA/2R"} {
+    AddToAttLog "ID Number: $gaSet(1.barcode1)"
+    set ret [ReadIccid]
+    if {$ret!=0} {return $ret}
+    set ret [Cert_GetLoraGateway]
+    if {$ret!=0} {return $ret}
+    set ret [DigitalSerialNumber $run]
+    if {$ret!=0} {return $ret}
+  }
+  
   set ret [CheckSimOut]
   if [string match {*pulled out*} $gaSet(fail)] {
     RLSound::Play information
-    set res [DialogBox -title "SIM inside" -text "Pull out SIM/s and press OK" \
-      -type "Ok Stop" -icon /images/error]
+    if {$gaSet(DutFullName) == "ETX-1P_A/ACEX/1SFP1UTP/4UTP/LR9/G/LTA/2R"} {
+      set txt "Pull out SIM-2 and press OK"
+    } else {
+      set txt "Pull out SIM/s and press OK"
+    }
+    set res [DialogBox -title "SIM inside" -text $txt -type "Ok Stop" -icon /images/error]
     if {$res=="Stop"} {
       set ret -2
     } else {
@@ -712,8 +737,31 @@ proc LoRa {run} {
 # LinuxLeds
 # ***************************************************************************
 proc LteLeds {run} {
+  global gaSet
   set ::sendSlow 0
   set ret [LinuxLedsPerf]
+  if {$ret==0} {
+    if {$gaSet(dutFam.box)=="ETX-1P"} {
+      set txt "Connect Antenna to LTE AUX."
+      Power all off
+    }
+    if {$gaSet(DutFullName) == "ETX-1P_A/ACEX/1SFP1UTP/4UTP/LR9/G/LTA/2R"} {
+      append txt " Remove SIM-1 and SIM-2. Insert AT\&T SIM into slot-1"
+    } else {
+      append txt " Remove SIM-1 and SIM-2"
+    }
+    RLSound::Play information
+    set res [DialogBox -title "LTE AUX and SIM" -type "Ok Cancel" \
+          -message $txt -icon images/info]
+    Power all on      
+    if {$res=="Cancel"} {
+      set gaSet(fail) "User stop" 
+      set ret -2
+    } elseif {$res=="Ok"}  {
+      set ret 0
+    }
+  }
+  return $ret
 }
 # ***************************************************************************
 # BootLeds
@@ -1091,5 +1139,70 @@ proc Certificate {run} {
     set ret [Cert_EnrollCerificate]
   }
   
+  return $ret
+}
+
+# ***************************************************************************
+# DigitalSerialNumber
+# ***************************************************************************
+proc DigitalSerialNumber {run} {
+  global gaSet buffer
+  set ::sendSlow 0
+  MuxMngIO nc
+  
+  foreach {ret resTxt} [::RLWS::Get_DigitalSerialCode $gaSet(1.barcode1)] {}
+  if {$ret==0} {
+    AddToPairLog $gaSet(pair) "DigitalSerial: $resTxt" 
+    AddToAttLog "DigitalSerial: $resTxt" 
+  } else {
+    set gaSet(fail) $resTxt
+  }
+  return $ret
+}
+# ***************************************************************************
+# DataPwrOnOff
+# ***************************************************************************
+proc DataPwrOnOff {run} {
+  global gaSet buffer
+  set allPass 0
+  set allFail 0
+  set fail ""
+  for {set i 1} {$i<=$gaSet(PowerOnOff.qty)} {incr i} {
+    if {$gaSet(act)==0} {return -2}
+    $gaSet(statBarShortTest) configure -text "${i}/$gaSet(PowerOnOff.qty)"
+    
+    puts "\n[MyTime] DataPwrOnOff $i"
+    Power all off
+    after 5000
+    Power all on
+  
+    set ret [DataTransmissionConf $i]
+    if {$ret!=0} {
+      AddToPairLog $gaSet(pair) "Cycle $i. Ret of Conf:<$ret>"
+    }
+    if {$ret==0} {
+      set ret [DataTransmission $i]
+      AddToPairLog $gaSet(pair) "Cycle $i. Ret of Data Transmission:<$ret>"
+      if {$ret==0} {
+        incr allPass
+      } else {
+        incr allFail
+        set fail $gaSet(fail)
+        AddToPairLog $gaSet(pair) $fail
+      }
+    } else {
+      incr allFail 
+      set fail $gaSet(fail)
+      AddToPairLog $gaSet(pair) $fail
+    }    
+  }
+  set gaSet(fail) $fail
+  AddToPairLog $gaSet(pair) "\nTotal cycles: $gaSet(PowerOnOff.qty). Passes: $allPass, Fails: $allFail" 
+  
+  if {$allFail==0} {
+    set ret 0
+  } else {
+    set ret -1
+  }
   return $ret
 }

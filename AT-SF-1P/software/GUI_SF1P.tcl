@@ -124,13 +124,18 @@ Please confirm you know products should not be released to the customer with thi
       {separator}  
       {command "Different Voltage Test" {} "" {} -command {Gui_DifferentVoltageTest}}
     }                
- "&Terminal" terminal tterminal 0  {
+    "&Terminal" terminal tterminal 0  {
       {command "UUT" "" "" {} -command {OpenTeraTerm gaSet(comDut)}}  
       {command "Gen-1" "" "" {} -command {OpenTeraTerm gaSet(comGen1)}} 
       {command "Gen-2" "" "" {} -command {OpenTeraTerm gaSet(comGen2)}} 
       {command "Serial-1" "" "" {} -command {OpenTeraTerm gaSet(comSer1)}}  
       {command "Serial-2" "" "" {} -command {OpenTeraTerm gaSet(comSer2)}} 
       {command "485-2" "" "" {} -command {OpenTeraTerm gaSet(comSer485)}}                     
+    }
+    "Test &mode" testmode testmode 0  {
+      {radiobutton "Final Tests" init {} {} -command {BuildTests} -variable gaSet(testmode) -value finalTests}
+      {radiobutton "Data + Power OFF-ON" init {} {} -command {ConfigPowerOnOff} -variable gaSet(testmode) -value dataPwrOnOff}      
+                          
     }
     "&About" all about 0 {
       {command "&About" about "" {} -command {About} 
@@ -711,9 +716,10 @@ proc ButRun {} {
     
   set clkSeconds [clock seconds]
   set ti [clock format $clkSeconds -format  "%Y.%m.%d-%H.%M"]
-  if ![info exists gaSet(logTime)] {
-    set gaSet(logTime) [clock format [clock seconds] -format  "%Y.%m.%d-%H.%M.%S"]
-  }
+  # if ![info exists gaSet(logTime)] {
+    # set gaSet(logTime) [clock format [clock seconds] -format  "%Y.%m.%d-%H.%M.%S"]
+  # }
+  set gaSet(logTime) [clock format [clock seconds] -format  "%Y.%m.%d-%H.%M.%S"]
    
   
 
@@ -731,7 +737,12 @@ proc ButRun {} {
   IPRelay-LoopRed
   if {$ret==0} {
     Ramzor red on
-    set ret [GuiReadOperator]
+    if {$gaSet(testmode) == "dataPwrOnOff"} {
+      set gaSet(operator) operator
+      set gaSet(operatorID) operatorID
+    } else {
+      set ret [GuiReadOperator]
+    }
     Ramzor green on
     parray gaSet *arco*
     parray gaSet *rato*
@@ -795,7 +806,7 @@ proc ButRun {} {
     }
   }
   if {$ret==0} {
-    if 1 {
+    if {$gaSet(testmode) == "finalTests"} {
       RLSound::Play information
       
       set txt "Connect all cables, SIM cards and antennas according to the ordered option" ; #, SD card
@@ -1304,3 +1315,34 @@ proc ToggleShowBoot {} {
   }
   SaveInit
 }
+# ***************************************************************************
+# ConfigPowerOnOff
+# ***************************************************************************
+proc ConfigPowerOnOff {} {
+  global gaSet gaDBox
+  set entLab [list]
+  
+  after 500 {
+    if [info exists gaSet(PowerOnOff.qty)] {
+      .tmpldlg.frame.fr.f1.ent1 insert 0 $gaSet(PowerOnOff.qty)
+    } else {
+      .tmpldlg.frame.fr.f1.ent1 insert 0  100
+    }
+    if [info exists gaSet(PowerOnOff.dur)] {
+      .tmpldlg.frame.fr.f2.ent2 insert 0 $gaSet(PowerOnOff.dur)
+    }
+    .tmpldlg.frame.fr.f1.ent1 configure -justify center
+    .tmpldlg.frame.fr.f2.ent2 configure -justify center
+  }
+  lappend entLab "Quantity of the ON-OFF cycles"
+  lappend entLab "Data transmission duration, in minutes"
+  set ret [DialogBox -title "Data + Power OFF-ON" -entQty 2 -type "Accept Cancel" -entLab $entLab]
+  if {$ret=="Cancel"} {
+    return -2
+  }
+  set gaSet(PowerOnOff.qty)  [string trim $gaDBox(entVal1)]
+  set gaSet(PowerOnOff.dur)  [string trim $gaDBox(entVal2)]
+  
+  BuildTests
+}
+

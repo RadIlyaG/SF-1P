@@ -2442,7 +2442,7 @@ proc DataTransmissionSetup {} {
   set ret [Login2Linux]
   if {$ret!=0} {return $ret}
   
-  set gaSet(fail) "Configuratin for DATA fail"
+  set gaSet(fail) "Configuration for DATA fail"
   
   for {set i 1} {$i <= 5} {incr i} {
     set ret [Send $com "\r" $gaSet(linuxPrompt) 2]
@@ -2620,117 +2620,45 @@ proc LinuxLedsPerf {} {
   set ret [Config4CellBar]
   if {$ret!=0} {return $ret}
   
-#   set gaSet(fail) "Confugure AUX Led fail"
-#   Send $com "cd / \r" stam 0.1
-#   set ret [Send $com "cd /sys/class/gpio\r" "\]#"]
-#   if {$ret!=0} {return $ret}
-#   set ret [Send $com "echo 441 > export\r" "\]#"]
-#   if {$ret!=0} {return $ret}
-#   set ret [Send $com "echo out > gpio441/direction\r" "\]#"]
-#   if {$ret!=0} {return $ret}
-#   set ret [Send $com "echo 442 > export\r" "\]#"]
-#   if {$ret!=0} {return $ret}
-#   set ret [Send $com "echo out > gpio442/direction\r" "\]#"]
-#   if {$ret!=0} {return $ret}
-#   set ret [Send $com "echo 443 > export\r" "\]#"]
-#   if {$ret!=0} {return $ret}
-#   set ret [Send $com "echo out > gpio443/direction\r" "\]#"]
-#   Send $com "echo 0 > gpio441/value\r" "\]#"
-#   Send $com "echo 0 > gpio442/value\r" "\]#"  
-#   set ret [Send $com "echo 0 > gpio443/value\r" "\]#"] 
-#   if {$ret!=0} {return $ret}
-#   RLSound::Play information
-#   set res [DialogBox -title "AUX and LTE Leds Test" -type "Yes No" \
-#       -message "Verify the AUX and the LTE (if exists) Leds are OFF" -icon images/info]
-#   if {$res=="No"} {
-#     set gaSet(fail) "AUX and LTE Led are not OFF" 
-#     return -1
-#   }
-#   
-#   set ret [Send $com "\r\r" "\]#" 1]
-#   if {$ret!=0} {
-#     set ret [Login]
-#     if {$ret!=0} {return $ret}
-#     set ret [Login2Linux]
-#     if {$ret!=0} {return $ret}  
-#     Send $com "cd / \r" stam 0.1
-#     set ret [Send $com "cd /sys/class/gpio\r" "\]#"]
-#     if {$ret!=0} {return $ret}  
-#   }
-#   set ret [Send $com "echo 1 > gpio442/value\r" "\]#"]
-#   if {$ret!=0} {return $ret}
-#   RLSound::Play information
-#   set res [DialogBox -title "AUX Green Led Test" -type "Yes No" \
-#       -message "Verify the AUX Green Led is ON" -icon images/info]
-#   if {$res=="No"} {
-#     set gaSet(fail) "AUX Green Led is not ON" 
-#     return -1
-#   }
-#   Send $com "echo 0 > gpio442/value\r" "\]#"   
-#   
-#   set ret [Send $com "echo 1 > gpio443/value\r" "\]#"]
-#   if {$ret!=0} {return $ret}
-#   RLSound::Play information
-#   set res [DialogBox -title "AUX Red Led Test" -type "Yes No" \
-#       -message "Verify the AUX Red Led is ON" -icon images/info]
-#   if {$res=="No"} {
-#     set gaSet(fail) "AUX Red Led is not ON" 
-#     return -1
-#   }
-#   Send $com "echo 0 > gpio443/value\r" "\]#"  
-#   
-#   if {$gaSet(dutFam.cell)!=0} {}  
-#     set ret [Send $com "echo 1 > gpio441/value\r" "\]#"]
-#     if {$ret!=0} {return $ret}
-#     RLSound::Play information
-#     set res [DialogBox -title "LTE Green Led Test" -type "Yes No" \
-#         -message "Verify the LTE Green Led is ON" -icon images/info]
-#     if {$res=="No"} {
-#       set gaSet(fail) "LTE Green Led is not ON" 
-#       return -1
-#     }
-#     Send $com "echo 0 > gpio441/value\r" "\]#" 
-#     
-  #   set ret [Config4CellBar]
-  #   if {$ret!=0} {return $ret}
+  Send $com "cd / \r" stam 0.1
+  set txt "Press \'OK\' and verify LTE Bar Leds is changing in the following order:\n\n\
+  all OFF -> 1 and 3 -> 2 and 4 -> all ON -> all OFF"
+  while 1 {
+  
+    set ret [Send $com "\r\r" $gaSet(linuxPrompt) 1]
+    if {$ret!=0} {
+      set ret [Login]
+      if {$ret!=0} {return $ret}
+      set ret [Login2Linux]
+      if {$ret!=0} {return $ret}    
+    }
+    RLSound::Play information
+    set res [DialogBox -title "CellBar Test" -type "OK" -message $txt -icon images/info]
     
-    Send $com "cd / \r" stam 0.1
-    set txt "Press \'OK\' and verify LTE Bar Leds is changing in the following order:\n\n\
-    all OFF -> 1 and 3 -> 2 and 4 -> all ON -> all OFF"
-    while 1 {
+    Send $com "./lte_ledtest.sh 0\r" $gaSet(linuxPrompt) 
+    after 250
+    Send $com "./lte_ledtest.sh 5\r" $gaSet(linuxPrompt) 
+    after 250
+    Send $com "./lte_ledtest.sh 10\r" $gaSet(linuxPrompt) 
+    after 250
+    Send $com "./lte_ledtest.sh 15\r" $gaSet(linuxPrompt)
+    after 250
+    Send $com "./lte_ledtest.sh 0\r" $gaSet(linuxPrompt)
     
-      set ret [Send $com "\r\r" $gaSet(linuxPrompt) 1]
-      if {$ret!=0} {
-        set ret [Login]
-        if {$ret!=0} {return $ret}
-        set ret [Login2Linux]
-        if {$ret!=0} {return $ret}    
-      }
-      RLSound::Play information
-      set res [DialogBox -title "CellBar Test" -type "OK" -message $txt -icon images/info]
-      
-      Send $com "./lte_ledtest.sh 0\r" $gaSet(linuxPrompt) 
-      after 250
-      Send $com "./lte_ledtest.sh 5\r" $gaSet(linuxPrompt) 
-      after 250
-      Send $com "./lte_ledtest.sh 10\r" $gaSet(linuxPrompt) 
-      after 250
-      Send $com "./lte_ledtest.sh 15\r" $gaSet(linuxPrompt)
-      after 250
-      Send $com "./lte_ledtest.sh 0\r" $gaSet(linuxPrompt)
-      
-      RLSound::Play information
-      set res [DialogBox -title "LTE Led Bar Test" -type "Yes No Repeat" \
-          -message "Does the LTE Led Bar work well?" -icon images/info]
-      if {$res=="No"} {
-        set gaSet(fail) "CellBar Test Fail" 
-        set ret -1
-        break
-      } elseif {$res=="Yes"}  {
-        set ret 0
-        break
-      }
-    } 
+    RLSound::Play information
+    set res [DialogBox -title "LTE Led Bar Test" -type "Yes No Repeat" \
+        -message "Does the LTE Led Bar work well?" -icon images/info]
+    if {$res=="No"} {
+      set gaSet(fail) "CellBar Test Fail" 
+      set ret -1
+      break
+    } elseif {$res=="Yes"}  {
+      set ret 0
+      break
+    }
+  } 
+  
+ 
  
   return $ret
 }
@@ -3586,7 +3514,12 @@ proc SshPerform {} {
   for {set i 1} {$i <= 10} {incr i} {
     if {$gaSet(act)==0} {return -2}
     Status "SSH login ($i)"
-    catch {exec C:/Windows/SysWOW64/plink -ssh -P 22 su@169.254.1.1 -pw 1234} res
+    set cmd "C:/Windows/SysWOW64/plink -ssh -P 22 su@169.254.1.1 -pw 1234 -batch \"y\; \r\""
+    set cmd "echo yes \| C:/Windows/SysWOW64/plink -ssh -P 22 su@169.254.1.1 -pw 1234"
+    set cmd "C:/Windows/SysWOW64/plink -ssh -P 22 su@169.254.1.1 -pw 1234"
+    puts "cmd:<$cmd>"
+    catch {eval exec $cmd} res
+    #catch {exec C:/Windows/SysWOW64/plink -ssh -P 22 su@169.254.1.1 -pw 1234 -batch "y\; \r"} res
     puts "i:$i psw1234 res<$res>" ; update
     if {[string match {*SF-1p#*} $res] || [string match {*ETX-1p#*} $res]} {
       set ret 0
@@ -4137,6 +4070,15 @@ proc CellularModemPerf_RadOS_Sim12 {actSim disSim} {
       return -1
     }
     
+    set gaSet(fail) "Read ICCID  of SIM-${actSim} fail"
+    set res [regexp {ICCID\s+:\s+([\d]+)} $buffer ma val]  
+    if {$res==0} {
+      return -1  
+    }  
+    puts "ICCID  ma:<$ma> val:<$val>"; update  
+    AddToPairLog $gaSet(pair) "ICCID  of SIM-${actSim}: $val"  
+    
+    
     set gaSet(fail) "Read Cellular network connection of SIM-${actSim} fail"
     set val ""
     set res [regexp {Cellular network connection\s+:\s+(\w+)} $buffer ma val]  
@@ -4198,6 +4140,18 @@ proc CellularModemPerf_RadOS_Sim12 {actSim disSim} {
       if {$ret!=0} {return -1}
       set ret -1  
       if {[string match {*5 packets transmitted. 5 packets received, 0% packet loss*} $buffer]} {
+        Send $com "show status\r" "stam" 2
+        set buf $buffer
+        set ret [Send $com "\r" "stam" 2]
+        append buf $buffer
+        set ret [Send $com "\r" "stam" 2]
+        append buf $buffer
+        set ret [Send $com "\r" "stam" 2]
+        append buf $buffer
+        set ret [Send $com "\r" $prmpt]
+        append buf $buffer
+        set buffer $buf
+        puts "\nStatus after pings:\n<$buffer>"
         set ret 0
         break
       } else {
@@ -5254,6 +5208,9 @@ proc CheckSimOut {} {
       return $ret 
     }
     foreach sim {1 2} {
+      if {$gaSet(DutFullName) == "ETX-1P_A/ACEX/1SFP1UTP/4UTP/LR9/G/LTA/2R" && $sim==1} {
+        continue
+      }  
     
       set ret [Send $com "shutdown\r" "(lte)#"]
       set ret [Send $com "mode sim $sim\r" "(lte)#"]
@@ -5901,9 +5858,9 @@ proc Dns_config {} {
   if {$ret!=0} {return $ret}
   set ret [Send $com "shutdown\r" "(lte)"]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "mode sim 1\r" "(lte)"]
+  set ret [Send $com "mode sim 2\r" "(lte)"]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "sim 1 apn-name statreal\r" "(lte)"]
+  set ret [Send $com "sim 2 apn-name statreal\r" "(lte)"]
   if {$ret!=0} {return $ret}
   set ret [Send $com "no shutdown\r" "(lte)"]
   if {$ret!=0} {return $ret}
@@ -6069,14 +6026,14 @@ proc Cert_AuthenticateCa {} {
   
   for {set i 1} {$i<=6} {incr i} {
     puts "Try $i to authenticate CaCertificate"
-    set ret [Send $com "authenticate certificate-name CaCertificate certificate-url http://crl.device-care.net/certsrv/mscep/\r" "yes/no"]
+    set ret [Send $com "authenticate certificate-name CaCertificate certificate-url http://crl.device-care.net/certsrv/mscep/\r" "yes/no" 10]
     if [string match {*Certificate name already exists*} $buffer] {
       set ret [Send $com "delete-certificate certificate-name CaCertificate\r" "pki\#"]
       if {$ret!=0} {
         set gaSet(fail) "Fail to delete-certificate"
         return $ret
       }
-      set ret [Send $com "authenticate certificate-name CaCertificate certificate-url http://crl.device-care.net/certsrv/mscep/\r" "yes/no"]
+      set ret [Send $com "authenticate certificate-name CaCertificate certificate-url http://crl.device-care.net/certsrv/mscep/\r" "yes/no" 10]
       if {$ret==0} {break}
       after 2000
     }
@@ -6131,6 +6088,7 @@ proc Cert_GetLoraGateway {} {
   }
   set ::loraGatewayId $val
   AddToPairLog $gaSet(pair) "Lora Gateway ID: $val" 
+  AddToAttLog "Lora Gateway ID: $val"
   return 0
 }  
 # ***************************************************************************
@@ -6199,3 +6157,94 @@ proc Cert_EnrollCerificate {} {
   return 0
 }  
  
+# ***************************************************************************
+# ReadIccid
+# ***************************************************************************
+proc ReadIccid {} {
+  global gaSet buffer
+  set com $gaSet(comDut)
+  set prmpt "(lte)"
+  set actSim 1
+  set ret [Login]
+  if {$ret!=0} {return -1}
+  
+  set ret [Send $com "exit all\r" "-1p\#"]
+  if {$ret!=0} {
+    set gaSet(fail) "Can't perform 'exit all'"
+    return $ret
+  }
+  
+  set gaSet(fail) "Fail to config cellular lte"
+  set ret [Send $com "configure port cellular lte\r" "(lte)"]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "shutdown\r" "(lte)"]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "mode sim 1\r" "(lte)"]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "sim 1 apn-name statreal\r" "(lte)"]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "no shutdown\r" "(lte)"]
+  if {$ret!=0} {return $ret}
+  
+   set gaSet(fail) "Fail to config router 1"
+   set ret [Send $com "exit all\r" "-1p\#"]
+  if {$ret!=0} {
+    set gaSet(fail) "Can't perform 'exit all'"
+    return $ret
+  }
+  set ret [Send $com "configure router 1 interface 1\r" "(1)"]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "shutdown\r" "(1)"]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "bind cellular lte\r" "(1)"]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "dhcp\r" "(1)"]
+  if {$ret!=0} {return $ret }
+  set ret [Send $com "no shutdown\r" "(1)"]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "exit all\r" "-1p\#"]
+  set ret [Send $com "configure router 1 dns-name-server 8.8.8.8\r" "1p\#"]
+  if {$ret!=0} {
+    set gaSet(fail) "Fail to config dns-name-server"
+    return $ret
+  }  
+  
+  Send $com "exit all\r" "1p#"
+  Status "Read ICCID"
+  set gaSet(fail) "Read ICCID fail"
+  set ret [Send $com "configure port cellular lte\r" "(lte)#"]
+  if {$ret!=0} {return -1}
+  for {set i 1} {$i<=10} {incr i} {
+    if {$gaSet(act)==0} {set ret -2; break}
+    Status "Read SIM-$actSim ICCID ($i)"
+    set ret [Send $com "show status\r" "stam" 2]
+    set buf $buffer
+    set ret [Send $com "\r" "stam" 2]
+    append buf $buffer
+    set ret [Send $com "\r" "stam" 2]
+    append buf $buffer
+    set ret [Send $com "\r" "stam" 2]
+    append buf $buffer
+    set ret [Send $com "\r" $prmpt]
+    append buf $buffer
+    if {$ret!=0} {return $ret}
+    
+    set buffer $buf
+    
+    set res [regexp {ICCID\s+:\s+([\d]+)} $buffer ma val]  
+    if {$res==1} {
+      set ret 0
+      puts "ICCID  ma:<$ma> val:<$val>"; update  
+      AddToPairLog $gaSet(pair) "ICCID  of SIM-${actSim}: $val"
+      AddToAttLog "ICCID  of SIM-${actSim}: $val"
+      break
+    } else {
+      set ret -1
+      after 3000
+    }    
+  }
+  if {$ret!=0} {
+    set gaSet(fail) "Read ICCID  of SIM-${actSim} fail"
+  }
+  return $ret
+}  

@@ -580,6 +580,17 @@ proc AddToPairLog {pair line}  {
   close $logFileID
 }
 # ***************************************************************************
+# AddToAttLog
+# ***************************************************************************
+proc AddToAttLog {line}  {
+  global gaSet
+  set log c:/logs/${gaSet(logTime)}-ID_ATT-$gaSet(1.barcode1).txt
+  set logFileID [open $log a+]
+  puts $logFileID "..[MyTime]..$line"
+  close $logFileID
+}
+
+# ***************************************************************************
 # ShowLog 
 # ***************************************************************************
 proc ShowLog {} {
@@ -769,9 +780,9 @@ proc GetDbrName {} {
   }
   puts ""
   
-  set gaSet(log.$gaSet(pair)) c:/logs/${gaSet(logTime)}-$barcode.txt
-  AddToPairLog $gaSet(pair) "$gaSet(DutFullName)"
-  AddToPairLog $gaSet(pair) "UUT - $barcode"
+  #set gaSet(log.$gaSet(pair)) c:/logs/${gaSet(logTime)}-$barcode.txt
+  #AddToPairLog $gaSet(pair) "$gaSet(DutFullName)"
+  #AddToPairLog $gaSet(pair) "UUT - $barcode"
   
   set ret [BuildTests]
   if {$ret==0} {
