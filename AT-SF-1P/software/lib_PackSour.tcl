@@ -218,7 +218,7 @@ if ![info exists gaSet(demo)] {
 if ![info exists gaSet(PowerOffOnUntil)] {
   set gaSet(PowerOffOnUntil) first_steps
 }
-
+set gaSet(testmode) finalTests
 #puts "$gaSet(DutFullName)"
 # 11:48 09/10/2023  ToggleComDut
 

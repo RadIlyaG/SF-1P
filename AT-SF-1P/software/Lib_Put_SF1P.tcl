@@ -4870,23 +4870,42 @@ proc LoraModuleConf {} {
   if {$ret!=0} {return $ret}
   set ret [Send $com "server ip-address $gaSet(ChirpStackIP.$gaSet(dutFam.lora.fam)) port 1700\r" "lora-gateway"]
   if {$ret!=0} {return $ret}
-  set gw "1806f5fffeb80" ; # 1806f5fffeb80a11
-  set loraType [string tolower [string index $gaSet(dutFam.lora) end]]
-  if {$loraType==9} {
-    set loraType a
+  
+  set ret [Send $com "show status\r" "lora-gateway\#"]
+  if {$ret!=0} {
+    set gaSet(fail) "Fail to reach lora 1 status"
+    return $ret
   }
-  append gw $loraType
-  set pcNumb [lindex [split [info host] -] end-1]; # at-sf1p-1-10 -> 1
-  append gw $pcNumb
-  append gw $gaSet(pair)
-  puts "LoraModuleConf gateway-id:<$gw>"
-  set gaSet(ChirpStackIPGW) $gw
-  set ret [Send $com "gateway-id string $gw\r" "lora-gateway"]; #gaSet(ChirpStackIPGW)
-  if {$ret!=0} {return $ret}
-  if [string match {*command not recognized*} $buffer] {
-    set gaSet(fail) "Fail to config gateway-id"
+  set res [regexp {\(EUI\)[\s\:]+(\w+)\s} $buffer ma gw]
+  puts "res:<$res> ma:<$ma> val:<$val>"
+  if {$res==0} {
+    set gaSet(fail) "Fail to read Gateway ID"
     return -1
   }
+  
+  # 09:18 30/10/2024
+  # set gw "1806f5fffeb80" ; # 1806f5fffeb80a11
+  # set loraType [string tolower [string index $gaSet(dutFam.lora) end]]
+  # if {$loraType==9} {
+    # set loraType a
+  # }
+  # append gw $loraType
+  # set pcNumb [lindex [split [info host] -] end-1]; # at-sf1p-1-10 -> 1
+  # append gw $pcNumb
+  # append gw $gaSet(pair)
+  
+  
+  puts "LoraModuleConf gateway-id:<$gw>"
+  set gaSet(ChirpStackIPGW) $gw
+  
+  # 09:19 30/10/2024
+  # set ret [Send $com "gateway-id string $gw\r" "lora-gateway"]; #gaSet(ChirpStackIPGW)
+  # if {$ret!=0} {return $ret}
+  # if [string match {*command not recognized*} $buffer] {
+    # set gaSet(fail) "Fail to config gateway-id"
+    # return -1
+  # }
+  
   # set ret [Send $com "no shutdown\r" "lora-gateway"]
   # if {$ret!=0} {return $ret}
   set ret [Send $com "exit all\r" "-1p"]

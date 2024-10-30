@@ -631,6 +631,8 @@ proc mparray {a {pattern *}} {
 proc GetDbrName {} {
   global gaSet gaGui
   
+  set gaSet(testmode) finalTests
+  
   if ![info exists gaSet(logTime)] {
     set gaSet(logTime) [clock format [clock seconds] -format  "%Y.%m.%d-%H.%M.%S"]
   }

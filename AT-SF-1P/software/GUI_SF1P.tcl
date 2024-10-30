@@ -1330,6 +1330,8 @@ proc ConfigPowerOnOff {} {
     }
     if [info exists gaSet(PowerOnOff.dur)] {
       .tmpldlg.frame.fr.f2.ent2 insert 0 $gaSet(PowerOnOff.dur)
+    } else {
+      .tmpldlg.frame.fr.f2.ent2 insert 0 1
     }
     .tmpldlg.frame.fr.f1.ent1 configure -justify center
     .tmpldlg.frame.fr.f2.ent2 configure -justify center

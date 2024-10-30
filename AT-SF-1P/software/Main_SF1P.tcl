@@ -690,7 +690,8 @@ proc LoRa {run} {
   if {$ret=="-1"} { 
     #set ret [LoraModuleConf]
   }
-  if {$ret==0} { 
+  if {$ret==0} {
+    ChirpStackAddGateway $gaSet(ChirpStackIPGW)  
     set ret [LoraServerPolling]
     if {$ret==0} { 
       set ret [LoraGateWayMode "no shutdown"]
@@ -720,6 +721,7 @@ proc LoRa {run} {
         }
       }
     }
+    ChirpStackDeleteGateway $gaSet(ChirpStackIPGW)  
   }
   set fail $gaSet(fail)
   if {$ret!=0 && $gaSet(LoraStayConnectedOnFail)==1} {
