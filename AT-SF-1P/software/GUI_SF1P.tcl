@@ -989,7 +989,13 @@ proc ButRun {} {
     set fg SystemWindowText
     set fnt {TkDefaultFont 9}
   }
-  set res [DialogBoxRamzor -type "OK" -icon /images/info -title "Finish" -message "The test is done $txt" \
+  
+  if {$ret==0 && $gaSet(DutFullName) == "ETX-1P_A/ACEX/1SFP1UTP/4UTP/LR9/G/LTA/2R"} {
+    set txt2 "\n\nUpdate DBR with Lora GatewayID and ICCID"
+  } else {
+    set txt2 ""
+  }
+  set res [DialogBoxRamzor -type "OK" -icon /images/info -title "Finish" -message "The test is done ${txt}${txt2}" \
     -bg $bg -font $fnt -fg $fg]
   update
   Ramzor all off

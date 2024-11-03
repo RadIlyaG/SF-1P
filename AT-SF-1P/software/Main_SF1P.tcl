@@ -1120,6 +1120,11 @@ proc Certificate {run} {
   }
   if {$ret==0} {
     set ret [Cert_GetLoraGateway]
+    puts "Ret after Cert_GetLoraGatewa ret:<$ret> "
+    if {$ret=="-1"} {
+      after 10000
+      set ret [Cert_GetLoraGateway]
+    }
   }
   if {$ret==0} {
     set ret [DateTime_set]

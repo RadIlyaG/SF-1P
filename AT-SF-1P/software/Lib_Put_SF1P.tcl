@@ -3514,9 +3514,17 @@ proc SshPerform {} {
   for {set i 1} {$i <= 10} {incr i} {
     if {$gaSet(act)==0} {return -2}
     Status "SSH login ($i)"
-    set cmd "C:/Windows/SysWOW64/plink -ssh -P 22 su@169.254.1.1 -pw 1234 -batch \"y\; \r\""
-    set cmd "echo yes \| C:/Windows/SysWOW64/plink -ssh -P 22 su@169.254.1.1 -pw 1234"
-    set cmd "C:/Windows/SysWOW64/plink -ssh -P 22 su@169.254.1.1 -pw 1234"
+    set cmd "C:/Windows/SysWOW64/plink -ssh -P 22 su@169.254.1.1 -pw 1234 -batch"
+    puts "cmd:<$cmd>"
+    set va ""
+    set key ""
+    catch {eval exec $cmd} res
+    regexp {(SHA256:.+)\s+Connection} $res va key
+    puts "va:<$va> key:<$key>"
+    set cmd "C:/Windows/SysWOW64/plink -ssh -P 22 su@169.254.1.1 -pw 1234 -hostkey $key"
+    # set cmd "echo yes \| C:/Windows/SysWOW64/plink -ssh -P 22 su@169.254.1.1 -pw 1234"
+    #set cmd "C:/Windows/SysWOW64/plink -ssh -P 22 su@169.254.1.1 -pw 1234 -hostkey \"SHA256:x7MTPVZzbc5Wv9jKMocTxJZOB7CQZk2rTrb83D984VY\""
+    #set cmd "C:/Windows/SysWOW64/plink -ssh -P 22 su@169.254.1.1 -pw 1234"
     puts "cmd:<$cmd>"
     catch {eval exec $cmd} res
     #catch {exec C:/Windows/SysWOW64/plink -ssh -P 22 su@169.254.1.1 -pw 1234 -batch "y\; \r"} res
@@ -6153,8 +6161,9 @@ proc Cert_EnrollCerificate {} {
   }
   
   set cmd "enroll certificate-folder-url http://crl.device-care.net/certsrv/mscep/ certificate-name SelfCertificate"
-  append cmd " common-name $::loraGatewayId  locality B7 state IL email noam_b4@rad.com"
-  append cmd " organization RAD organizational-unit QA country IL challenge-password $::enroll_password"
+  # append cmd " common-name $::loraGatewayId  locality B7 state IL email noam_b4@rad.com"
+  # append cmd " organization RAD organizational-unit QA country IL challenge-password $::enroll_password"
+  append cmd " common-name $::loraGatewayId challenge-password $::enroll_password"
   
   puts "\n$cmd\n"
   AddToPairLog $gaSet(pair) "Enroll string: $cmd" 
