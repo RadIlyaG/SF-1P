@@ -1204,6 +1204,7 @@ proc DataPwrOnOff {run} {
     }    
   }
   set gaSet(fail) $fail
+  $gaSet(statBarShortTest) configure -text "Pass=$allPass Fail=$allFail"
   AddToPairLog $gaSet(pair) "\nTotal cycles: $gaSet(PowerOnOff.qty). Passes: $allPass, Fails: $allFail" 
   
   if {$allFail==0} {
