@@ -1176,7 +1176,7 @@ proc DataPwrOnOff {run} {
   set fail ""
   for {set i 1} {$i<=$gaSet(PowerOnOff.qty)} {incr i} {
     if {$gaSet(act)==0} {return -2}
-    $gaSet(statBarShortTest) configure -text "${i}/$gaSet(PowerOnOff.qty)"
+    $gaSet(statBarShortTest) configure -text "${i}/$gaSet(PowerOnOff.qty) Pass=$allPass Fail=$allFail"
     
     puts "\n[MyTime] DataPwrOnOff $i"
     Power all off
