@@ -3519,6 +3519,10 @@ proc SshPerform {} {
     set va ""
     set key ""
     catch {eval exec $cmd} res
+    if {[string match {*SF-1p#*} $res] || [string match {*ETX-1p#*} $res]} {
+      set ret 0
+      break
+    }
     regexp {(SHA256:.+)\s+Connection} $res va key
     puts "va:<$va> key:<$key>"
     set cmd "C:/Windows/SysWOW64/plink -ssh -P 22 su@169.254.1.1 -pw 1234 -hostkey $key"
