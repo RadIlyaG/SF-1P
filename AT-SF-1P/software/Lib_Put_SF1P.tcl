@@ -3617,7 +3617,12 @@ proc CellularLte_RadOS {} {
   if {$ret!=0} {return $ret}
   set ret [Send $com "cellular lte\r" "(lte)"]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "apn-name \"statreal\"\r" "(lte)"]
+  if {$gaSet(DutFullName) == "ETX-1P_A/ACEX/1SFP1UTP/4UTP/LR9/G/LTA/2R"} {
+    set apnName "m2m.com.attz"
+  } else {
+    set apnName "statreal"
+  }
+  set ret [Send $com "apn-name $apnName\r" "(lte)"]
   if {$ret!=0} {return $ret}
   #set ret [Send $com "no shutdown\r" "(lte)"]
   #if {$ret!=0} {return $ret}
@@ -3625,7 +3630,7 @@ proc CellularLte_RadOS {} {
   if {$ret!=0} {return $ret}
   set ret [Send $com "cellular lte-2\r" "(lte-2)"]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "apn-name \"statreal\"\r" "(lte-2)"]
+  set ret [Send $com "apn-name statreal\r" "(lte-2)"]
   if {$ret!=0} {return $ret}
   #set ret [Send $com "no shutdown\r" "(lte-2)"]
   #if {$ret!=0} {return $ret}
@@ -3911,7 +3916,12 @@ proc CellularLte_RadOS_Sim12 {} {
   if {$ret!=0} {return $ret}
   set ret [Send $com "sim 1\r" "(1)"]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "apn-name \"statreal\"\r" "(1)"]
+  if {$gaSet(DutFullName) == "ETX-1P_A/ACEX/1SFP1UTP/4UTP/LR9/G/LTA/2R"} {
+    set apnName "m2m.com.attz"
+  } else {
+    set apnName "statreal"
+  }  
+  set ret [Send $com "apn-name $apnName\r" "(1)"]
   if {$ret!=0} {return $ret}
   if {$gaSet(dutFam.box) == "ETX-1P"} {
     ## don't config pdp in ETX, L4
@@ -3927,7 +3937,7 @@ proc CellularLte_RadOS_Sim12 {} {
   if {$ret!=0} {return $ret}
   set ret [Send $com "sim 2\r" "(2)"]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "apn-name \"statreal\"\r" "(2)"]
+  set ret [Send $com "apn-name statreal\r" "(2)"]
   if {$ret!=0} {return $ret}
   if {$gaSet(dutFam.box) == "ETX-1P"} {
     ## don't config pdp in ETX, L4
@@ -4206,7 +4216,7 @@ proc CellularLte_RadOS_Sim12_Dual {} {
   if {$ret!=0} {return $ret}
   set ret [Send $com "sim 1\r" "(1)"]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "apn-name \"statreal\"\r" "(1)"]
+  set ret [Send $com "apn-name statreal\r" "(1)"]
   if {$ret!=0} {return $ret}
   # if $L4 {
     # set ret [Send $com "pdp-type relayed-ppp\r" "(1)"]
@@ -4223,7 +4233,7 @@ proc CellularLte_RadOS_Sim12_Dual {} {
   if {$ret!=0} {return $ret}
   set ret [Send $com "sim 1\r" "(1)"]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "apn-name \"statreal\"\r" "(1)"]
+  set ret [Send $com "apn-name statreal\r" "(1)"]
   if {$ret!=0} {return $ret}
   if $L4 {
     set ret [Send $com "pdp-type relayed-ppp\r" "(1)"]
@@ -6213,7 +6223,12 @@ proc ReadIccid {} {
   if {$ret!=0} {return $ret}
   set ret [Send $com "mode sim 1\r" "(lte)"]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "sim 1 apn-name statreal\r" "(lte)"]
+  if {$gaSet(DutFullName) == "ETX-1P_A/ACEX/1SFP1UTP/4UTP/LR9/G/LTA/2R"} {
+    set apnName "m2m.com.attz"
+  } else {
+    set apnName "statreal"
+  }  
+  set ret [Send $com "sim 1 apn-name $apnName\r" "(lte)"]
   if {$ret!=0} {return $ret}
   set ret [Send $com "no shutdown\r" "(lte)"]
   if {$ret!=0} {return $ret}
