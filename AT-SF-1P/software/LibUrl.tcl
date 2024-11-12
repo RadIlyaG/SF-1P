@@ -5,7 +5,7 @@ package require json
 ::http::register https 8445 [list tls::socket -tls1 1]
 package require md5
 
-package provide RLWS 1.1
+package provide RLWS 1.2
 
 namespace eval RLWS { 
 
@@ -520,7 +520,9 @@ proc ::RLWS::_operateWS {url {query "NA"} paramName} {
               [string match {*stam bdika no color*} $ucf_content]} {
             set problem 1
           }
-          # puts $ucf_content
+          if $::RLWS::debugWS {
+            #puts "ucf_content:<$ucf_content>"
+          }
           catch {close $fid}
           if $problem {
             return [list "-1" "Server problem"] ; #"Fail to get UserConfigurationFile"
@@ -1227,10 +1229,55 @@ proc ::RLWS::Get_DigitalSerialCode {id} {
   }
   
   set value [lindex $resTxt [expr {1 + [lsearch $resTxt "DigitalSerial"]} ] ]
-  if {$value == 0} {
+  if {$value == 0 || $value == ""} {
     return [list -1 "Fail to get Digital Serial Code"]
   }
   return [list $res $value] 
+}
+# ***************************************************************************
+# Get_EmpName
+#  ::RLWS::Get_EmpName 114965
+#  
+#  Returns list of two values - result and resultText
+#   result may be -1 if WS fails,
+#                  0 if there is Employee Name (located at resultText)
+#   ::RLWS::Get_EmpName 114965 will return
+#       0 "KOBY LAZARY"
+# ***************************************************************************
+proc ::RLWS::Get_EmpName {empId} {
+  set procNameArgs [info level 0]
+  set procName [lindex $procNameArgs 0]
+  if $::RLWS::debugWS {puts "\n$procNameArgs"}
+  
+  set url "$::RLWS:::HttpsURL/rest/"
+  set param GetUserName\?employeeNumber=[set empId]
+  append url $param
+  set resLst [::RLWS::_operateWS $url "NA" "Employee Name"]
+  foreach {res resTxt} $resLst {}
+  if {$res!=0} {
+    return $resLst 
+  }
+  if {[llength $resTxt] == 0} {
+    foreach {pa_ret pa_resTxt} [::RLWS::Ping_Services] {
+      if $::RLWS::debugWS {puts "pa_ret:<$pa_ret> <$pa_resTxt>"}
+    }
+    if {$pa_ret != 0} {
+      return [list $pa_ret $pa_resTxt]
+    } else {
+      return [list -1 "Fail to get Employee Name"]
+    }
+  }
+  
+  set firstname [lindex $resTxt [expr {1 + [lsearch $resTxt "firstname"]} ] ]
+  if {$firstname == ""} {
+    return [list -1 "Fail to get Employee First Name"]
+  }
+  set secondname [lindex $resTxt [expr {1 + [lsearch $resTxt "secondname"]} ] ]
+  if {$secondname == ""} {
+    return [list -1 "Fail to get Employee Second Name"]
+  }
+  
+  return [list $res "$firstname $secondname"]  
 }
 
 # ***************************************************************************

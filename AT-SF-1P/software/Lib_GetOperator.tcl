@@ -153,28 +153,36 @@ proc FillDB {fi qty} {
 # ***************************************************************************
 proc GetOperRad {gn empId} {
   #puts "GetOperRad $gn $empId" ; update
-  if {![file exists $gn/GetEmpName.exe]} {
-    tk_messageBox -type ok -icon error -message "GetEmpName.exe doesn't exist"
-    return -1  
+  
+  # if {![file exists $gn/GetEmpName.exe]} {
+    # tk_messageBox -type ok -icon error -message "GetEmpName.exe doesn't exist"
+    # return -1  
+  # }
+  # if {![file exists $gn/GetEmpName.prd]} {
+    # tk_messageBox -type ok -icon error -message "GetEmpName.prd doesn't exist"
+    # return -1  
+  # }
+  # set ti [time {catch {exec $gn/GetEmpName.exe $empId} res}]
+  # #puts "ti:<$ti> res:<$res>"
+  # if {$res!=""} {
+    # tk_messageBox -type ok -icon error -message "Result of GetEmpName.exe $empId \n $res"
+    # return -1  
+  # }
+  # if {![file exists $gn/$empId.txt]} {
+    # tk_messageBox -type ok -icon error -message "$empId.txt doesn't exist"
+    # return -1  
+  # }
+  # set id [open $gn/$empId.txt]
+  # set empName [read $id]
+  # close $id
+  # set empName [string trim $empName] 
+  
+  foreach {ret resTxt} [::RLWS::Get_EmpName $empId] {} 
+  if {$ret!=0} {
+    set gaSet(fail) $resTxt
+    return $ret
   }
-  if {![file exists $gn/GetEmpName.prd]} {
-    tk_messageBox -type ok -icon error -message "GetEmpName.prd doesn't exist"
-    return -1  
-  }
-  set ti [time {catch {exec $gn/GetEmpName.exe $empId} res}]
-  #puts "ti:<$ti> res:<$res>"
-  if {$res!=""} {
-    tk_messageBox -type ok -icon error -message "Result of GetEmpName.exe $empId \n $res"
-    return -1  
-  }
-  if {![file exists $gn/$empId.txt]} {
-    tk_messageBox -type ok -icon error -message "$empId.txt doesn't exist"
-    return -1  
-  }
-  set id [open $gn/$empId.txt]
-  set empName [read $id]
-  close $id
-  set empName [string trim $empName] 
+  set empName $resTxt
   puts "GetOperRad $gn $empId ($ti) $empName" ; update
   after 200 "catch {file delete -force $gn/$empId.txt} res"
   return $empName 
