@@ -6085,6 +6085,7 @@ proc Cert_AuthenticateCa {} {
   }
   
   set ret [Send $com "delete-certificate certificate-name SelfCertificate1\r" "pki\#"]
+  set ret [Send $com "delete-certificate certificate-name SelfCertificate\r" "pki\#"]
   
   for {set i 1} {$i<=6} {incr i} {
     puts "Try $i to authenticate CaCertificate"
