@@ -4015,6 +4015,9 @@ proc CellularModemPerf_RadOS_Sim12 {actSim disSim} {
   set ret [Send $com "no shutdown\r" $prmpt]
   if {$ret!=0} {return $ret}
   
+  set ret [Wait "Wait 60 seconds for no shutdown" 60]
+  if {$ret!=0} {return $ret}
+  
   set gaSet(fail) "Read SIM-$actSim status fail"
   for {set i 1} {$i<=35} {incr i} {
     if {$gaSet(act)==0} {set ret -2; break}
@@ -6065,6 +6068,24 @@ proc Cert_AuthenticateCa {} {
     return $ret
   }
   
+  set maxPings 40
+  for {set i 1} {$i<=$maxPings} {incr i} {
+    Status "Ping crl.device-care.net ($i/$maxPings)"
+    set ret [Send $com "ping crl.device-care.net\r" ">pki" 20]
+    if {$ret!=0} {
+      set gaSet(fail) "Fail to crl.device-care.net"
+      return $ret
+    }
+    if {[string match {*Reply from*} $buffer] && [string match {*bytes = 32*} $buffer]} {
+      set ret 0
+      break
+    } else {
+      after 3000 
+    }    
+  }
+  
+  set ret [Send $com "delete-certificate certificate-name SelfCertificate1\r" "pki\#"]
+  
   for {set i 1} {$i<=6} {incr i} {
     puts "Try $i to authenticate CaCertificate"
     set ret [Send $com "authenticate certificate-name CaCertificate certificate-url http://crl.device-care.net/certsrv/mscep/\r" "yes/no" 10]
@@ -6234,7 +6255,10 @@ proc ReadIccid {} {
   set ret [Send $com "no shutdown\r" "(lte)"]
   if {$ret!=0} {return $ret}
   
-   set gaSet(fail) "Fail to config router 1"
+  set ret [Wait "Wait 30 seconds for no shutdown" 30]
+  if {$ret!=0} {return $ret}
+  
+  set gaSet(fail) "Fail to config router 1"
    set ret [Send $com "exit all\r" "-1p\#"]
   if {$ret!=0} {
     set gaSet(fail) "Can't perform 'exit all'"
@@ -6262,7 +6286,7 @@ proc ReadIccid {} {
   set gaSet(fail) "Read ICCID fail"
   set ret [Send $com "configure port cellular lte\r" "(lte)#"]
   if {$ret!=0} {return -1}
-  for {set i 1} {$i<=10} {incr i} {
+  for {set i 1} {$i<=20} {incr i} {
     if {$gaSet(act)==0} {set ret -2; break}
     Status "Read SIM-$actSim ICCID ($i)"
     set ret [Send $com "show status\r" "stam" 2]

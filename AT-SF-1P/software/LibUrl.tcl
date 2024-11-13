@@ -417,7 +417,7 @@ proc ::RLWS::_chk_connection_to_id {{id "EA100448957"}} {
   set url "$RLWS::MRserverUR/q003_idnumber_extant_check"
   set query [::http::formatQuery idNumber $id]
   foreach {res connected_mac} [::RLWS::_operateWS $url $query "Connection"] {}
-  if {$res!=0} {return [list $res $connected_id]}
+  if {$res!=0} {return [list $res $connected_mac]}
   set connected_mac [lindex $connected_mac [expr 1+ [lsearch $connected_mac "mac"] ] ]
   return [list $res $connected_mac]
 }
@@ -1290,7 +1290,7 @@ proc ::RLWS::Get_EmpName {empId} {
 #   ::RLWS::Update_SimID_LoraGW EA1004489579 89011703274284322239 0016C001F1109216 will return
 #       0 "Update succeeded"
 #   ::RLWS::Update_SimID_LoraGW EA10044895 89011703274284322239 0016C001F1109216 will return
-#       -1 "Fail to get Update SimID and LoraGW"
+#       -1 "Fail to Update SimID and LoraGW"
 # ***************************************************************************
 proc ::RLWS::Update_SimID_LoraGW {id simId loraGw} {
   set procNameArgs [info level 0]
