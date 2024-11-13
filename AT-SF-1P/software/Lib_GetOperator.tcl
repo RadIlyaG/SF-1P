@@ -177,7 +177,7 @@ proc GetOperRad {gn empId} {
   # close $id
   # set empName [string trim $empName] 
   
-  foreach {ret resTxt} [::RLWS::Get_EmpName $empId] {} 
+  set ti [time {foreach {ret resTxt} [::RLWS::Get_EmpName $empId] {} }]
   if {$ret!=0} {
     set gaSet(fail) $resTxt
     return $ret

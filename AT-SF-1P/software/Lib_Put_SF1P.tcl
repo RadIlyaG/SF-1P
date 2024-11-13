@@ -6207,6 +6207,7 @@ proc ReadIccid {} {
   set com $gaSet(comDut)
   set prmpt "(lte)"
   set actSim 1
+  set ::iccId 0
   set ret [Login]
   if {$ret!=0} {return -1}
   
@@ -6282,6 +6283,7 @@ proc ReadIccid {} {
     if {$res==1} {
       set ret 0
       puts "ICCID  ma:<$ma> val:<$val>"; update  
+      set ::iccId $val
       AddToPairLog $gaSet(pair) "ICCID  of SIM-${actSim}: $val"
       AddToAttLog "ICCID  of SIM-${actSim}: $val"
       break

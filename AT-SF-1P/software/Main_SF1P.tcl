@@ -485,6 +485,11 @@ proc Factory_Settings {run} {
     if {$ret!=0} {return $ret}
     set ret [Cert_GetLoraGateway]
     if {$ret!=0} {return $ret}
+    foreach {ret resTxt} [::RLWS::Update_SimID_LoraGW $gaSet(1.barcode1) $::iccId $::loraGatewayId] {}
+    if {$ret!=0} {
+      set gaSet(fail) $resTxt
+      return $ret
+    }
     set ret [DigitalSerialNumber $run]
     if {$ret!=0} {return $ret}
   }
