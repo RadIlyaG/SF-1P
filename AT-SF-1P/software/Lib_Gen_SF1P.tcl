@@ -43,11 +43,7 @@ proc OpenComUut {} {
       set gaSet(fail) "Open COM $gaSet(comSer1) fail"
     }
   }
-#   set ret [RLCom::Open $gaSet(comSer2) 9600 8 NONE 1]
-#   if {$ret!=0} {
-#     set gaSet(fail) "Open COM $gaSet(comSer2) fail"
-#   }
-  set ret [RLCom::Open $gaSet(comSer485) 115200 8 NONE 1]
+  set ret 0 ;  ## 09:03 17/11/2024 done at SerialPorts [RLCom::Open $gaSet(comSer485) 115200 8 NONE 1]
   if {$ret!=0} {
     set gaSet(fail) "Open COM $gaSet(comSer485) fail"
   }

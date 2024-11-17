@@ -443,8 +443,25 @@ proc DataTransmission {run} {
 # SerialPorts
 # ***************************************************************************
 proc SerialPorts {run} {
+  global gaSet
   set ::sendSlow 1
-  set ret [SerialPortsPerf]
+  if {$gaSet(dutFam.serPort)=="2RSM" || $gaSet(dutFam.serPort)=="2RMI"} {
+    set com COM$gaSet(comSer485)
+    if [catch {open $com RDWR} handle] {
+      set gaSet(fail) $handle
+      return -3
+    } else {
+      after 1000
+      catch {close $handle} 
+    }
+    set ret [RLCom::Open $gaSet(comSer485) 115200 8 NONE 1]
+  } else {
+    set ret 0
+  }
+  if {$ret==0} {
+    set ret [SerialPortsPerf]
+    catch {RLCom::Close $gaSet(comSer485)}
+  }
   return $ret
 }
 # ***************************************************************************
