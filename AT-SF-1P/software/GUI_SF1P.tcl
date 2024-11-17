@@ -836,6 +836,10 @@ proc ButRun {} {
     if {$gaSet(manualCSL)=="0"} {
       #  set ret [RetriveIdTraceData  $IdBarcode CSLByBarcode]
       foreach {ret resTxt} [::RLWS::Get_CSL $IdBarcode] {}
+      if {$ret!="0"} {
+        after 2000
+        foreach {ret resTxt} [::RLWS::Get_CSL $IdBarcode] {}
+      }
     } else {
       set ret 0
       set resTxt $gaSet(manualCSL)
