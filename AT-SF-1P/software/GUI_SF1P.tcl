@@ -995,7 +995,7 @@ proc ButRun {} {
   }
   
   if {$ret==0 && $gaSet(DutFullName) == "ETX-1P_A/ACEX/1SFP1UTP/4UTP/LR9/G/LTA/2R"} {
-    set txt2 "\n\nUpdate DBR with Lora GatewayID and ICCID"
+    set txt2 "\n\nVerify Lora GatewayID and ICCID at DBR"
   } else {
     set txt2 ""
   }
