@@ -190,11 +190,12 @@ proc ChirpStackAddGateway {gwid} {
   set pcNumb [lindex [split [info host] -] end-1]; # at-sf1p-1-10 -> 1
   set desc AuGW_${loraFam}_${pcNumb}_$gaSet(pair)
   
-  if {$loraFam=="8XX"} {
-    set serviceProfileId 2edad469-d273-46e4-acd2-a4e4a46902f6
-  } elseif {$loraFam=="9XX"} {
-    set serviceProfileId 7f865cfb-4ef6-4cb5-a416-a123cd6c0a22
-  }
+  # if {$loraFam=="8XX"} {
+    # set serviceProfileId 2edad469-d273-46e4-acd2-a4e4a46902f6
+  # } elseif {$loraFam=="9XX"} {
+    # set serviceProfileId 7f865cfb-4ef6-4cb5-a416-a123cd6c0a22
+  # }
+  set serviceProfileId 7f865cfb-4ef6-4cb5-a416-a123cd6c0a22
   
   ChirpStackGetJwtToken
   
