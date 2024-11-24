@@ -205,13 +205,46 @@ proc Login {} {
 
       if {[string match {*user>*} $gaSet(loginBuffer)]} {
         set ret [Send $com su\r "assword"]
-        set ret [Send $com 1234\r "-1p#" 3]
+        if {$gaSet(SWver)>="6.3.0.75"} {
+          set gaSet(suPsw) "1qaz2wsx3E-"
+        } else {
+          set gaSet(suPsw) "1234"
+        }
+        # set ret [Send $com 1234\r "-1p#" 3]
+        set ret [Send $com $gaSet(suPsw)\r "-1p#" 3]
         if {$ret=="-1"} {
-          if {[string match {*Login failed user*} $buffer]} {
-            set ret [Send $com su\r4\r "again" 3]
+          if {[string match {*password is not strong*} $buffer]} {
+            set ret [Send $com $gaSet(suPsw)\r "again"]
+            set ret [Send $com $gaSet(suPsw)\r "-1p#"]
+            set ret [Send $com save\r "bytes copied in"]
+            if {$ret==0 && [string match {*startup-config successfully*} $buffer]} {
+              set ret 0
+            } else {
+              set gaSet(fail) "Save new password fail"
+              set ret -1
+            }
+          } else {
+            # if {[string match {*Login failed user*} $buffer]} {
+              # set ret [Send $com su\r4\r "again" 3]
+            # }
+            # set ret [Send $com 4\r "again" 3]
+            # set ret [Send $com 4\r "-1p#" 3]
+            if {[string match {*Login failed user*} $buffer]} {
+              set ret [Send $com su\r "assword"]
+              Send $com 1234\r "-1p#" 3
+              if {[string match {*password is not strong*} $buffer]} {
+                set ret [Send $com $gaSet(suPsw)\r "again"]
+                set ret [Send $com $gaSet(suPsw)\r "-1p#"]
+                set ret [Send $com save\r "bytes copied in"]
+                if {$ret==0 && [string match {*startup-config successfully*} $buffer]} {
+                  set ret 0
+                } else {
+                  set gaSet(fail) "Save new password fail"
+                  set ret -1
+                }
+              }
+            }
           }
-          set ret [Send $com 4\r "again" 3]
-          set ret [Send $com 4\r "-1p#" 3]
         }
 #         if {[string match {*LOGIN(uid=0)*} $gaSet(loginBuffer)]} {
 #           set ret [Send $com "exit\r\r\r" "login:"] 
@@ -293,6 +326,11 @@ proc Login2App {} {
     set ret -1
   } 
   
+  if {$gaSet(SWver)>="6.3.0.75"} {
+    set gaSet(psw) "1qaz2wsx3E-"
+  } else {
+    set gaSet(psw) "1234"
+  }
   set gaSet(fail) "Login to Application level fail" 
   if {$ret!=0} {
     for {set i 1} {$i<=90} {incr i} {
@@ -304,7 +342,7 @@ proc Login2App {} {
       puts "Login2App i:$i [MyTime] buffer:<$buffer>" ; update
       if {[string match {*user>*} $gaSet(loginBuffer)]} {
         set ret [Send $com su\r "assword"]
-        set ret [Send $com 1234\r "-1p#" 3]
+        set ret [Send $com $gaSet(psw)\r "-1p#" 3]
         if {$ret=="-1"} {
           set ret [Send $com 4\r "again"]
           set ret [Send $com 4\r "-1p#"]
@@ -3514,7 +3552,7 @@ proc SshPerform {} {
   for {set i 1} {$i <= 10} {incr i} {
     if {$gaSet(act)==0} {return -2}
     Status "SSH login ($i)"
-    set cmd "C:/Windows/SysWOW64/plink -ssh -P 22 su@169.254.1.1 -pw 1234 -batch"
+    set cmd "C:/Windows/SysWOW64/plink -ssh -P 22 su@169.254.1.1 -pw $gaSet(suPsw) -batch"
     puts "cmd:<$cmd>"
     set va ""
     set key ""
@@ -3525,7 +3563,7 @@ proc SshPerform {} {
     }
     regexp {(SHA256:.+)\s+Connection} $res va key
     puts "va:<$va> key:<$key>"
-    set cmd "C:/Windows/SysWOW64/plink -ssh -P 22 su@169.254.1.1 -pw 1234 -hostkey $key"
+    set cmd "C:/Windows/SysWOW64/plink -ssh -P 22 su@169.254.1.1 -pw $gaSet(suPsw) -hostkey $key"
     # set cmd "echo yes \| C:/Windows/SysWOW64/plink -ssh -P 22 su@169.254.1.1 -pw 1234"
     #set cmd "C:/Windows/SysWOW64/plink -ssh -P 22 su@169.254.1.1 -pw 1234 -hostkey \"SHA256:x7MTPVZzbc5Wv9jKMocTxJZOB7CQZk2rTrb83D984VY\""
     #set cmd "C:/Windows/SysWOW64/plink -ssh -P 22 su@169.254.1.1 -pw 1234"
