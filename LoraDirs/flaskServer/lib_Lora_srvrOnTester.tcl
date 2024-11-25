@@ -371,6 +371,23 @@ catch {exec curl -X POST --header "Content-Type: application/json" --header "Acc
  }' 'http://172.18.94.105:8080/api/gateways' 
  
   curl -X DELETE --header 'Accept: application/json' --header 'Grpc-Metadata-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhcyIsImV4cCI6MTcyODk5NjA2NiwiaWQiOjEsImlzcyI6ImFzIiwibmJmIjoxNzI4OTA5NjY2LCJzdWIiOiJ1c2VyIiwidXNlcm5hbWUiOiJhZG1pbiJ9.sCj5YyHo9hXjPUqtgALnwvpUkuAzQWj65Z3MxTZK6X8' 'http://172.18.94.105:8080/api/gateways/1806f5fffeb80abc'
+  
+  set ip 172.18.94.26
+  set ip 172.18.94.105
+  set url http://$ip:8080/api/internal/login
+  set json "{\"email\": \"admin\", \"password\": \"admin\"}"
+  set ret [catch {exec curl -X POST --header "Content-Type: application/json" --header "Accept: application/json" --header "Grpc-Metadata-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhcyIsImV4cCI6MTY3MzUzMjE0NCwiaWQiOjEsImlzcyI6ImFzIiwibmJmIjoxNjczNDQ1NzQ0LCJzdWIiOiJ1c2VyIiwidXNlcm5hbWUiOiJhZG1pbiJ9.t13pZDY8vJdTB1UObWIr9n4Ijtirj21XdIiCfy7VsCA" -d $json $url} res]
+  set jwt [string trim [lindex [split [lindex $res 0] :] 1] \"]
+  
+  catch {exec $gaSet(curl) -X GET --header 'Accept: application/json' --header 'Grpc-Metadata-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhcyIsImV4cCI6MTcyODk3Mzg1NiwiaWQiOjEsImlzcyI6ImFzIiwibmJmIjoxNzI4ODg3NDU2LCJzdWIiOiJ1c2VyIiwidXNlcm5hbWUiOiJhZG1pbiJ9.Hqpmu_5o4ciF4vaH54oFU9CgtqwximvHnVRqFbPK47I' 'http://172.18.94.26:8080/api/gateways?limit=2&offset=2'} resBody
+  catch {exec $gaSet(curl) -X GET --header "Accept: application/json" --header "Grpc-Metadata-Authorization: Bearer $jwt" "http://$ip:8080/api/gateways?limit=2&offset=2"} resBody
+  
+  set gw_id 1806f5fffeb80222
+  set gw_id 1234f5fffe841234
+  set gw_id 5678f5fffe845678
+  catch {exec $gaSet(curl) -X GET --header "Accept: application/json" --header "Grpc-Metadata-Authorization: Bearer $jwt" "http://$ip:8080/api/gateways/$gw_id"} resBody
+  puts $resBody 
+
 } 
 
    
