@@ -216,7 +216,7 @@ if ![info exists gaSet(demo)] {
 }
 
 if ![info exists gaSet(PowerOffOnUntil)] {
-  set gaSet(PowerOffOnUntil) first_steps
+  set gaSet(PowerOffOnUntil) login ; #first_steps
 }
 set gaSet(testmode) finalTests
 #puts "$gaSet(DutFullName)"
