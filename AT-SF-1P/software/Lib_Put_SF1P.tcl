@@ -6376,3 +6376,25 @@ proc ReadIccid {} {
   }
   return $ret
 }  
+
+# ***************************************************************************
+# CheckDockerPS
+# ***************************************************************************
+proc CheckDockerPS {} {
+  global gaSet buffer
+  puts "\n[MyTime] CheckDockerPS"
+  set com $gaSet(comDut)
+  set ret [Login2Linux]
+  if {$ret==0} {
+    Send $com \r\r $gaSet(linuxPrompt)
+    Send $com "docker image list\r" $gaSet(linuxPrompt)
+    Send $com "docker container list\r" $gaSet(linuxPrompt)
+  } else {
+    set gaSet(fail) "Login to Linux fail"
+  }
+  set ret [Send $com "exit\r\r" -1p]
+  if {$ret!=0} {
+    set gaSet(fail) "Exit from Linux fail"
+  }
+  return $ret
+}

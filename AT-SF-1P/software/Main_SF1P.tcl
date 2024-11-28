@@ -715,8 +715,8 @@ proc LoRa {run} {
     #set ret [LoraModuleConf]
   }
   if {$ret==0} {
-    ChirpStackDeleteGateway $gaSet(ChirpStackIPGW)
-    after 1000
+    # 14:24 26/11/2024 ChirpStackDeleteGateway $gaSet(ChirpStackIPGW)
+    # after 1000
     ChirpStackAddGateway $gaSet(ChirpStackIPGW)  
     set ret [LoraServerPolling]
     if {$ret==0} { 
@@ -733,6 +733,8 @@ proc LoRa {run} {
               if {$ret!=0} {
                 #set ret [JoinLoraDev]
                 #puts "ret 2 after JoinLoraDev: $ret"; update
+                set rr [CheckDockerPS]
+                puts "ret of CheckDockerPS: $rr"
               }  
               if {$ret==0} {
                 set data [clock format [clock seconds] -format "%d%H%M%S"]
@@ -748,7 +750,7 @@ proc LoRa {run} {
         }
       }
     }
-    # ChirpStackDeleteGateway $gaSet(ChirpStackIPGW)  
+    ChirpStackDeleteGateway $gaSet(ChirpStackIPGW)  
   }
   set fail $gaSet(fail)
   if {$ret!=0 && $gaSet(LoraStayConnectedOnFail)==1} {

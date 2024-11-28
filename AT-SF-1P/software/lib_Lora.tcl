@@ -117,11 +117,12 @@ proc ReadChirpStackLogs {{maxWait 20}} {
       return $ret
     }
     set logs [glob -nocomplain -directory //$gaSet(LoraServerHost)/c$/LoraDirs/ChirpStackLogs *]
-    puts "[MyTime] ReadChirpStackLogs $waitSec sec <$logs>"; update
+    puts "\n[MyTime] ReadChirpStackLogs $waitSec sec <$logs>"; update
     set ret na
     if {[llength $logs]>0} {
       foreach log $logs {
         set tail [file tail $log]
+        puts "ReadChirpStackLogs log:<$log> tail:<$tail>"
         if {$tail=="OK"} {
           set ret 0
           break
@@ -135,6 +136,7 @@ proc ReadChirpStackLogs {{maxWait 20}} {
       set logs [glob -nocomplain -directory //$gaSet(LoraServerHost)/c$/LoraDirs/ChirpStackLogs *]
       if {[llength $logs]>0} {
         foreach log $logs {
+          puts "ReadChirpStackLogs delete log:<$log>"
           file delete -force $log
         }
       }
