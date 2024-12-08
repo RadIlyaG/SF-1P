@@ -21,164 +21,165 @@ proc BuildTests {} {
   set lTestsAllTests [list]
   set lTestNames [list]
   if {$gaSet(testmode) == "dataPwrOnOff"} {
-    lappend lTestNames DataPwrOnOff
-  
+    lappend lTestNames DataPwrOnOff  
   } else {
-  
-  if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC" || $gaSet(dutFam.sf)=="ETX-1P_A"} {
-    lappend lTestNames FDbutton_on_start
-  }
- 
-  if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC" || $gaSet(dutFam.sf)=="ETX-1P_A"} {
-    lappend lTestNames PowerOffOn
-  } else {
-    if {$gaSet(it6900.1) == "" && $gaSet(it6900.2) == ""} {
-      #11:08 22/09/2024
-      #lappend lTestNames PowerOffOn
-      set glTests [list] 
-      set gaSet(startFrom) ""
-      $gaGui(startFrom) configure -values $glTests
-      set gaSet(fail) "No Programmable Power Supply connected"
-      Status $gaSet(fail) red
-      return -2
-    } else {
-      lappend lTestNames Voltage
-    }
-  }
-   
-  if $gaSet(showBoot) {
     if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC" || $gaSet(dutFam.sf)=="ETX-1P_A"} {
-      ## no CD card Contact
-    } else {  
-      lappend lTestNames MicroSD  
+      lappend lTestNames FDbutton_on_start
     }
-    lappend lTestNames SOC_Flash_Memory SOC_i2C 
-  }
-  
-  if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC" || $gaSet(dutFam.sf)=="ETX-1P_A"} {
-    ## 15:52 18/10/2023 lappend lTestNames BrdEeprom
-  }
-  ## no BrdEeprom in SFP
-  
-  if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC" || $gaSet(dutFam.sf)=="ETX-1P_A"} {
-    ## no DRY Contact
-  } else {  
-    if {$gaSet(dutFam.dryCon)=="FULL"} {
-      lappend lTestNames DryContactAlarm 
-    } elseif {$gaSet(dutFam.dryCon)=="GO"} {
-      lappend lTestNames DryContactAlarmGo 
-    }
-  }
-  lappend lTestNames   ID
-  
-  if [llength $gaSet(unknownFieldsL)] {
-    foreach tst $gaSet(unknownFieldsL) {
-      lappend lTestNames $tst 
-    }  
-  }
-  
-  if [string match *.HL.*  $gaSet(DutInitName)] {
-    lappend lTestNames HL_Security
-  }
-  if [string match *.WH.*  $gaSet(DutInitName)] {
-    lappend lTestNames Halow_WiFi
-  }
-  
-  if {[package vcompare $gaSet(SWver) "5.0.1.229.5"] == "0"} {
-    ## if gaSet(SWver) = "5.0.1.229.5", then vcompare = 0 
-    if {[string index $gaSet(dutFam.cell) 0]=="1"} {
-      if {[string range $gaSet(dutFam.cell) 1 end]=="L4"} {
-        lappend lTestNames CellularModemL4
+   
+    if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC" || $gaSet(dutFam.sf)=="ETX-1P_A"} {
+      lappend lTestNames PowerOffOn
+    } else {
+      if {$gaSet(it6900.1) == "" && $gaSet(it6900.2) == ""} {
+        #11:08 22/09/2024
+        #lappend lTestNames PowerOffOn
+        set glTests [list] 
+        set gaSet(startFrom) ""
+        $gaGui(startFrom) configure -values $glTests
+        set gaSet(fail) "No Programmable Power Supply connected"
+        Status $gaSet(fail) red
+        return -2
       } else {
-        lappend lTestNames CellularModem
-      } 
-    } elseif {[string index $gaSet(dutFam.cell) 0]=="2"} {
-      if {[string range $gaSet(dutFam.cell) 1 end]=="L4"} {
-        lappend lTestNames CellularDualModemL4
-      } else {
-        lappend lTestNames CellularDualModem
+        lappend lTestNames Voltage
       }
     }
-  } else {
-    if {[string index $gaSet(dutFam.cell) 0]!="0"} {
-      lappend lTestNames CellularModem_SIM1 CellularModem_SIM2
+     
+    if $gaSet(showBoot) {
+      if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC" || $gaSet(dutFam.sf)=="ETX-1P_A"} {
+        ## no CD card Contact
+      } else {  
+        lappend lTestNames MicroSD  
+      }
+      lappend lTestNames SOC_Flash_Memory SOC_i2C 
     }
     
-    ## 08:33 15/01/2024
-    # if {[string index $gaSet(dutFam.cell) 0]=="1"} {
-      # if {[string range $gaSet(dutFam.cell) 1 end]=="L4"} {
-        # # single L4
-        # lappend lTestNames CellularModem_SIM1 CellularModem_SIM2 ; #CellularModemL4_RadOS
-      # } else {
-        # # single not L4
-        # lappend lTestNames CellularModem_SIM1 CellularModem_SIM2
-      # } 
-    # } elseif {[string index $gaSet(dutFam.cell) 0]=="2"} {
-      # if {[string range $gaSet(dutFam.cell) 1 end]=="L4"} {
-        # # double L4
-        # # 08:55 14/01/2024 lappend lTestNames CellularDualModemL4_RadOS
-        # lappend lTestNames CellularModem_SIM1 CellularModem_SIM2
-      # } else {
-        # # double not L4
-        # lappend lTestNames CellularModem_SIM1 CellularModem_SIM2 ; #CellularDualModem_RadOS
-      # }
-    # }
-  }
-  
-  lappend lTestNames DataTransmissionConf DataTransmission
-  
-  if {$gaSet(dutFam.serPort)!="0"} {
-    if {$gaSet(dutFam.serPort)=="1RS"} {
-      ## dont check SerialPorts if only one Serial Port exists 
-    } else {
-      lappend lTestNames SerialPorts
-    }  
-  }
-  
-  if {$gaSet(dutFam.gps)!="0" && $gaSet(dutFam.lora)=="0"} {}
-    ## test GPS if no LORA
-    
-    ## 07:49 10/07/2022  meantime we don't check lora
-  if {$gaSet(dutFam.gps)!="0"} {
-    lappend lTestNames GPS
-  }
-  
-  if {$gaSet(dutFam.wifi)!="0" &&  ![string match *.WH.*  $gaSet(DutInitName)]} {
-    lappend lTestNames WiFi_2G  ; ## 16:12 29/06/2023 WiFi_5G
-  }
-  
-  if {$gaSet(dutFam.lora)!="0"} {
-    lappend lTestNames LoRa
-  }
-  
-  if {$gaSet(dutFam.poe)!="0"} {
-    lappend lTestNames POE
-  }
-  if {$gaSet(dutFam.plc)!="0"} {
-    lappend lTestNames PLC
-  }
-  
-  if {$gaSet(DutFullName) == "ETX-1P_A/ACEX/1SFP1UTP/4UTP/LR9/G/LTA/2R"} {
-    lappend lTestNames Certificate  
-    ## lappend lTestNames DigitalSerialNumber  ; # done in Factory_Settings
-  }
-  
-  if {[string index $gaSet(dutFam.cell) 0] !=0} {
-    lappend lTestNames LteLeds
-  }
-  if $gaSet(showBoot) {
-    lappend lTestNames FrontPanelLeds 
-  } else {
     if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC" || $gaSet(dutFam.sf)=="ETX-1P_A"} {
-      ## we did it at start
-    } else {
-      lappend lTestNames FDbutton
+      ## 15:52 18/10/2023 lappend lTestNames BrdEeprom
     }
-  }
-  lappend lTestNames Factory_Settings SSH
-  if !$gaSet(demo) {
-    lappend lTestNames Mac_BarCode
-  }
+    ## no BrdEeprom in SFP
+    
+    if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC" || $gaSet(dutFam.sf)=="ETX-1P_A"} {
+      ## no DRY Contact
+    } else {  
+      if {$gaSet(dutFam.dryCon)=="FULL"} {
+        lappend lTestNames DryContactAlarm 
+      } elseif {$gaSet(dutFam.dryCon)=="GO"} {
+        lappend lTestNames DryContactAlarmGo 
+      }
+    }
+    lappend lTestNames   ID
+    
+    if [llength $gaSet(unknownFieldsL)] {
+      foreach tst $gaSet(unknownFieldsL) {
+        lappend lTestNames $tst 
+      }  
+    }
+    
+    if [string match *.HL.*  $gaSet(DutInitName)] {
+      lappend lTestNames HL_Security
+    }
+    if [string match *.WH.*  $gaSet(DutInitName)] {
+      lappend lTestNames Halow_WiFi
+    }
+    
+    if {[package vcompare $gaSet(SWver) "5.0.1.229.5"] == "0"} {
+      ## if gaSet(SWver) = "5.0.1.229.5", then vcompare = 0 
+      if {[string index $gaSet(dutFam.cell) 0]=="1"} {
+        if {[string range $gaSet(dutFam.cell) 1 end]=="L4"} {
+          lappend lTestNames CellularModemL4
+        } else {
+          lappend lTestNames CellularModem
+        } 
+      } elseif {[string index $gaSet(dutFam.cell) 0]=="2"} {
+        if {[string range $gaSet(dutFam.cell) 1 end]=="L4"} {
+          lappend lTestNames CellularDualModemL4
+        } else {
+          lappend lTestNames CellularDualModem
+        }
+      }
+    } else {
+      if {[string index $gaSet(dutFam.cell) 0]!="0"} {
+        lappend lTestNames CellularModem_SIM1 CellularModem_SIM2
+      }
+      
+      ## 08:33 15/01/2024
+      # if {[string index $gaSet(dutFam.cell) 0]=="1"} {
+        # if {[string range $gaSet(dutFam.cell) 1 end]=="L4"} {
+          # # single L4
+          # lappend lTestNames CellularModem_SIM1 CellularModem_SIM2 ; #CellularModemL4_RadOS
+        # } else {
+          # # single not L4
+          # lappend lTestNames CellularModem_SIM1 CellularModem_SIM2
+        # } 
+      # } elseif {[string index $gaSet(dutFam.cell) 0]=="2"} {
+        # if {[string range $gaSet(dutFam.cell) 1 end]=="L4"} {
+          # # double L4
+          # # 08:55 14/01/2024 lappend lTestNames CellularDualModemL4_RadOS
+          # lappend lTestNames CellularModem_SIM1 CellularModem_SIM2
+        # } else {
+          # # double not L4
+          # lappend lTestNames CellularModem_SIM1 CellularModem_SIM2 ; #CellularDualModem_RadOS
+        # }
+      # }
+    }
+    
+    lappend lTestNames DataTransmissionConf DataTransmission
+    
+    if {$gaSet(dutFam.serPort)!="0"} {
+      if {$gaSet(dutFam.serPort)=="1RS"} {
+        ## dont check SerialPorts if only one Serial Port exists 
+      } else {
+        lappend lTestNames SerialPorts
+      }  
+    }
+    
+    if {$gaSet(dutFam.gps)!="0" && $gaSet(dutFam.lora)=="0"} {}
+      ## test GPS if no LORA
+      
+      ## 07:49 10/07/2022  meantime we don't check lora
+    if {$gaSet(dutFam.gps)!="0"} {
+      lappend lTestNames GPS
+    }
+    
+    if {$gaSet(dutFam.wifi)!="0" &&  ![string match *.WH.*  $gaSet(DutInitName)]} {
+      lappend lTestNames WiFi_2G  ; ## 16:12 29/06/2023 WiFi_5G
+    }
+    
+    if {$gaSet(dutFam.lora)!="0"} {
+      lappend lTestNames LoRa
+    }
+    
+    if {$gaSet(dutFam.poe)!="0"} {
+      lappend lTestNames POE
+    }
+    if {$gaSet(dutFam.plc)!="0"} {
+      lappend lTestNames PLC
+    }
+    
+    if {$gaSet(DutFullName) == "ETX-1P_A/ACEX/1SFP1UTP/4UTP/LR9/G/LTA/2R"} {
+      lappend lTestNames Certificate  
+      ## lappend lTestNames DigitalSerialNumber  ; # done in Factory_Settings
+    }
+    
+    if {[string index $gaSet(dutFam.cell) 0] !=0} {
+      lappend lTestNames LteLeds
+    }
+    if $gaSet(showBoot) {
+      lappend lTestNames FrontPanelLeds 
+    } else {
+      if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC" || $gaSet(dutFam.sf)=="ETX-1P_A"} {
+        ## we did it at start
+      } else {
+        lappend lTestNames FDbutton
+      }
+    }
+    lappend lTestNames Factory_Settings SSH
+    if !$gaSet(demo) {
+      lappend lTestNames Mac_BarCode
+    }
+    if {$gaSet(DefaultCF)!="0"} {
+      lappend lTestNames LoadUserDefaultFile CheckUserDefaultFile
+    }
   }
 
   eval lappend lTestsAllTests $lTestNames
@@ -1242,4 +1243,26 @@ proc DataPwrOnOff {run} {
     set ret -1
   }
   return $ret
+}
+# ***************************************************************************
+# LoadUserDefaultFile
+# ***************************************************************************
+proc LoadUserDefaultFile {run} {
+  global gaSet  
+  Power all on
+  #set ret [FactorySettingsPerf]
+  #if {$ret!=0} {return $ret}
+  Wait "Wait for up" 30
+  set ::sendSlow 1
+  set ret [LoadDefConf]
+  return $ret
+}
+# ***************************************************************************
+# CheckUserDefaultFile
+# ***************************************************************************
+proc CheckUserDefaultFile {run} {
+  global gaSet 
+  Power all on
+  set ret [CheckUserDefaultFilePerf]
+  return $ret 
 }

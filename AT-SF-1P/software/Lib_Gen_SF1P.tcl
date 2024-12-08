@@ -782,6 +782,27 @@ proc GetDbrName {} {
   #AddToPairLog $gaSet(pair) "$gaSet(DutFullName)"
   #AddToPairLog $gaSet(pair) "UUT - $barcode"
   
+  set ::tmpLocalUCF c:/temp/[clock format [clock seconds] -format  "%Y.%m.%d-%H.%M.%S"]_${gaSet(DutInitName)}_$gaSet(pair)_GetDbrName.txt
+  foreach {ret resTxt} [::RLWS::Get_ConfigurationFile  $gaSet(DutFullName) $::tmpLocalUCF] {}
+  puts "GetDbrName ret1 of GetUcFile  $gaSet(DutFullName) $gaSet(DutInitName): <$ret> resTxt:<$resTxt>"
+  if {$ret=="-1"} {
+    after 2000
+    foreach {ret resTxt} [::RLWS::Get_ConfigurationFile  $gaSet(DutFullName) $::tmpLocalUCF] {}
+    puts "GetDbrName ret2 of GetUcFile  $gaSet(DutFullName) $gaSet(DutInitName): <$ret> resTxt:<$resTxt>"
+  }  
+  if {$ret=="-1"} {
+    set gaSet(fail) $resTxt
+    RLSound::Play fail
+    Status "Test FAIL"  red
+    DialogBoxRamzor -aspect 2000 -type Ok -message $gaSet(fail) -icon images/error -title "Get Default Configuration File Problem"
+    pack $gaGui(frFailStatus)  -anchor w
+    $gaSet(runTime) configure -text ""
+    Status "Test FAIL"  red
+    return -2
+  } else {
+    set gaSet(DefaultCF) $resTxt
+  }  
+  
   set ret [BuildTests]
   if {$ret==0} {
     set ret [IT9600_normalVoltage 1 1]
@@ -1284,7 +1305,7 @@ proc DownloadConfFile {cf cfTxt save com} {
     if {$gaSet(act)==0} {close $id ; return -2}
     if {[string length $line]>2 && [string index $line 0]!="#"} {
       incr c
-      puts "line:<$line>"
+      puts "\nline:<$line>"
       if {[string match {*address*} $line] && [llength $line]==2} {
         if {[string match *DefaultConf* $cfTxt] || [string match *RTR* $cfTxt]} {
           ## don't change address in DefaultConf
@@ -1311,11 +1332,6 @@ proc DownloadConfFile {cf cfTxt save com} {
         ##RLSerial::Send $com "$line\r" 
         RLCom::Send $com "$line\r" 
       } else {
-        if {[string match *Aux* $cfTxt]} {
-          set gaSet(prompt) 205A
-        } else {
-          set waitFor 2I
-        }
         if {[string match {*conf system name*} $line]} {
           set gaSet(prompt) [lindex $line end]
         }
@@ -1329,8 +1345,6 @@ proc DownloadConfFile {cf cfTxt save com} {
           set gaSet(prompt) "BOOTSTRAP-2I10G"          
         }
         set ret [Send $com $line\r $gaSet(prompt) 60]
-#         Send $com "$line\r"
-#         set ret [MyWaitFor $com {205A 2I ztp} 0.25 60]
       }  
       if {$ret!=0} {
         set gaSet(fail) "Config of DUT failed"
@@ -1349,13 +1363,7 @@ proc DownloadConfFile {cf cfTxt save com} {
   }
   close $id  
   if {$ret==0} {
-    if {$com==$gaSet(comAux1) || $com==$gaSet(comAux2)} {
-      set ret [Send $com "exit all\r" $gaSet(prompt)]
-    } else {
-      set ret [Send $com "exit all\r" $gaSet(prompt)]
-#       Send $com "exit all\r" 
-#       set ret [MyWaitFor $com {205A 2I ztp} 0.25 8]
-    }
+    set ret [Send $com "exit all\r" $gaSet(prompt)]
     if {$save==1} {
       set ret [Send $com "admin save\r" "successfull" 80]
       if {$ret=="-1"} {
@@ -1556,7 +1564,7 @@ proc GetDbrSW {barcode} {
   
   Status ""
   update
-  BuildTests
+  #BuildTests
   focus -force $gaGui(tbrun)
   return 0
 }

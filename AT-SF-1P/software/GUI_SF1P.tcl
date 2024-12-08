@@ -705,7 +705,7 @@ proc ButRun {} {
   Status ""
   focus $gaGui(tbrun) 
   set gaSet(runStatus) ""
-  set gaSet(prompt) "SF-1V"
+  #set gaSet(prompt) "-1p"
   set ::wastedSecs 0
   
   set gaSet(1.barcode1.IdMacLink) ""

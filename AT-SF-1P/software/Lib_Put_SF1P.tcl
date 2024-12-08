@@ -158,6 +158,7 @@ proc Login {} {
   set statusTxt  [$gaSet(sstatus) cget -text]
   Status "Login"
   set com $gaSet(comDut)
+  set gaSet(prompt) "-1p"
   
   Send $com "\r" stam 0.25
   append gaSet(loginBuffer) "$buffer"
@@ -242,7 +243,10 @@ proc Login {} {
                   set gaSet(fail) "Save new password fail"
                   set ret -1
                 }
-              }
+              } elseif {[string match {*Login failed *} $buffer]} {
+                set ret [Send $com su\r "assword"]
+                Send $com "AT&Tpasswd10\r" "-1p#" 3
+              }  
             }
           }
         }
@@ -3656,7 +3660,7 @@ proc CellularLte_RadOS {} {
   set ret [Send $com "cellular lte\r" "(lte)"]
   if {$ret!=0} {return $ret}
   if {$gaSet(DutFullName) == "ETX-1P_A/ACEX/1SFP1UTP/4UTP/LR9/G/LTA/2R"} {
-    set apnName "m2m.com.attz"
+    set apnName "radconnectedspaces.com.attz" ; #"m2m.com.attz"
   } else {
     set apnName "statreal"
   }
@@ -3955,7 +3959,7 @@ proc CellularLte_RadOS_Sim12 {} {
   set ret [Send $com "sim 1\r" "(1)"]
   if {$ret!=0} {return $ret}
   if {$gaSet(DutFullName) == "ETX-1P_A/ACEX/1SFP1UTP/4UTP/LR9/G/LTA/2R"} {
-    set apnName "m2m.com.attz"
+    set apnName "radconnectedspaces.com.attz" ; #"m2m.com.attz" 
   } else {
     set apnName "statreal"
   }  
@@ -6301,7 +6305,7 @@ proc ReadIccid {} {
   set ret [Send $com "mode sim 1\r" "(lte)"]
   if {$ret!=0} {return $ret}
   if {$gaSet(DutFullName) == "ETX-1P_A/ACEX/1SFP1UTP/4UTP/LR9/G/LTA/2R"} {
-    set apnName "m2m.com.attz"
+    set apnName "radconnectedspaces.com.attz" ; #"m2m.com.attz" 
   } else {
     set apnName "statreal"
   }  
@@ -6395,6 +6399,125 @@ proc CheckDockerPS {} {
   set ret [Send $com "exit\r\r" -1p]
   if {$ret!=0} {
     set gaSet(fail) "Exit from Linux fail"
+  }
+  return $ret
+}
+# ***************************************************************************
+# LoadDefConf
+# ***************************************************************************
+proc LoadDefConf {} {
+  global gaSet buffer 
+  
+  foreach {res_val res_txt} [::RLWS::Get_OI4Barcode $gaSet(1.barcode1)] {}
+  puts "LoadDefConf OperationItem4Barcode res_val:<$res_val> res_txt:<$res_txt>"
+  if {$res_val=="-1"} {
+    after 2000
+    foreach {res_val res_txt} [::RLWS::Get_OI4Barcode $gaSet(1.barcode1)] {}
+    puts "LoadDefConf OperationItem4Barcode res_val:<$res_val> res_txt:<$res_txt>"
+    if {$res_val=="-1"} {
+      set gaSet(fail) $res_txt
+      return -1
+    } else {
+      set dbr_asmbl $res_txt
+    }
+  } else {
+    set dbr_asmbl $res_txt
+  }
+  set initName [regsub -all / $dbr_asmbl .]
+  
+  set localUCF c:/temp/[clock format [clock seconds] -format  "%Y.%m.%d-%H.%M.%S"]_${initName}_$gaSet(pair)_LoadDefConf.txt
+  #set ret [GetUcFile $dbr_asmbl $localUCF]
+  foreach {ret resTxt} [::RLWS::Get_ConfigurationFile $dbr_asmbl $localUCF] {}
+  puts "LoadDefConf ret of GetUcFile  $gaSet(1.barcode1): <$ret> resTxt:<$resTxt>"
+  if {$ret=="-1"} {
+    #set gaSet(fail) "Get Default Configuration File Fail"
+    set gaSet(fail) $resTxt
+    return -1
+  }
+  
+  set entDUTconfFile $::tmpLocalUCF
+  set entDUTconfFileSize [file size $entDUTconfFile]
+  
+  set localUCFSize [file size $localUCF]
+  
+  puts "\nDUT entry $entDUTconfFile:<$entDUTconfFileSize>,  LoadDefConf $localUCF:<$localUCFSize>"
+  if {$entDUTconfFileSize!=$localUCFSize} {
+    set gaSet(fail) "Problem with Default Configuration File's size ($entDUTconfFileSize != $localUCFSize)"
+    return -1
+  }
+  
+  #set ucf $gaSet(pair)_ucf.txt
+  #file copy $localUCF C:/download/etx1p/$ucf
+  
+  set ret [Login]
+  if {$ret!=0} {
+    #set ret [Login]
+    if {$ret!=0} {return $ret}
+  }
+  set gaSet(fail) "Load Default Configuration fail"
+  set com $gaSet(comDut)
+  Send $com "exit all\r" stam 0.25 
+  
+  if {$gaSet(DutFullName) == "ETX-1P_A/ACEX/1SFP1UTP/4UTP/LR9/G/LTA/2R"} {
+    set ret [Send $com "configure management login-user su\r" "(su)"]
+    if {$ret!=0} {
+      set gaSet(fail) "Fail to manage user"
+      return -1
+    }
+    set ret [Send $com "password AT&Tpasswd10\r" "(su)"]
+    if {$ret!=0} {
+      set gaSet(fail) "Fail to change password"
+      return -1
+    }
+    Send $com "exit all\r" stam 0.25 
+    Send $com "admin save\r" successfull
+  }
+    
+  set cf $localUCF ; #$gaSet(DefaultCF) 
+  set cfTxt "DefaultConfiguration"
+  set ret [DownloadConfFile $cf $cfTxt 1 $com]
+  if {$ret!=0} {return $ret}
+  #Send $com "copy sftp://su:$gaSet(suPsw)@$gaSet(sshPcIp)/$ucf user-default-config\r"
+  
+  set ret [Send $com "file copy running-config user-default-config\r" "yes/no" ]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "y\r" "successfull" 100]
+  
+  return $ret
+}  
+# ***************************************************************************
+# CheckUserDefaultFilePerf
+# ***************************************************************************
+proc CheckUserDefaultFilePerf {} {
+  global gaSet buffer
+  set com $gaSet(comDut)
+  Status "Check User Default File"
+  set ret [Login]
+  if {$ret!=0} {
+    #set ret [Login]
+    if {$ret!=0} {return $ret}
+  }
+  
+  Send $com "exit all\r" stam 0.25 
+  set ret [Send $com "file dir\r" more 5]
+  if {$ret == 0} {
+    set buff $buffer
+    Send $com "\r" more 5
+    append buff $buffer
+    Send $com "\r" $gaSet(prompt)
+    append buff $buffer
+    set buffer $buff
+  }
+  puts "\n CheckUserDefaultFilePerf buffer:<$buffer>"
+  if [string match {*user-default-config*} $buffer] {
+    set ret 0
+    set res [regexp {user-default-config[\sa-zA-Z]+(\d+)\s} $buffer ma val]
+    if $res {
+      AddToPairLog $gaSet(pair) "user-default-config: $val"
+    }
+  } else {
+    set ret -1
+    set gaSet(fail) "No \'user-default-config\' in File Dir"
   }
   return $ret
 }
