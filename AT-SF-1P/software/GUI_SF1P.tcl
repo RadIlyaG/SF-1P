@@ -951,6 +951,10 @@ proc ButRun {} {
 	    ## do not include No Operator fail in statistics
       set gaSet(runStatus) ""  
 	  }
+    if {$ret=="-4"} {
+	    ## do not include SW_update fail in statistics
+      set gaSet(runStatus) ""  
+	  }
     if {$gaSet(runStatus)!=""} {
       UnregIdBarcode $gaSet(1.barcode1)
     }

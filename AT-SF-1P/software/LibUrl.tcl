@@ -5,7 +5,7 @@ package require json
 ::http::register https 8445 [list tls::socket -tls1 1]
 package require md5
 
-package provide RLWS 1.2
+package provide RLWS 1.3
 
 namespace eval RLWS { 
 
@@ -684,13 +684,7 @@ proc ::RLWS::Get_Pages {id {traceId ""} {macs_qty 10} } {
   ::http::cleanup $tok
   
   if $::RLWS::debugWS {set ::b $body}
-  regsub -all {[<>]} $body " " b1
-  
-  if [string match {*502 Proxy Error*} $b1] {
-    set res_val -1
-    set res_txt "Server problem. Fail to get Pages"
-    return [list $res_val $res_txt]
-  }
+  regsub -all {[<>]} $body " " b1  
   if ![string match {*ns1:get_Data_4_DallasResponse*} $b1] {
     foreach {pa_ret pa_resTxt} [::RLWS::Ping_Services] {
       if $::RLWS::debugWS {puts "pa_ret:<$pa_ret> <$pa_resTxt>"}
@@ -699,11 +693,15 @@ proc ::RLWS::Get_Pages {id {traceId ""} {macs_qty 10} } {
       return [list $pa_ret $pa_resTxt]
     } else {
       set res_val -1
-      #set res_txt "Network problem "; #"Fail to get $paramName"; # "http::status: <$st> http::ncode: <$nc>"
-      set res_txt "Fail to get Pages"; #"Fail to get $paramName"; # "http::status: <$st> http::ncode: <$nc>"
+      set res_txt "Fail to get Pages"
       #set res_txt "Fail to get Pages for $id $traceId.."
       return [list $res_val $res_txt]
     }
+  }
+  if [string match {*502 Proxy Error*} $b1] {
+    set res_val -1
+    set res_txt "Server problem. Fail to get Pages"
+    return [list $res_val $res_txt]
   }
   if [string match {*ERROR*} $b1] {
     set err ERROR

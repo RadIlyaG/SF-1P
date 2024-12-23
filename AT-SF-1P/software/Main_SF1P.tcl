@@ -28,7 +28,8 @@ proc BuildTests {} {
     }
    
     if {$gaSet(dutFam.sf)=="ETX-1P" || $gaSet(dutFam.sf)=="ETX-1P_SFC" || $gaSet(dutFam.sf)=="ETX-1P_A"} {
-      lappend lTestNames PowerOffOn
+      # 16:01 22/12/2024 lappend lTestNames PowerOffOn
+      ## no PowerOffOn for ETX-1p
     } else {
       if {$gaSet(it6900.1) == "" && $gaSet(it6900.2) == ""} {
         #11:08 22/09/2024
@@ -160,6 +161,9 @@ proc BuildTests {} {
       lappend lTestNames Certificate  
       ## lappend lTestNames DigitalSerialNumber  ; # done in Factory_Settings
     }
+    if {$gaSet(DutFullName) == "ETX-1P_A/ACEX/1SFP1UTP/4UTP/LR9/G/LTA/2R" && [package vcompare $gaSet(SWver) "6.3.0.81"] == "0"} {
+      lappend lTestNames Install_SW_update  
+    }
     
     if {[string index $gaSet(dutFam.cell) 0] !=0} {
       lappend lTestNames LteLeds
@@ -179,6 +183,13 @@ proc BuildTests {} {
     }
     if {$gaSet(DefaultCF)!="0"} {
       lappend lTestNames LoadUserDefaultFile CheckUserDefaultFile
+    }
+    # if {$gaSet(DutFullName) == "ETX-1P_A/ACEX/1SFP1UTP/4UTP/LR9/G/LTA/2R" && [package vcompare $gaSet(SWver) "6.3.0.81"] == "0"} {
+      # lappend lTestNames Install_SW_update  
+    # }
+    
+    if {$gaSet(DutFullName) == "ETX-1P_A/ACEX/1SFP1UTP/4UTP/LR9/G/LTA/2R"} {
+      lappend lTestNames Check_Certificate_Linux
     }
   }
 
@@ -490,6 +501,9 @@ proc GPS {run} {
 proc Factory_Settings {run} {
   global gaSet
   set ::sendSlow 0
+  set ret [Cert_checkLinux]
+  if {$ret!=0} {return -1}
+  
   set ret [ReadImei]
   if {$ret!=0} {
     after 10000
@@ -531,7 +545,12 @@ proc Factory_Settings {run} {
   }
   if {$ret!=0} {return $ret}
   set ret [FactorySettingsPerf]
+  if {$ret!=0} {return $ret}
   Wait "Wait for reset" 30
+  set ret [Login]
+  if {$ret!=0} {return $ret}
+  set ret [Cert_checkLinux]
+  if {$ret!=0} {return -1}
   return $ret
 }
 
@@ -1136,7 +1155,7 @@ proc DryContactAlarmGo {run} {
 # ***************************************************************************
 proc Certificate {run} {
   global gaSet buffer
-  set ::sendSlow 0
+  set ::sendSlow 1
   MuxMngIO nc
   set com $gaSet(comDut)
   Send $com "\r" stam 0.25
@@ -1265,4 +1284,33 @@ proc CheckUserDefaultFile {run} {
   Power all on
   set ret [CheckUserDefaultFilePerf]
   return $ret 
+}
+
+# ***************************************************************************
+# Install_SW_update
+# ***************************************************************************
+proc Install_SW_update {run} {
+  global gaSet 
+  set ::sendSlow 1
+  MuxMngIO 6ToPc
+  Power all on
+  set ret [Install_SW_update_Perf]
+  if {$ret=="0" || $ret=="-2"} {
+    return $ret
+  } else {
+    ## do not include SW_update fail in statistics
+    return "-4"
+  }
+}
+# ***************************************************************************
+# Check_Certificate_Linux
+# ***************************************************************************
+proc Check_Certificate_Linux {run} {
+  global gaSet 
+  set ::sendSlow 1
+  MuxMngIO nc
+  Power all on
+  set ret [Cert_checkLinux]
+  return $ret
+  
 }

@@ -6162,7 +6162,7 @@ proc Cert_AuthenticateCa {} {
     after 2000
   }
   if {$ret!=0} {
-    set gaSet(fail) "Fail to authenticate certificate"
+    set gaSet(fail) "Fail to authenticate CaCertificate"
     return $ret
   }
   set buf $buffer
@@ -6170,6 +6170,10 @@ proc Cert_AuthenticateCa {} {
   set ret [Send $com "y\r" "pki#"]
   if {$ret!=0} {
     set gaSet(fail) "Fail to accept certificate"
+    return $ret
+  }
+  if ![string match {*successfully imported*} $buffer] {
+    set gaSet(fail) "Fail to import certificate"
     return $ret
   }
   
@@ -6262,7 +6266,7 @@ proc Cert_EnrollCerificate {} {
   puts "\n$cmd\n"
   AddToPairLog $gaSet(pair) "Enroll string: $cmd" 
   
-  set ret [Send $com "$cmd\r" "yes/no" 15]
+  set ret [Send $com "$cmd\r" "yes/no" 30]
   if {$ret!=0} {
     set gaSet(fail) "Fail to obtain certificate from the CA"
     return $ret
@@ -6272,11 +6276,18 @@ proc Cert_EnrollCerificate {} {
     set gaSet(fail) "Fail to accept certificate"
     return $ret
   }
+  if ![string match {*successfully imported*} $buffer] {
+    set gaSet(fail) "Fail to import SelfCertificate"
+    return $ret
+  }
   
   set ret [Send $com "show certificate-summary\r\r" "pki"]
   AddToPairLog $gaSet(pair) $buffer
   
-  return 0
+  set ret [Cert_checkLinux]
+  if {$ret!=0} {return -1}
+  
+  return $ret  
 }  
  
 # ***************************************************************************
@@ -6520,4 +6531,169 @@ proc CheckUserDefaultFilePerf {} {
     set gaSet(fail) "No \'user-default-config\' in File Dir"
   }
   return $ret
+}
+# ***************************************************************************
+# Install_SW_update_Perf
+# ***************************************************************************
+proc Install_SW_update_Perf {} {
+  global gaSet buffer
+  set com $gaSet(comDut)
+  Status "Install_SW_update_Perf"
+  set ret [Login]
+  if {$ret!=0} {
+    #set ret [Login]
+    if {$ret!=0} {return $ret}
+  }
+  
+  Send $com "exit all\r" stam 0.25 
+  set ret [Send $com "config router 1\r" (1)]
+  if {$ret!=0} {
+    set gaSet(fail) "Fail to reach router 1"
+    return $ret
+  }
+  set ret [Send $com "interface 32\r" (32)]
+  if {$ret!=0} {
+    set gaSet(fail) "Fail to reach interface 32"
+    return $ret
+  }
+  set ret [Send $com "address $gaSet(ip4lora)/24\r" (32)]
+  if {$ret!=0} {
+    set gaSet(fail) "Fail to config address"
+    return $ret
+  }
+  
+  Send $com "exit all\r" stam 0.25 
+  
+  set ret -1
+  set pc_ip 0
+  foreach {jj pc_ip} [regexp -all -inline {v4 Address[\.\s\:]+([\d\.]+)} [exec ipconfig]] {
+    puts "Install_SW_update_Perf pc_ip:$pc_ip"
+    if {[string match {*192.115.243.*} $pc_ip] || [string match {*172.18.9*} $pc_ip] || [string match {*172.17.9*} $pc_ip]} {
+      set ret 0
+      break
+    }
+  }
+  puts "Install_SW_update_Perf ret:$ret pc_ip:$pc_ip"
+  if {$ret!=0} {
+    set gaSet(fail) "Fail to get PC's IP address"
+    return $ret  
+  }
+  
+  set maxPings 4
+  for {set i 1} {$i<=$maxPings} {incr i} {
+    Status "Ping $pc_ip ($i/$maxPings)"
+    set ret [Send $com "ping $pc_ip\r" "1p\#" 20]
+    if {$ret!=0} {
+      set gaSet(fail) "Fail to ping $pc_ip"
+      return $ret
+    }
+    if {[string match {*Reply from*} $buffer] && [string match {*bytes = 32*} $buffer]} {
+      set ret 0
+      break
+    } else {
+      after 3000 
+    }    
+  }
+  
+  Send $com "exit all\r" stam 0.25
+  set ret [Send $com "show file sw-pack\r" "-1p"]
+  AddToPairLog $gaSet(pair) "file sw-pack before copy: $buffer"  
+  
+  set update_file "vcpeos_6.3.0.81.1_arm-lite.tar.gz" ;#c:/download/vcpeos_6.3.0.81.1_arm-lite.tar.gz
+  set ret [Send $com "copy sftp://secflow:123456@${pc_ip}/$update_file sw-update-1\r" "yes/no"]
+  set ret [Send $com "y\r" "successfull" 20]
+  if {$ret!=0} {
+    set gaSet(fail) "Fail to copy update_file to sw-update-1"
+    return $ret  
+  }
+  
+  set ret [Send $com "show file sw-pack\r" "-1p"]
+  AddToPairLog $gaSet(pair) "file sw-pack after copy: $buffer"  
+  set readyQty [regexp -all {active} $buffer]
+  puts "readyQty:$readyQty"
+  if {$readyQty!=1} {
+    set gaSet(fail) "There is no ready SW"
+    return $ret
+  }
+  
+  set ret [Send $com "admin software install sw-update-1\r" "yes/no"]
+  set ret [Send $com "y\r" "software update" ]
+  if {$ret!=0} {
+    set gaSet(fail) "Fail to reset after install sw-update-1"
+    return $ret  
+  }
+  set ret [Wait "Wait for reboot" 180]
+  if {$ret!=0} {return -2}
+  
+  set ret [Login]
+  if {$ret!=0} {
+    set ret [Login]
+    if {$ret!=0} {return $ret}
+  }
+  
+  Send $com "exit all\r" stam 0.25 
+  set ret [Send $com "show file sw-pack\r" "-1p"]
+  AddToPairLog $gaSet(pair) "file sw-pack after install: $buffer"  
+  
+  set actQty [regexp -all {active} $buffer]
+  puts "actQty:$actQty"
+  if {$actQty!=2} {
+    set gaSet(fail) "There is no two active SWs"
+    return $ret
+  }
+  
+  set ret [Send $com "config route 1 interface 32\r" "(32)"]
+  if {$ret!=0} {
+    set gaSet(fail) "Fail to reach interface 32"
+    return $ret
+  }
+  set ret [Send $com "info\r" "(32)"]
+  AddToPairLog $gaSet(pair) "interface 32 after install: $buffer" 
+
+  return $ret  
+}
+
+# ***************************************************************************
+# Cert_checkLinux
+# ***************************************************************************
+proc Cert_checkLinux {} {
+  global gaSet buffer
+  if {$gaSet(DutFullName) == "ETX-1P_A/ACEX/1SFP1UTP/4UTP/LR9/G/LTA/2R"} {
+    set com $gaSet(comDut)
+    Status "Cert_checkLinux"
+    set ret [Login]
+    if {$ret!=0} {
+      #set ret [Login]
+      if {$ret!=0} {return $ret}
+    }
+    
+    Send $com "exit all\r" "stam" 1
+    set ret [Login2Linux]
+    if {$ret!=0} {return $ret} 
+    Send $com "ls -lh  /opt/certs/cert_user_files/user_key_cert/\r" "ost:/#"
+    # set res [regexp -all -inline {cert\s+([0-9\.K]+)[A-Za-z0-9\: ]+SelfCertificate.cert[\.0]*} $buffer]
+    set res [regexp -all -inline {\s+([0-9\.K]+)[A-Za-z0-9\:\s]+SelfCertificate.cert[\.0]*} $buffer]
+    if {$res==""} {
+      set gaSet(fail) "Fail to read SelfCertificate.cert"
+      return -1
+    }
+    AddToPairLog $gaSet(pair) "SelfCertificate.cert: $res"
+    set err ""
+    foreach {cert size} $res {
+      if {$size==0} {
+        append err "Size of [lindex $cert end] is 0 ;"
+      }
+    }
+    if {$err==""} {
+      set ret 0
+      Send $com "exit\r" "stam" 1
+      Send $com "exit\r" "stam" 1
+    } else {
+      set ret -1
+      set gaSet(fail) "$err"
+    } 
+    return $ret
+  } else {
+    return 0
+  }
 }
