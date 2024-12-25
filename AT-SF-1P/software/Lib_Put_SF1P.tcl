@@ -3997,7 +3997,7 @@ proc CellularLte_RadOS_Sim12 {} {
   if {$ret!=0} {return $ret}
   set ret [Send $com "interface 1\r" "(1)"]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "shutdown\r" "(1)"]
+  set ret [Send $com "shutdown\r" "(1)" 15]
   if {$ret!=0} {return $ret}
   set ret [Send $com "bind cellular lte\r" "(1)"]
   if {$ret!=0} {return $ret}
@@ -4297,7 +4297,7 @@ proc CellularLte_RadOS_Sim12_Dual {} {
   
   set ret [Send $com "interface 1\r" "(1)"]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "shutdown\r" "(1)"]
+  set ret [Send $com "shutdown\r" "(1)" 15]
   if {$ret!=0} {return $ret}
   set ret [Send $com "bind cellular lte-1\r" "(1)"]
   if {$ret!=0} {return $ret}
@@ -6266,7 +6266,7 @@ proc Cert_EnrollCerificate {} {
   puts "\n$cmd\n"
   AddToPairLog $gaSet(pair) "Enroll string: $cmd" 
   
-  set ret [Send $com "$cmd\r" "yes/no" 40] ; # 30
+  set ret [Send $com "$cmd\r" "yes/no" 30] ; # 30
   if {$ret!=0} {
     set gaSet(fail) "Fail to obtain certificate from the CA"
     return $ret
