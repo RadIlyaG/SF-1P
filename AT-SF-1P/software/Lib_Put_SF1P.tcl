@@ -6266,7 +6266,7 @@ proc Cert_EnrollCerificate {} {
   puts "\n$cmd\n"
   AddToPairLog $gaSet(pair) "Enroll string: $cmd" 
   
-  set ret [Send $com "$cmd\r" "yes/no" 30] ; # 30
+  set ret [Send $com "$cmd\r" "yes/no" 40] ; # 30
   if {$ret!=0} {
     set gaSet(fail) "Fail to obtain certificate from the CA"
     return $ret
