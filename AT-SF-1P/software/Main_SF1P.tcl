@@ -457,7 +457,17 @@ proc DataTransmission {run} {
 proc SerialPorts {run} {
   global gaSet
   set ::sendSlow 1
+  
   if {$gaSet(dutFam.serPort)=="2RSM" || $gaSet(dutFam.serPort)=="2RMI"} {
+    set comL [list]
+    foreach val [registry values HKEY_LOCAL_MACHINE\\HARDWARE\\DEVICEMAP\\SERIALCOMM ] {
+      lappend comL [registry get HKEY_LOCAL_MACHINE\\HARDWARE\\DEVICEMAP\\SERIALCOMM $val]    
+    }
+    if {[lsearch $comL COM$gaSet(comSer485)]=="-1"} {
+       set gaSet(fail) "COM$gaSet(comSer485) doesn't exist on the PC"
+       return -3
+    }
+  
     if [catch {open \\\\.\\com$gaSet(comSer485) RDWR} handle] {
       set gaSet(fail) "Can't open COM-$gaSet(comSer485)"
       return -3
