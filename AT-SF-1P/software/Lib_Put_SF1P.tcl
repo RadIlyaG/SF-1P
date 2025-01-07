@@ -6223,15 +6223,29 @@ proc Cert_GetPassword {} {
   global gaSet buffer gaGetOpDBox
   set ::enroll_password 0
   Status "Get Challenge Password"
-   
-  RLSound::Play information
-  set ret [GetOpDlg -title "Enrollment Challenge Password" -text "Paste the Enrollment Challenge Password" -type "Ok Cancel" -icon "/images/uut48.ico"]     
-  #puts "\n<$ret> was clicked\n" 
-  if {$ret=="Cancel"} {
-    return -2
+  
+  
+  #catch {exec curl --ntlm -u "devicecare\\washington:noter223sadv3ad1!s&bnot1e5e1!s&b" https://crl.device-care.net/certsrv/mscep_admin/ --output - --ssl-no-revoke} res
+  catch {exec curl --ntlm -u "devicecare\\washington:noter223sadv3ad1!s&bnot1e5e1!s&b" https://crl.device-care.net/certsrv/mscep_admin/ --output -} res
+  regsub -all [format %c 0] $res "" site_without_null
+  regsub -all {<[^>]+>} $site_without_null "" site_without_html_tags
+  set ::enroll_password [lindex $site_without_html_tags [expr {2+[lsearch $site_without_html_tags password]}]]
+  if {[ string is xdigit $::enroll_password] && [string length $::enroll_password]==16} {
+    puts "enroll_password:<$::enroll_password>"  
+  } else {
+    set gaSet(fail) "Fail to get Challenge Password"
+    return -1
   }
-  set ::enroll_password [string trim $gaGetOpDBox(entVal1)]
-  puts "enroll_password:<$::enroll_password>" 
+   
+  ## 08:11 07/01/2025
+  # RLSound::Play information
+  # set ret [GetOpDlg -title "Enrollment Challenge Password" -text "Paste the Enrollment Challenge Password" -type "Ok Cancel" -icon "/images/uut48.ico"]     
+  # #puts "\n<$ret> was clicked\n" 
+  # if {$ret=="Cancel"} {
+    # return -2
+  # }
+  # set ::enroll_password [string trim $gaGetOpDBox(entVal1)]
+  # puts "enroll_password:<$::enroll_password>"  
   
   AddToPairLog $gaSet(pair) "Enrollment Challenge Password: $::enroll_password" 
   return 0
