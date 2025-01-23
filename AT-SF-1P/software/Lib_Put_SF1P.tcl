@@ -538,7 +538,9 @@ proc ShutDown {port state} {
   Status "ShutDown $port \'$state\'"
   set ret [Send $com "exit all\r" "-1p"]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "configure port ethernet $port\r $state" "($port)"]
+  set ret [Send $com "configure port ethernet $port\r" "($port)"]
+  if {$ret!=0} {return $ret}
+  set ret [Send $com "$state\r" "($port)" 30]
   if {$ret!=0} {return $ret}
   
   return $ret
@@ -4936,8 +4938,12 @@ proc LoraModuleConf {} {
   if {$ret!=0} {return $ret}
   set ret [Send $com "gateway\r" "lora-gateway"]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "shutdown\r" "lora-gateway" 20]
-  if {$ret!=0} {return $ret}
+  set ret [Send $com "shutdown\r" "lora-gateway" 30]
+  if {$ret!=0} {
+    after 5000
+    set ret [Send $com "shutdown\r" "lora-gateway" 30]
+    if {$ret!=0} {return $ret}
+  }
   set ret [Send $com "operation-mode udp-forward\r" "lora-gateway"]
   if {$ret!=0} {
     set ret [Send $com "operation-mode udp-forward\r" "lora-gateway"]
@@ -4945,8 +4951,12 @@ proc LoraModuleConf {} {
   }
   set ret [Send $com "server ip-address $gaSet(ChirpStackIP.$gaSet(dutFam.lora.fam)) port 1700\r" "lora-gateway"]
   if {$ret!=0} {return $ret}
-  set ret [Send $com "no shutdown\r" "lora-gateway" 20]
-  if {$ret!=0} {return $ret}
+  set ret [Send $com "no shutdown\r" "lora-gateway" 30]
+  if {$ret!=0} {
+    after 5000
+    set ret [Send $com "no shutdown\r" "lora-gateway" 30]
+    if {$ret!=0} {return $ret}
+  }
   
   set ret [Send $com "show status\r" "lora-gateway\#"]
   if {$ret!=0} {

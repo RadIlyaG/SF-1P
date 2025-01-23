@@ -360,7 +360,7 @@ proc BrdEeprom {run} {
 # ***************************************************************************
 proc ID {run} {
   global gaSet
-  set ::sendSlow 0
+  set ::sendSlow 1
   MuxMngIO nc
   set ret 0
   set ret [IDPerf ID]  
