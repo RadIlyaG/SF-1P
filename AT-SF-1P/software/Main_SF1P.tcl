@@ -767,6 +767,7 @@ proc LoRa {run} {
                 puts "ret of CheckDockerPS: $rr"
               }  
               if {$ret==0} {
+                Wait "Wait after join" 5 white
                 set data [clock format [clock seconds] -format "%d%H%M%S"]
                 set ret [LoraPerf  $data ] ;  # aabbccdd
                 puts "ret after LoraPerf $data: $ret"; update

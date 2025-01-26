@@ -74,7 +74,7 @@ def send_data_to_lora_dev(data="aabbccdd"):
     try:
         with rl_com.open_com("COM3", 115200) as ser:
             ret = rl_com.send(ser, f"at+send=lora:1:{data}\r\n", "recv", 14)
-            print(f'send_data buffer:<{rl_com.buffer}>')
+            print(f'send_data buffer:<{rl_com.buffer}>  send_time:<{rl_com.send_time}> ret:<{ret}>')
             rl_com.close_com(ser)
     except Exception as exp:
         print(f'Open com fail: {exp}')
