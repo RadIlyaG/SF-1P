@@ -4059,7 +4059,7 @@ proc CellularModemPerf_RadOS_Sim12 {actSim disSim} {
   set ret [Send $com "no shutdown\r" $prmpt]
   if {$ret!=0} {return $ret}
   
-  set ret [Wait "Wait 60 seconds for no shutdown" 60]
+  set ret [Wait "Wait 120 seconds for no shutdown" 120]
   if {$ret!=0} {return $ret}
   
   set gaSet(fail) "Read SIM-$actSim status fail"
