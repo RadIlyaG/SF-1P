@@ -6319,6 +6319,7 @@ proc Cert_EnrollCerificate {} {
 # ***************************************************************************
 proc ReadIccid {} {
   global gaSet buffer
+  puts "[MyTime] ReadIccid"
   set com $gaSet(comDut)
   set prmpt "(lte)"
   set actSim 1

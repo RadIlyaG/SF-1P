@@ -770,6 +770,12 @@ proc LoRa {run} {
               if {$ret==0} {
                 Wait "Wait after join" 5 white
                 set data [clock format [clock seconds] -format "%d%H%M%S"]
+                
+                ## to avoid problems woth leading 0 I change by 9
+                ## 03121234 -> 93121234
+                if {[string index $data 0]==0} {
+                  set data 9[string range $data 1 end]
+                }
                 set ret [LoraPerf  $data ] ;  # aabbccdd
                 puts "ret after LoraPerf $data: $ret"; update
                 if {$ret==0} {
