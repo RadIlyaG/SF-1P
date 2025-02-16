@@ -1299,6 +1299,7 @@ proc LoadUserDefaultFile {run} {
 # ***************************************************************************
 proc CheckUserDefaultFile {run} {
   global gaSet 
+  set ::sendSlow 1
   Power all on
   set ret [CheckUserDefaultFilePerf]
   return $ret 
