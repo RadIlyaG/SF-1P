@@ -761,11 +761,21 @@ proc LoRa {run} {
             if {$ret==0} {
             set ret [JoinLoraDev]
               puts "ret 1 after JoinLoraDev: $ret"; update
+              AddToPairLog $gaSet(pair) "ret 1 after JoinLoraDev: $ret"
               if {$ret!=0} {
-                #set ret [JoinLoraDev]
-                #puts "ret 2 after JoinLoraDev: $ret"; update
-                set rr [CheckDockerPS]
-                puts "ret of CheckDockerPS: $rr"
+                set ret [LoraModuleConf]
+                if {$ret==0} {
+                  # no need add GW sinse after first join the GW exists
+                  # ChirpStackAddGateway $gaSet(ChirpStackIPGW)  
+                  set ret [Wait "Wait before second Join" 15 white]
+                  if {$ret==0} {
+                    set ret [JoinLoraDev]
+                    puts "ret 2 after JoinLoraDev: $ret"; update
+                    AddToPairLog $gaSet(pair) "ret 2 after JoinLoraDev: $ret"
+                    set rr [CheckDockerPS]
+                    puts "ret of CheckDockerPS: $rr"
+                  }
+                }
               }  
               if {$ret==0} {
                 Wait "Wait after join" 5 white
@@ -776,8 +786,15 @@ proc LoRa {run} {
                 if {[string index $data 0]==0} {
                   set data 9[string range $data 1 end]
                 }
-                set ret [LoraPerf  $data ] ;  # aabbccdd
+                set ret [LoraPerf  $data]
                 puts "ret after LoraPerf $data: $ret"; update
+                AddToPairLog $gaSet(pair) "ret 1 after LoraPerf: $ret"
+                if {$ret!=0} {
+                  Wait "Wait after LoraPerf" 5 white
+                  set ret [LoraPerf  $data]
+                  puts "ret after LoraPerf $data: $ret"; update
+                  AddToPairLog $gaSet(pair) "ret 2 after LoraPerf: $ret"
+                } 
                 if {$ret==0} {
                   #set ret [LoraPerf 11223344]
                   ChirpStackDeleteGateway $gaSet(ChirpStackIPGW)  
