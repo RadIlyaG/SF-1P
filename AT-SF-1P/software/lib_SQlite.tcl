@@ -76,13 +76,31 @@ proc SQliteAddLine {} {
     set operator 0
   }
   
-  if [info exists gaSet(1.traceId)] {
+  set traceID ""
+  set poNumber ""  
+  if {[info exists gaSet(1.traceId)] && $gaSet(1.traceId)!=""} {
     set traceID $gaSet(1.traceId) 
   } else {
-    set traceID ""
+    foreach {ret resTxt} [::RLWS::Get_TraceId $barcode] {}
+    puts "SQliteAddLine Get_TraceId $barcode ret:<$ret> resTxt:<$resTxt>"
+    if {$res_val=="-1"} {
+      after 1000
+      foreach {ret resTxt} [::RLWS::Get_TraceId $barcode] {}
+    }
+    if {$ret=="0"} {
+      set traceID $resTxt
+    }
   }
   
-  set poNumber ""
+  if {$traceID!=""} {
+    foreach {ret resTxt} [::RLWS::Get_PcbTraceIdData $traceID {"po number"}] {}
+    if {$ret=="0"} { 
+      set poNumber $resTxt
+    }
+  }  
+  AddToPairLog $gaSet(pair) "traceID: $traceID"
+  AddToPairLog $gaSet(pair) "poNumber: $poNumber" 
+ 
 
   for {set tr 1} {$tr <= 6} {incr tr} {
     #if [catch {UpdateDB $barcode $uut $hostDescription $date $tim-$gaSet(ButRunTime) $status $failTestsList $failReason $operator} res] {}
