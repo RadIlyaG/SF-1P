@@ -291,6 +291,9 @@ proc Login2Linux {} {
   if {$ret!=0} {return $ret}
   
   set ret [Send $com "debug shell\r\r" localhost]
+  if {$ret!=0} {
+    set ret [Send $com "debug shell\r\r" localhost]
+  }
   if [string match *:/#* $buffer] {
     set gaSet(linuxPrompt) /#
   } elseif [string match */\]* $buffer] {
