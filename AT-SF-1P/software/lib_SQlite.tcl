@@ -83,7 +83,7 @@ proc SQliteAddLine {} {
   } else {
     foreach {ret resTxt} [::RLWS::Get_TraceId $barcode] {}
     puts "SQliteAddLine Get_TraceId $barcode ret:<$ret> resTxt:<$resTxt>"
-    if {$res_val=="-1"} {
+    if {$ret=="-1"} {
       after 1000
       foreach {ret resTxt} [::RLWS::Get_TraceId $barcode] {}
     }
