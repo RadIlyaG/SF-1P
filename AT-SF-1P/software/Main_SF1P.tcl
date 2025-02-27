@@ -177,7 +177,7 @@ proc BuildTests {} {
         lappend lTestNames FDbutton
       }
     }
-    lappend lTestNames Factory_Settings SSH
+    lappend lTestNames Factory_Settings ; # 08:14 27/02/2025 SSH
     if !$gaSet(demo) {
       lappend lTestNames Mac_BarCode
     }

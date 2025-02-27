@@ -309,7 +309,7 @@ Please confirm you know products should not be released to the customer with thi
   if $::NoATP {
     RLStatus::Show -msg atp
   }
-  set ::NoFTI 1
+  set ::NoFTI 0
   if $::NoFTI {
     RLStatus::Show -msg fti
   }
