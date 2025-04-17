@@ -206,7 +206,8 @@ proc Login {} {
 
       if {[string match {*user>*} $gaSet(loginBuffer)]} {
         set ret [Send $com su\r "assword"]
-        if {$gaSet(SWver)>="6.3.0.75"} {
+        #if {$gaSet(SWver)>="6.3.0.75"} {}
+        if {[package vcompare $gaSet(SWver) "6.3.0.75"]>=0} {
           set gaSet(suPsw) "AT&Tpasswd10" ; #"1qaz2wsx3E-"
         } else {
           set gaSet(suPsw) "1234"
@@ -333,7 +334,8 @@ proc Login2App {} {
     set ret -1
   } 
   
-  if {$gaSet(SWver)>="6.3.0.75"} {
+  #if {$gaSet(SWver)>="6.3.0.75"} {}
+  if {[package vcompare $gaSet(SWver) "6.3.0.75"]>=0} {
     set gaSet(psw) "AT&Tpasswd10" ; #"1qaz2wsx3E-"
   } else {
     set gaSet(psw) "1234"
