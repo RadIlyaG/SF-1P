@@ -24,7 +24,13 @@ proc ConfigLoraDev {} {
   puts "[MyTime] ConfigLoraDev POST $query"
   catch {::http::geturl $url -query $query -timeout $timeout} tok
   upvar #0 $tok state
-  parray state
+  if [array  exists state] {
+    parray state
+  } else {
+    set gaSet(fail) "No connection to ChirpStack"
+    http::cleanup $tok
+    return -1
+  }  
   http::cleanup $tok
   
   set ret [ReadChirpStackLogs]
