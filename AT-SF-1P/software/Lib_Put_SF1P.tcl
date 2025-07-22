@@ -2684,15 +2684,23 @@ proc LinuxLedsPerf {} {
     RLSound::Play information
     set res [DialogBox -title "CellBar Test" -type "OK" -message $txt -icon images/info]
     
-    Send $com "./lte_ledtest.sh 0\r" $gaSet(linuxPrompt) 
+    if {[package vcompare $gaSet(SWver) "6.4.0"]>=0} {
+      ## boot 6.4
+      set leds_path "./etc/leds"
+    } else {
+      ## old boots
+      set leds_path "."
+    }
+    Send $com "$leds_path/lte_ledtest.sh 0\r" $gaSet(linuxPrompt) 
     after 250
-    Send $com "./lte_ledtest.sh 5\r" $gaSet(linuxPrompt) 
+    Send $com "$leds_path/lte_ledtest.sh 5\r" $gaSet(linuxPrompt) 
     after 250
-    Send $com "./lte_ledtest.sh 10\r" $gaSet(linuxPrompt) 
+    Send $com "$leds_path/lte_ledtest.sh 10\r" $gaSet(linuxPrompt) 
     after 250
-    Send $com "./lte_ledtest.sh 15\r" $gaSet(linuxPrompt)
+    Send $com "$leds_path/lte_ledtest.sh 15\r" $gaSet(linuxPrompt)
     after 250
-    Send $com "./lte_ledtest.sh 0\r" $gaSet(linuxPrompt)
+    Send $com "$leds_path/lte_ledtest.sh 0\r" $gaSet(linuxPrompt)
+    
     
     RLSound::Play information
     set res [DialogBox -title "LTE Led Bar Test" -type "Yes No Repeat" \
@@ -6433,7 +6441,7 @@ proc CheckDockerPS {} {
   if {$ret==0} {
     Send $com \r\r $gaSet(linuxPrompt)
     Send $com "docker image list\r" $gaSet(linuxPrompt)
-    Send $com "docker container list\r" $gaSet(linuxPrompt)
+    Send $com "docker container list -a\r" $gaSet(linuxPrompt)
   } else {
     set gaSet(fail) "Login to Linux fail"
   }
