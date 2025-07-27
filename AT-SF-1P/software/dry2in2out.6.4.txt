@@ -1,0 +1,71 @@
+#!/bin/bash
+
+# Expander 1 GPIO for VCPEOS 6.4 kernel
+# Save tis file with suffix 6.4 . then bash dry2in2out.6.4 
+# DC_OUT1  + IO_8 + 578 = 586
+# DC_OUT2  + IO_9 + 578 = 587
+
+# DC_IN1  + IO_0 + 578 = 578
+# DC_IN2  + IO_1 + 578 = 579
+
+
+DC_OUT1=586
+DC_OUT2=587 
+DC_OUT1_DIR=/sys/class/gpio/gpio586
+DC_OUT2_DIR=/sys/class/gpio/gpio587
+
+DC_IN1=578
+DC_IN2=579
+DC_IN1_DIR=/sys/class/gpio/gpio578
+DC_IN2_DIR=/sys/class/gpio/gpio579
+
+
+#echo "Configuring GPIO"
+
+
+#check if the gpio is already exported
+if [ ! -e "$DC_OUT1_DIR" ]
+then
+	echo "Exporting DC_OUT1"
+	echo $DC_OUT1 > /sys/class/gpio/export
+else
+	echo "DC_OUT1 already exported"
+fi
+
+if [ ! -e "$DC_OUT2_DIR" ]
+then
+	echo "Exporting DC_OUT2"
+	echo $DC_OUT2 > /sys/class/gpio/export
+else
+	echo "DC_OUT2 already exported"
+fi
+
+if [ ! -e "$DC_IN1_DIR" ]
+then
+	echo "Exporting DC_IN1"
+	echo $DC_IN1 > /sys/class/gpio/export
+else
+	echo "DC_IN1 already exported"
+fi
+
+if [ ! -e "$DC_IN2_DIR" ]
+then
+	echo "Exporting DC_IN2"
+	echo $DC_IN2 > /sys/class/gpio/export
+else
+	echo "DC_IN2 already exported"
+fi
+
+
+#echo "Set GPIOs as output and input"
+
+echo out > $DC_OUT1_DIR/direction
+echo out > $DC_OUT2_DIR/direction
+echo in > $DC_IN1_DIR/direction
+echo in > $DC_IN2_DIR/direction
+
+## 09:06 27/07/2025 next lines are performed by ATE
+#while ( true );
+#        do cat $DC_IN1_DIR/value > $DC_OUT1_DIR/value;
+#		   cat $DC_IN2_DIR/value > $DC_OUT2_DIR/value;
+#done;

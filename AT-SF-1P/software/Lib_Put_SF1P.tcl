@@ -3501,10 +3501,14 @@ proc DryContactConfig {} {
     # set scr dry2in2out.sh
   # }  
  
-  if {$gaSet(mainHW)<0.6} {
-    set scr dry2in2out.2021.sh
+  if {[package vcompare $gaSet(SWver) "6.4.0"]>=0} {
+    set scr dry2in2out.6.4.txt
   } else {
-    set scr dry2in2out.sh
+    if {$gaSet(mainHW)<0.6} {
+      set scr dry2in2out.2021.sh
+    } else {
+      set scr dry2in2out.sh
+    }
   }
   #set scr dry2in2out.sh
   puts "\n[MyTime]DryContactConfig $scr"
