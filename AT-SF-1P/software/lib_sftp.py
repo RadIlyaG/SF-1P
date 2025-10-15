@@ -4,10 +4,22 @@ from RL import Lib_RadApps
 
 def FtpDeleteFile(*files):
     for fil in files:
-        print(f'fil<{fil}>')
+        print(f'FtpDeleteFile fil<{fil}>')
         if sftp.FileExists(fil.lower()) == 1:
+            # print(f'File Exists')
             fil = fil.lower()
             sftp.DeleteFile(fil)
+        else:
+            # print(f'File does not Exist')
+            pass
+        
+        if sftp.FileExists(fil) == 1:
+            # print(f'File Exists')
+            fil = fil
+            sftp.DeleteFile(fil)
+        else:
+            # print(f'File does not Exist')
+            pass
         
 def FtpFileExist(fil):
     fil = fil.lower()
@@ -42,7 +54,12 @@ if __name__ == '__main__':
         try:
             sftp = Lib_RadApps.Sftp('ftp.rad.co.il', 'ate', 'ate2009')
         except Exception as exp:
-            result = exp
+            time.sleep(10)
+            result = 'ok'
+            try:
+                sftp = Lib_RadApps.Sftp('ftp.rad.co.il', 'ate', 'ate2009')
+            except Exception as exp:
+                result = exp
         
     if result == 'ok':
         if func == 'FtpDeleteFile':
@@ -57,4 +74,6 @@ if __name__ == '__main__':
         print(f'result: {result} , list_files:{sftp.ListOfFiles()}')
     else:
         print(f'bad result: {result}')
+        
+    sftp.Close()
     
