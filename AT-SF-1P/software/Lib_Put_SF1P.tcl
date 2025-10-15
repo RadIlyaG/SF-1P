@@ -2221,7 +2221,7 @@ proc WiFiReport {locWifiReport baud ant} {
     puts "i:<$i>"
     $gaSet(runTime) configure -text "$i" ; update
     #if {[FtpGetFile wifiReport_$gaSet(wifiNet).txt $locWifiReport]=="1"} {}
-    catch {exec python.exe lib_sftp.py FtpGetFile [string tolower wifiReport_$gaSet(wifiNet).txt] $locWifiReport} res
+    catch {exec python.exe lib_sftp.py FtpGetFile wifiReport_$gaSet(wifiNet).txt $locWifiReport} res
     regexp {result: (-?1) } $res ma res
     puts "FtpGetFile res <$res>"
     if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
@@ -2246,9 +2246,35 @@ proc WiFiReport {locWifiReport baud ant} {
         after 2000
       }
     } else {
-      set gaSet(fail) "FtpGetFile wifiReport_$gaSet(wifiNet).txt fail"
-      puts "FtpGetFile wifiReport_$gaSet(wifiNet).txt fail"
-      after 2000
+      catch {exec python.exe lib_sftp.py FtpGetFile [string tolower wifiReport_$gaSet(wifiNet).txt] $locWifiReport} res
+      regexp {result: (-?1) } $res ma res
+      puts "FtpGetFile res <$res>"
+      if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
+        set gaSet(fail) "Unable to connect to ftp.rad.co.il"
+        return -1
+      }
+      
+      if {$res=="1" } {
+        after 500
+        if {[file exists $locWifiReport]} { 
+          set ret  [WiFiReadReport $locWifiReport $baud $ant $i]
+          puts "WiFiReport i:$i ret after WiFiReadReport <$ret> fail:<$gaSet(fail)>" 
+          if {$ret=="TryAgain"} {
+            ## wait a little and then try again
+            after 2000
+          } else {
+            break
+          }
+        } else {
+          set gaSet(fail) "$locWifiReport does not exist"
+          puts "$locWifiReport does not exist"
+          after 2000
+        }
+      } else {
+        set gaSet(fail) "FtpGetFile wifiReport_$gaSet(wifiNet).txt fail"
+        puts "FtpGetFile wifiReport_$gaSet(wifiNet).txt fail"
+        after 2000
+      }
     }
   }
   if {$ret=="TryAgain"} {set ret -1}
