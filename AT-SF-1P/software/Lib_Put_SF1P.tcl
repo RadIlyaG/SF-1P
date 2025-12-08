@@ -6119,12 +6119,20 @@ proc Cert_createRSA {} {
     set gaSet(fail) "Fail to reach RSA Key"
     return $ret
   }
-  set ret [Send $com "delete-rsa label DeviceKey\r" "key\#"]
-   if {$ret!=0} {
+  if {[package vcompare $gaSet(SWver) "6.4.0.57"]<=0} {
+    set ret [Send $com "delete-rsa label DeviceKey\r" "key\#"]
+  } else {
+    set ret [Send $com "delete key-name DeviceKey\r" "key\#"]
+  }
+  if {$ret!=0} {
     set gaSet(fail) "Fail to reach RSA Key"
     return $ret
   }
-  set ret [Send $com "generate-rsa label DeviceKey\r" "Finished generating 2048" 30]
+  if {[package vcompare $gaSet(SWver) "6.4.0.57"]<=0} {
+    set ret [Send $com "generate-rsa label DeviceKey\r" "Finished generating 2048" 30]
+  } else {
+    set ret [Send $com "generate key-name DeviceKey type rsa size 2048\r" "Finished generating RSA 2048" 30]
+  }
   if {$ret!=0} {
     set gaSet(fail) "Fail to Generate RSA Key"
     return $ret
@@ -6179,21 +6187,22 @@ proc Cert_AuthenticateCa {} {
     return $ret
   }
   
-  set maxPings 40
-  for {set i 1} {$i<=$maxPings} {incr i} {
-    Status "Ping crl.device-care.net ($i/$maxPings)"
-    set ret [Send $com "ping crl.device-care.net\r" ">pki" 20]
-    if {$ret!=0} {
-      set gaSet(fail) "Fail to crl.device-care.net"
-      return $ret
-    }
-    if {[string match {*Reply from*} $buffer] && [string match {*bytes = 32*} $buffer]} {
-      set ret 0
-      break
-    } else {
-      after 3000 
-    }    
-  }
+  # 07:51 03/12/2025 no Pings
+  # set maxPings 40
+  # for {set i 1} {$i<=$maxPings} {incr i} {
+    # Status "Ping crl.device-care.net ($i/$maxPings)"
+    # set ret [Send $com "ping crl.device-care.net\r" ">pki" 20]
+    # if {$ret!=0} {
+      # set gaSet(fail) "Fail to crl.device-care.net"
+      # return $ret
+    # }
+    # if {[string match {*Reply from*} $buffer] && [string match {*bytes = 32*} $buffer]} {
+      # set ret 0
+      # break
+    # } else {
+      # after 3000 
+    # }    
+  # }
   
   set ret [Send $com "delete-certificate certificate-name SelfCertificate1\r" "pki\#"]
   set ret [Send $com "delete-certificate certificate-name SelfCertificate\r" "pki\#"]
@@ -6325,7 +6334,11 @@ proc Cert_EnrollCerificate {} {
     return $ret
   }
   
-  set cmd "enroll certificate-folder-url http://crl.device-care.net/certsrv/mscep/ certificate-name SelfCertificate"
+  if {[package vcompare $gaSet(SWver) "6.4.0.57"]<=0} {
+    set cmd "enroll certificate-folder-url http://crl.device-care.net/certsrv/mscep/ certificate-name SelfCertificate"
+  } else {
+    set cmd "enroll certificate-url http://crl.device-care.net/certsrv/mscep/ certificate-name SelfCertificate"
+  }
   # append cmd " common-name $::loraGatewayId  locality B7 state IL email noam_b4@rad.com"
   # append cmd " organization RAD organizational-unit QA country IL challenge-password $::enroll_password"
   append cmd " common-name $::loraGatewayId challenge-password $::enroll_password"
@@ -6348,8 +6361,11 @@ proc Cert_EnrollCerificate {} {
     return $ret
   }
   
-  set ret [Send $com "show certificate-summary\r\r" "pki"]
-  AddToPairLog $gaSet(pair) $buffer
+  set ret [Send $com "show certificate-summary\r" "pki" 1]
+  set buff $buffer
+  set ret [Send $com "\r" "pki"]
+  append buff $buffer
+  AddToPairLog $gaSet(pair) $buff
   
   set ret [Cert_checkLinux]
   if {$ret!=0} {return -1}
