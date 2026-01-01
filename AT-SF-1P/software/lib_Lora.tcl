@@ -238,4 +238,28 @@ proc ChirpStackAddGateway {gwid} {
   return 0
 } 
 
+puts "set gwid 0016c001f1105555"
+# ***************************************************************************
+# ChirpStackv4_AddGateway
+# ***************************************************************************
+proc ChirpStackv4_AddGateway {gwid} {
+  catch {exec python.exe lib_ChirpStack_v4.py cs.gw_create $gwid} res
+  puts "ChirpStackv4_AddGateway res:<$res>"
+}
+# ***************************************************************************
+# ChirpStackv4_DeleteGateway
+# ***************************************************************************
+proc ChirpStackv4_DeleteGateway {gwid} {
+  catch {exec python.exe lib_ChirpStack_v4.py cs.gw_delete $gwid} res
+  puts "ChirpStackv4_DeleteGateway res:<$res>"
+}
+
+# ***************************************************************************
+# ChirpStackv4_LastSeen
+# ***************************************************************************
+proc ChirpStackv4_LastSeen {gwid} {
+  catch {exec python.exe lib_ChirpStack_v4.py cs.gw_last_seen $gwid} res
+  puts "ChirpStackv4_LastSeen res:<$res>"
+}
+
 

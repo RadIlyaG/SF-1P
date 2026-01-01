@@ -749,6 +749,7 @@ proc LoRa {run} {
     # 14:24 26/11/2024 ChirpStackDeleteGateway $gaSet(ChirpStackIPGW)
     # after 1000
     ChirpStackAddGateway $gaSet(ChirpStackIPGW)  
+    ChirpStackv4_AddGateway  $gaSet(ChirpStackIPGW) 
     set ret [LoraServerPolling]
     if {$ret==0} { 
       set ret 0 ; #LoraGateWayMode "no shutdown"
@@ -798,6 +799,7 @@ proc LoRa {run} {
                 if {$ret==0} {
                   #set ret [LoraPerf 11223344]
                   ChirpStackDeleteGateway $gaSet(ChirpStackIPGW)  
+                  ChirpStackv4_DeleteGateway $gaSet(ChirpStackIPGW)
                 }  
               }  
             } 
@@ -805,7 +807,8 @@ proc LoRa {run} {
         }
       }
     }
-    ChirpStackDeleteGateway $gaSet(ChirpStackIPGW)  
+    ChirpStackDeleteGateway $gaSet(ChirpStackIPGW) 
+    ChirpStackv4_DeleteGateway $gaSet(ChirpStackIPGW)    
   }
   set fail $gaSet(fail)
   if {$ret!=0 && $gaSet(LoraStayConnectedOnFail)==1} {

@@ -4901,6 +4901,10 @@ proc LoraModuleConf {} {
   if {$ret!=0} {return $ret}
   set ret [Send $com "address $gaSet(ip4lora)/24\r" "-1p"]
   if {$ret!=0} {return $ret}
+  if {[package vcompare $gaSet(SWver) "6.4.0.57"]>=0} {
+    set ret [Send $com "bind ethernet lan4\r" "-1p"]
+    if {$ret!=0} {return $ret}
+  }
   #set ret [Send $com "dhcp\r" "-1p"]
   #if {$ret!=0} {return $ret}
   set ret [Send $com "no shutdown\r" "-1p" 44]
@@ -4987,18 +4991,44 @@ proc LoraModuleConf {} {
     set ret [Send $com "shutdown\r" "lora-gateway" 30]
     if {$ret!=0} {return $ret}
   }
-  set ret [Send $com "operation-mode udp-forward\r" "lora-gateway"]
-  if {$ret!=0} {
+  if {[package vcompare $gaSet(SWver) "6.4.0.57"]>=0} {
+    set ret [Send $com "mqtt-server \"Chirp\"\r" "lora-gateway"]
+    if {$ret!=0} {return $ret}
+    set ret [Send $com "no shutdown\r" "(1)"]
+    if {$ret!=0} {return $ret}
+    set ret [Send $com "exit\r" "(1)"]
+    if {$ret!=0} {return $ret}
+    set ret [Send $com "sub-band 2\r" "(1)"]
+    if {$ret!=0} {return $ret}
+    set ret [Send $com "exit all\r" "-1p"]
+    if {$ret!=0} {return $ret}
+    set ret [Send $com "configure system mqtt\r" ">mqtt"]
+    if {$ret!=0} {return $ret}
+    set ret [Send $com "server Chirp\r" "(Chirp)"]
+    if {$ret!=0} {return $ret}
+    set ret [Send $com "address ip $gaSet(ChirpStackIP.$gaSet(dutFam.lora.fam)) protocol tcp port 1883\r" "(Chirp)"]
+    if {$ret!=0} {return $ret}
+    set ret [Send $com "exit all\r" "-1p"]
+    if {$ret!=0} {return $ret}
+    set ret [Send $com "configure\r" "-1p"]
+    if {$ret!=0} {return $ret}
+    set ret [Send $com "port lora 1 gateway\r" "(1)"]
+    if {$ret!=0} {return $ret}
+  } else {
     set ret [Send $com "operation-mode udp-forward\r" "lora-gateway"]
+    if {$ret!=0} {
+      set ret [Send $com "operation-mode udp-forward\r" "lora-gateway"]
+      if {$ret!=0} {return $ret}
+    }
+    set ret [Send $com "server ip-address $gaSet(ChirpStackIP.$gaSet(dutFam.lora.fam)) port 1700\r" "lora-gateway"]
     if {$ret!=0} {return $ret}
-  }
-  set ret [Send $com "server ip-address $gaSet(ChirpStackIP.$gaSet(dutFam.lora.fam)) port 1700\r" "lora-gateway"]
-  if {$ret!=0} {return $ret}
-  set ret [Send $com "no shutdown\r" "lora-gateway" 30]
-  if {$ret!=0} {
-    after 5000
+  
     set ret [Send $com "no shutdown\r" "lora-gateway" 30]
-    if {$ret!=0} {return $ret}
+    if {$ret!=0} {
+      after 5000
+      set ret [Send $com "no shutdown\r" "lora-gateway" 30]
+      if {$ret!=0} {return $ret}
+    }
   }
   
   set ret [Send $com "show status\r" "lora-gateway\#"]
