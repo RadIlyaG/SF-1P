@@ -114,15 +114,19 @@ proc RegBC {} {
       #puts "pairIndx:$pairIndx pair:$pair"
       Status "Registration the  MAC."
       
-      set str "$::RadAppsPath/MACReg_2Mac_2IMEI.exe /$mac / /$barcode /DISABLE /DISABLE /DISABLE /DISABLE /DISABLE /DISABLE /DISABLE /DISABLE"
+      # set str "$::RadAppsPath/MACReg_2Mac_2IMEI.exe /$mac / /$barcode /DISABLE /DISABLE /DISABLE /DISABLE /DISABLE /DISABLE /DISABLE /DISABLE"
+      set str "::RLWS::MacReg $barcode $mac"
       set cellQty [string index $gaSet(dutFam.cell) 0]
       if {$cellQty=="1"} {
-        append str " /$gaSet(1.imei1)"
+        # append str " /$gaSet(1.imei1)"
+        append str " -imei1 $gaSet(1.imei1)"
       } elseif {$cellQty=="2"} {
-        append str " /$gaSet(1.imei1) /$gaSet(1.imei2)"
+        # append str " /$gaSet(1.imei1) /$gaSet(1.imei2)"
+        append str " -imei1 $gaSet(1.imei1) -imei2 $gaSet(1.imei2)"
       }
       
-      set res$la [string trim [catch {eval exec $str} retVal$la]]
+      #set res$la [string trim [catch {eval exec $str} retVal$la]]
+      foreach "res$la retVal$la" [eval $str] {}
       
       puts "mac:$mac barcode:$barcode res$la:<[set res$la]> retVal$la:<[set retVal$la]>"
       update
