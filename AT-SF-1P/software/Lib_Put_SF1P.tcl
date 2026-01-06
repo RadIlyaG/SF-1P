@@ -2096,7 +2096,14 @@ proc WifiPerf {baud locWifiReport} {
   if {$ret!=0} {return $ret}
   
   for {set try 1} {$try <= 3} {incr try} {
-    for {set adrr $maxAddr} {$adrr > 0} {incr adrr -1} {
+    # 15:24 05/01/2026
+    # for {set adrr $maxAddr} {$adrr > 0} {incr adrr -1} {
+	    # Status "Ping to [set gaSet(WifiNet)].5[PcNum].[UutNum][set adrr]"
+	    # set ret [Ping2Cellular WiFi [set gaSet(WifiNet)].5[PcNum].[UutNum][set adrr]]   
+	    # puts "[MyTime] ping res: $ret at try $try" 
+	    # if {$ret==0} {break}
+	  # }
+    for {set adrr 1} {$adrr <= $maxAddr} {incr adrr} {
 	    Status "Ping to [set gaSet(WifiNet)].5[PcNum].[UutNum][set adrr]"
 	    set ret [Ping2Cellular WiFi [set gaSet(WifiNet)].5[PcNum].[UutNum][set adrr]]   
 	    puts "[MyTime] ping res: $ret at try $try" 
@@ -2131,74 +2138,90 @@ proc WifiPerf {baud locWifiReport} {
   
   ## 08:04 23/11/2023
   if 0 {
-  if {$baud=="2.4"} {
-  
-    ## we stop the measurement and wait upto 2 minutes to verify that wifireport will be deleted
-    #FtpDeleteFile [string tolower startMeasurement_$gaSet(wifiNet)]
-    #FtpDeleteFile  [string tolower wifireport_$gaSet(wifiNet).txt]
-    catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)  wifireport_$gaSet(wifiNet).txt} res
-    puts "FtpDeleteFile <$res>"
-    # catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt} res
-    # puts "FtpDeleteFile <$res>"
-    
-    set ret [FtpVerifyNoReport]
-    if {$ret!=0} {return $ret}
+	  if {$baud=="2.4"} {
+	  
+		## we stop the measurement and wait upto 2 minutes to verify that wifireport will be deleted
+		# 14:35 05/01/2026
+		if $::rad_sftp {
+			catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)  wifireport_$gaSet(wifiNet).txt} res
+			puts "WifiPerf FtpDeleteFile <$res>"
+		} else {    
+			catch {file delete -force c:/ate_wifi_folder/startMeasurement_$gaSet(wifiNet) c:/ate_wifi_folder/wifiReport_$gaSet(wifiNet).txt} res
+			puts "WifiPerf ST DeleteFile <$res>"
+		}
+		
+		set ret [FtpVerifyNoReport]
+		if {$ret!=0} {return $ret}
 
-    #FtpUploadFile startMeasurement_$gaSet(wifiNet)
-    catch {exec python.exe lib_sftp.py FtpUploadFile startMeasurement_$gaSet(wifiNet)} res
-    puts "FtpUploadFile <$res>"
-    regexp {result: (-?1) } $res ma ret
-    
-    RLSound::Play information
-    # 16:13 29/06/2023 set txt "Disconnect Antenna from WiFi MAIN"
-    set txt "Disconnect WiFi Antennas"
-    set ret [DialogBox -title "WiFi $baud Test" -type "OK Cancel" -icon images/info -text $txt] 
-    if {$ret=="Cancel"} {
-      set gaSet(fail) "WiFi $baud fail"
-      return -1 
-    }
-    
-    for {set i 1} {$i<=3} {incr i} {
-      puts "[MyTime] Check for signal down when antenna off ($i)"; update
-      
-      catch {exec python.exe lib_sftp.py FtpUploadFile startMeasurement_$gaSet(wifiNet)} res
-      puts "FtpUploadFile <$res>"
-      
-      set ret [Wait "Wait for WiFi signal down" 40]
-      if {$ret!=0} {return -1}
-       
-      ## we start the measurement and wait upto 2 minutes to verify that wifireport will be created
-      set ret [FtpVerifyReportExists]
-      if {$ret!=0} {return $ret}
-    
-      set ret [WiFiReport $locWifiReport $baud off]
-      set wifiRet $ret
-      puts "wifiRet:<$wifiRet>"; update
-      if {$ret!=0} {
-        catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)  wifireport_$gaSet(wifiNet).txt} res
-        puts "FtpDeleteFile <$res>"
-        #FtpDeleteFile  [string tolower wifireport_$gaSet(wifiNet).txt]
-        # catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt} res
-        # puts "FtpDeleteFile <$res>"
-      
-        set wifiRet $ret
-        set ret [FtpVerifyNoReport]
-        if {$ret!=0} {return $ret}
-      } else {
-        break
-      } 
-#       set ret [Wait "Wait for WiFi signal down" 30]
-#       if {$ret!=0} {return -1}
-#       set ret [FtpVerifyReportExists]
-#       if {$ret!=0} {return $ret}
-#     
-#       set ret [WiFiReport $locWifiReport $baud off]
-#       if {$ret!=0} {return $ret}
-    } 
-    if {$wifiRet != 0} {
-      set ret $wifiRet
-    }          
-  }
+		# 14:35 05/01/2026
+		if $::rad_sftp {
+		  catch {exec python.exe lib_sftp.py FtpUploadFile startMeasurement_$gaSet(wifiNet)} res
+		  puts "WifiPerf FtpUploadFile <$res>"
+		  regexp {result: (-?1) } $res ma ret
+		} else {
+		  catch {file copy -force startMeasurement_$gaSet(wifiNet) c:/ate_wifi_folder/} res
+		  puts "WifiPerf ST CopyFile <$res>"
+		}
+		
+		RLSound::Play information
+		# 16:13 29/06/2023 set txt "Disconnect Antenna from WiFi MAIN"
+		set txt "Disconnect WiFi Antennas"
+		set ret [DialogBox -title "WiFi $baud Test" -type "OK Cancel" -icon images/info -text $txt] 
+		if {$ret=="Cancel"} {
+		  set gaSet(fail) "WiFi $baud fail"
+		  return -1 
+		}
+		
+		for {set i 1} {$i<=3} {incr i} {
+		  puts "[MyTime] Check for signal down when antenna off ($i)"; update
+		  
+		  # 14:36 05/01/2026
+		  if $::rad_sftp {
+			catch {exec python.exe lib_sftp.py FtpUploadFile startMeasurement_$gaSet(wifiNet)} res
+			puts "FtpUploadFile <$res>"
+		  } else {      
+			catch {file copy -force startMeasurement_$gaSet(wifiNet) c:/ate_wifi_folder/} res
+			puts "WifiPerf ST CopyFile <$res>"
+		  }
+		  
+		  set ret [Wait "Wait for WiFi signal down" 40]
+		  if {$ret!=0} {return -1}
+		   
+		  ## we start the measurement and wait upto 2 minutes to verify that wifireport will be created
+		  set ret [FtpVerifyReportExists]
+		  if {$ret!=0} {return $ret}
+		
+		  set ret [WiFiReport $locWifiReport $baud off]
+		  set wifiRet $ret
+		  puts "wifiRet:<$wifiRet>"; update
+		  if {$ret!=0} {
+			# 14:36 05/01/2026
+			if $::rad_sftp {
+			  catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet)  wifireport_$gaSet(wifiNet).txt} res
+			  puts "FtpDeleteFile <$res>"
+			} else {
+			  catch {file delete -force c:/ate_wifi_folder/startMeasurement_$gaSet(wifiNet) c:/ate_wifi_folder/wifiReport_$gaSet(wifiNet).txt} res
+			  puts "ST DeleteFile <$res>"
+			}
+		  
+			set wifiRet $ret
+			set ret [FtpVerifyNoReport]
+			if {$ret!=0} {return $ret}
+		  } else {
+			break
+		  } 
+	#       set ret [Wait "Wait for WiFi signal down" 30]
+	#       if {$ret!=0} {return -1}
+	#       set ret [FtpVerifyReportExists]
+	#       if {$ret!=0} {return $ret}
+	#     
+	#       set ret [WiFiReport $locWifiReport $baud off]
+	#       if {$ret!=0} {return $ret}
+		} 
+		if {$wifiRet != 0} {
+		  set ret $wifiRet
+		}          
+	  }
   } 
  
   return $ret
@@ -2220,13 +2243,22 @@ proc WiFiReport {locWifiReport baud ant} {
     if {$gaSet(act)==0} {return -2}
     puts "i:<$i>"
     $gaSet(runTime) configure -text "$i" ; update
-    #if {[FtpGetFile wifiReport_$gaSet(wifiNet).txt $locWifiReport]=="1"} {}
-    catch {exec python.exe lib_sftp.py FtpGetFile wifiReport_$gaSet(wifiNet).txt $locWifiReport} res
-    regexp {result: (-?1) } $res ma res
-    puts "FtpGetFile res <$res>"
-    if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
-      set gaSet(fail) "Unable to connect to ftp.rad.co.il"
-      return -1
+    # 14:37 05/01/2026
+    if $::rad_sftp {
+      catch {exec python.exe lib_sftp.py FtpGetFile wifiReport_$gaSet(wifiNet).txt $locWifiReport} res
+      regexp {result: (-?1) } $res ma res
+      puts "FtpGetFile res <$res>"
+      if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
+        set gaSet(fail) "Unable to connect to ftp.rad.co.il"
+        return -1
+      }
+    } else {    
+      catch {file copy -force c:/ate_wifi_folder/wifiReport_$gaSet(wifiNet).txt $locWifiReport} res
+      if {$res==""} {
+        #  like sftp
+        set res 1
+      }
+      puts "WiFiReport ST copy File 1 <$res>"
     }
     
     if {$res=="1" } {
@@ -2246,12 +2278,22 @@ proc WiFiReport {locWifiReport baud ant} {
         after 2000
       }
     } else {
-      catch {exec python.exe lib_sftp.py FtpGetFile [string tolower wifiReport_$gaSet(wifiNet).txt] $locWifiReport} res
-      regexp {result: (-?1) } $res ma res
-      puts "FtpGetFile res <$res>"
-      if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
-        set gaSet(fail) "Unable to connect to ftp.rad.co.il"
-        return -1
+      # 14:37 05/01/2026
+      if $::rad_sftp {
+        catch {exec python.exe lib_sftp.py FtpGetFile [string tolower wifiReport_$gaSet(wifiNet).txt] $locWifiReport} res
+        regexp {result: (-?1) } $res ma res
+        puts "FtpGetFile res <$res>"
+        if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
+          set gaSet(fail) "Unable to connect to ftp.rad.co.il"
+          return -1
+        }
+      } else {
+        catch {file copy -force c:/ate_wifi_folder/wifiReport_$gaSet(wifiNet).txt $locWifiReport} res
+        if {$res==""} {
+          #  like sftp
+          set res 1
+        }
+        puts "WiFiReport ST copy File 2 <$res>"
       }
       
       if {$res=="1" } {

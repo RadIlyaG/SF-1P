@@ -1859,10 +1859,22 @@ proc FtpVerifyNoReport {} {
   Status "Waiting for report file delete"
   set startSec [clock seconds]
   while 1 {
-    #set res [FtpFileExist [string tolower  wifireport_$gaSet(wifiNet).txt]]
-    catch {exec python.exe lib_sftp.py FtpFileExist wifireport_$gaSet(wifiNet).txt} res
-    regexp {result: (-?1) } $res ma res
-    #puts "FtpFileExist res <$res>"
+  
+    if !$::rad_sftp {
+      set res [file exists c:/ate_wifi_folder/wifiReport_$gaSet(wifiNet).txt]
+      if {$res==0} {
+        ## like sftp
+        set res -1
+      }
+      puts "FtpVerifyNoReport runDur:<[expr {[clock seconds] - $startSec}]> ST res:<$res>"
+    }
+    
+    # 14:41 05/01/2026
+    if $::rad_sftp {
+      catch {exec python.exe lib_sftp.py FtpFileExist wifireport_$gaSet(wifiNet).txt} res
+      regexp {result: (-?1) } $res ma res
+      puts "FtpFileExist res <$res>"
+    } 
     set runDur [expr {[clock seconds] - $startSec}]
     $gaSet(runTime) configure -text "$runDur" ; update
     puts "FtpVerifyNoReport runDur:<$runDur> res:<$res>"
@@ -1873,12 +1885,19 @@ proc FtpVerifyNoReport {} {
     if {$res=="-1"} {
       break
     }
-    catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt ""} res
-    puts "FtpDeleteFile <$res>"
-    if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
-      set gaSet(fail) "Unable to connect to ftp.rad.co.il"
-      return -1
+    
+    # 14:42 05/01/2026
+    if $::rad_sftp {
+      catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt ""} res
+      puts "FtpDeleteFile <$res>"
+      if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
+        set gaSet(fail) "Unable to connect to ftp.rad.co.il"
+        return -1
+      }
     }
+    
+    catch {file delete -force c:/ate_wifi_folder/wifiReport_$gaSet(wifiNet).txt} res
+    puts "FtpVerifyNoReport ST DeleteFile <$res>"
     after 10000
   }
   return 0
@@ -1891,13 +1910,21 @@ proc FtpVerifyReportExists {} {
   Status "Waiting for report file create"
   set startSec [clock seconds]
   while 1 {
-    #set res [FtpFileExist  [string tolower wifireport_$gaSet(wifiNet).txt]]
-    catch {exec python.exe lib_sftp.py FtpFileExist wifireport_$gaSet(wifiNet).txt} res
-    regexp {result: (-?1) } $res ma res
-    #puts "FtpFileExist res <$res>"  
+    if !$::rad_sftp {
+      set res [file exists c:/ate_wifi_folder/wifiReport_$gaSet(wifiNet).txt]
+      puts "FtpVerifyReportExists runDur:<[expr {[clock seconds] - $startSec}]> ST res:<$res>"
+    }
+  
+    # 14:42 05/01/2026
+    if $::rad_sftp {
+      catch {exec python.exe lib_sftp.py FtpFileExist wifireport_$gaSet(wifiNet).txt} res
+      regexp {result: (-?1) } $res ma res
+      puts "FtpFileExist res <$res>"  
+    }
     set runDur [expr {[clock seconds] - $startSec}]
     $gaSet(runTime) configure -text "$runDur" ; update
     puts "FtpVerifyReportExists runDur:<$runDur> res:<$res>"
+        
     if {$runDur > 220} {
       set gaSet(fail) "wifireport_$gaSet(wifiNet).txt still doesn't exist on the ftp"
       return -1 

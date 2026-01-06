@@ -621,20 +621,35 @@ proc WiFi_2G {run} {
   #after 4000
   Power all on 
   
+  # set rad_sftp = 1to use RAD's sftp site as place to put start... and wifiReport..
+  # else, to use Syncthing, set it 0
+  set ::rad_sftp 1
+  
+  if ![file exists c:/ate_wifi_folder] {
+    file mkdir c:/ate_wifi_folder
+    after 1000  
+  }
+  
   #Wait "Wait for up" 15
   
-  catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet) wifireport_$gaSet(wifiNet).txt} res
-  puts "FtpDeleteFile <$res>"
-  if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
-    set gaSet(fail) "Unable to connect to ftp.rad.co.il"
-    return -1
+  # 14:33 05/01/2026
+  if $::rad_sftp {
+    catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet) wifireport_$gaSet(wifiNet).txt} res
+    puts "FtpDeleteFile <$res>"
+    if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
+      set gaSet(fail) "Unable to connect to ftp.rad.co.il"
+      return -1
+    }
+  } else {
+    catch {file delete -force c:/ate_wifi_folder/startMeasurement_$gaSet(wifiNet) c:/ate_wifi_folder/wifiReport_$gaSet(wifiNet).txt} res
+    puts "ST DeleteFile <$res>"
+	
+	## delete sync-conflict- file
+	foreach  rep [glob -nocomplain c:/ate_wifi_folder/wifiReport_$gaSet(wifiNet).sy*.txt ] {
+		catch {file delete -force $rep} res
+		puts "ST DeleteFile $rep <$res>"
+	}
   }
-  # catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt} res
-  # puts "FtpDeleteFile <$res>"
-  # if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
-    # set gaSet(fail) "Unable to connect to ftp.rad.co.il"
-    # return -1
-  # }
   
   set locWifiReport LocWifiReport_$gaSet(wifiNet).txt
   if {[file exists $locWifiReport]} {
@@ -643,13 +658,18 @@ proc WiFi_2G {run} {
   set ret [FtpVerifyNoReport]
   if {$ret!=0} {return $ret}
   
-  catch {exec python.exe lib_sftp.py FtpUploadFile startMeasurement_$gaSet(wifiNet)} res
-  puts "FtpUploadFile <$res>"
-  if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
-    set gaSet(fail) "Unable to connect to ftp.rad.co.il"
-    return -1
+  # 14:34 05/01/2026
+  if $::rad_sftp {
+    catch {exec python.exe lib_sftp.py FtpUploadFile startMeasurement_$gaSet(wifiNet)} res
+    puts "FtpUploadFile <$res>"
+    if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
+      set gaSet(fail) "Unable to connect to ftp.rad.co.il"
+      return -1
+    }
+    regexp {result: (-?1) } $res ma ret
+  } else {
+    catch {file copy -force startMeasurement_$gaSet(wifiNet) c:/ate_wifi_folder/} res
   }
-  regexp {result: (-?1) } $res ma ret
   
   set ret [Login] ; #[Login2App]
   if {$ret!=0} {return $ret}
@@ -657,18 +677,25 @@ proc WiFi_2G {run} {
   set ret [WifiPerf 2.4 $locWifiReport]
   
   if {$ret==0} { 
-    catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet) wifireport_$gaSet(wifiNet).txt} res
-    puts "FtpDeleteFile <$res>"
-    if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
-      set gaSet(fail) "Unable to connect to ftp.rad.co.il"
-      return -1
+    # 14:34 05/01/2026
+    if $::rad_sftp {
+      catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet) wifireport_$gaSet(wifiNet).txt} res
+      puts "FtpDeleteFile <$res>"
+      if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
+        set gaSet(fail) "Unable to connect to ftp.rad.co.il"
+        return -1
+      }
+    } else {
+      catch {file delete -force c:/ate_wifi_folder/startMeasurement_$gaSet(wifiNet) c:/ate_wifi_folder/wifiReport_$gaSet(wifiNet).txt} res
+      puts "ST DeleteFile <$res>"
+	  
+	  ## delete sync-conflict- file
+	  foreach  rep [glob -nocomplain c:/ate_wifi_folder/wifiReport_$gaSet(wifiNet).sy*.txt ] {
+		catch {file delete -force $rep} res
+		puts "ST DeleteFile $rep <$res>"
+	  }
     }
-    # catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt} res
-    # puts "FtpDeleteFile <$res>"
-    # if {[string match {*Unable to connect to ftp.rad.co.il*} $res]} {
-      # set gaSet(fail) "Unable to connect to ftp.rad.co.il"
-      # return -1
-    # }
+  
   }
 
   return $ret
@@ -693,12 +720,15 @@ proc WiFi_5G {run} {
     return -1 
   }
   
-  #FtpDeleteFile [string tolower startMeasurement_$gaSet(wifiNet)]
-  #FtpDeleteFile [string tolower wifireport_$gaSet(wifiNet).txt]
-  catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet) wifireport_$gaSet(wifiNet).txt} res
-  puts "FtpDeleteFile <$res>"
-  # catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt} res
-  # puts "FtpDeleteFile <$res>"
+  # 15:22 05/01/2026
+  if $::rad_sftp {
+    catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet) wifireport_$gaSet(wifiNet).txt} res
+    puts "FtpDeleteFile <$res>"
+  } else {  
+    catch {file delete -force c:/ate_wifi_folder/startMeasurement_$gaSet(wifiNet) c:/ate_wifi_folder/wifiReport_$gaSet(wifiNet).txt} res
+    puts "ST DeleteFile <$res>"
+  }
+  
   set locWifiReport LocWifiReport_$gaSet(wifiNet).txt
   if {[file exists $locWifiReport]} {
     file delete -force $locWifiReport
@@ -706,10 +736,15 @@ proc WiFi_5G {run} {
   set ret [FtpVerifyNoReport]
   if {$ret!=0} {return $ret}
   
-  #set ret [FtpUploadFile startMeasurement_$gaSet(wifiNet)]
-  catch {exec python.exe lib_sftp.py FtpUploadFile startMeasurement_$gaSet(wifiNet)} res
-  puts "FtpDeleteFile <$res>"
-  regexp {result: (-?1) } $res ma ret
+  # 15:22 05/01/2026
+  if $::rad_sftp {
+    catch {exec python.exe lib_sftp.py FtpUploadFile startMeasurement_$gaSet(wifiNet)} res
+    puts "FtpCopyFile <$res>"
+    regexp {result: (-?1) } $res ma ret
+  } else {
+    catch {file copy -force startMeasurement_$gaSet(wifiNet) c:/ate_wifi_folder/} res
+    puts "ST CopyFile <$res>"
+  }
   
   set ret [Login] ; #[Login2App]
   if {$ret!=0} {return $ret}
@@ -717,12 +752,14 @@ proc WiFi_5G {run} {
   set ret [WifiPerf 5 $locWifiReport]
   
   if {$ret==0} {
-    #FtpDeleteFile [string tolower startMeasurement_$gaSet(wifiNet)]
-    #FtpDeleteFile [string tolower wifireport_$gaSet(wifiNet).txt]
-	  catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet) wifireport_$gaSet(wifiNet).txt} res
-    puts "FtpDeleteFile <$res>"
-    # catch {exec python.exe lib_sftp.py FtpDeleteFile wifireport_$gaSet(wifiNet).txt} res
-    # puts "FtpDeleteFile <$res>"
+    # 15:22 05/01/2026
+    if $::rad_sftp {
+	    catch {exec python.exe lib_sftp.py FtpDeleteFile startMeasurement_$gaSet(wifiNet) wifireport_$gaSet(wifiNet).txt} res
+      puts "FtpDeleteFile <$res>"
+    } else {
+      catch {file delete -force c:/ate_wifi_folder/startMeasurement_$gaSet(wifiNet) c:/ate_wifi_folder/wifiReport_$gaSet(wifiNet).txt} res
+      puts "ST DeleteFile <$res>"
+    }
   }
   
   return $ret
