@@ -354,6 +354,14 @@ proc ReadBarcode {} {
     } else {
       AddToPairLog $gaSet(pair) "No use TraceId"
     }
+    
+    if {$traceId!=""} {
+      foreach {ret resTxt} [::RLWS::Get_PcbTraceIdData $traceId {"po number"}] {}
+      if {$ret=="0"} { 
+        set poNumber $resTxt
+      }
+    }  
+    AddToPairLog $gaSet(pair) "poNumber: $poNumber"
   }    
   return $ret
 }

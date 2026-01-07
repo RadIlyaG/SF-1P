@@ -98,8 +98,9 @@ proc SQliteAddLine {} {
       set poNumber $resTxt
     }
   }  
-  AddToPairLog $gaSet(pair) "traceID: $traceID"
-  AddToPairLog $gaSet(pair) "poNumber: $poNumber" 
+  # 08:55 06/01/2026
+  # AddToPairLog $gaSet(pair) "traceID: $traceID"
+  # AddToPairLog $gaSet(pair) "poNumber: $poNumber" 
  
 
   for {set tr 1} {$tr <= 6} {incr tr} {
