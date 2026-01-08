@@ -6658,6 +6658,11 @@ proc LoadDefConf {} {
   if {$ret!=0} {return $ret}
   set ret [Send $com "y\r" "successfull" 100]
   
+  # 09:23 08/01/2026
+  # Delete file after use
+  catch {file delete -force $localUCF}
+  catch {file delete -force $::tmpLocalUCF}
+  
   return $ret
 }  
 # ***************************************************************************

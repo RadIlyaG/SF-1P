@@ -625,7 +625,7 @@ proc mparray {a {pattern *}} {
 # GetDbrName
 # ***************************************************************************
 proc GetDbrName {} {
-  global gaSet gaGui
+  global gaSet gaGui glTests
   
   set gaSet(testmode) finalTests
   
@@ -804,6 +804,20 @@ proc GetDbrName {} {
   }  
   
   set ret [BuildTests]
+  
+  # 09:22 08/01/2026
+  # Delete tmpLocalUCF if there is not LoadUserDefaultFile Test
+  set flag_load 0
+  foreach tst $glTests {
+    if [string match *LoadUserDefaultFile* $tst] {
+      set flag_load 1
+      break
+    }
+  }
+  if !$flag_load {
+    catch {file delete -force $::tmpLocalUCF}
+  }
+  
   if {$ret==0} {
     set ret [IT9600_normalVoltage 1 1]
     if {$ret!="-1"} {
