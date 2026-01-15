@@ -6,7 +6,7 @@ switch -exact -- $gaSet(pair) {
       set gaSet(comGen2)    6
       set gaSet(comDut) [set gaSet(comSer2) 4]
       set gaSet(comSer1)    2
-      set gaSet(comSer485)  14
+      set gaSet(comSer485)  13
       console eval {wm geometry . +150+1}
       console eval {wm title . "Con 1"} 
       set gaSet(pioBoxSerNum) FT567XS1 
@@ -18,7 +18,7 @@ switch -exact -- $gaSet(pair) {
       set gaSet(comGen2)    9
       set gaSet(comDut) [set gaSet(comSer2) 8]
       set gaSet(comSer1)    7
-      set gaSet(comSer485)  13
+      set gaSet(comSer485)  15
       console eval {wm geometry . +150+200}
       console eval {wm title . "Con 2"} 
       set gaSet(pioBoxSerNum) FT567XPH
