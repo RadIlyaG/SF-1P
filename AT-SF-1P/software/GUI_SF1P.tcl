@@ -1000,9 +1000,12 @@ proc ButRun {} {
   
   if {$ret==0 && $gaSet(DutFullName) == "ETX-1P_A/ACEX/1SFP1UTP/4UTP/LR9/G/LTA/2R"} {
     set txt2 "\n\nVerify Lora GatewayID and ICCID at DBR"
+  } elseif {$ret==0 && $gaSet(DutFullName) == "SF-1P_FJ/E1/DC/4U2S/2RS/L1/G/LRB/2R"} {
+    set txt2 "\n\nVerify that R739,R741,R743,R745 are not assembled.\nVerify that R738,R740,R742,R744 are assembled."
   } else {
     set txt2 ""
   }
+  
   set res [DialogBoxRamzor -type "OK" -icon /images/info -title "Finish" -message "The test is done ${txt}${txt2}" \
     -bg $bg -font $fnt -fg $fg]
   update
