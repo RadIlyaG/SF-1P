@@ -225,6 +225,10 @@ set gaSet(testmode) finalTests
 
 LoadNoTraceFile
 
+DeleteTmpTmpFiles
+DeleteOldAgileUserConfFiles
+DeleteOldCaptConsFiles
+
 GUI
 # 11:51 09/10/2023 BuildTests
 update

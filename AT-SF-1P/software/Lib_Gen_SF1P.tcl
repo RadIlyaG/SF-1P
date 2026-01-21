@@ -2488,3 +2488,64 @@ proc DialogBoxRamzor {args}  {
   Ramzor green on
   return $ret
 }
+
+
+# ***************************************************************************
+# DeleteTmpTmpFiles
+# ***************************************************************************
+proc DeleteTmpTmpFiles {} {
+  puts "\n[MyTime] DeleteTmpTmpFiles"; update
+  set qty 0
+  foreach fi [glob -nocomplain c:/tmpTmp/*.txt] {
+    file delete -force $fi
+    incr qty
+  }
+  puts "[MyTime] $qty files deleted\n"; update
+}
+# ***************************************************************************
+# DeleteOldAgileUserConfFiles
+# ***************************************************************************
+proc DeleteOldAgileUserConfFiles {} {
+  global gaSet
+  puts "\n[MyTime] DeleteOldAgileUserConfFiles"; update
+  set qty 0
+  set daysAgo [clock add [clock seconds] -4 days]
+  foreach fi [glob -nocomplain c:/temp/*.tcl_${gaSet(pair)}_*.txt] {
+    if {[file mtime $fi]<$daysAgo} {
+      file delete -force $fi
+      incr qty
+    }  
+  }
+  foreach fi [glob -nocomplain c:/temp/20*_${gaSet(pair)}_*.txt] {
+    if {[file mtime $fi]<$daysAgo} {
+      file delete -force $fi
+      incr qty
+    }  
+  }
+  foreach fi [glob -nocomplain c:/temp/*eeprom.${gaSet(pair)}*.txt] {
+    if {[file mtime $fi]<$daysAgo} {
+      file delete -force $fi
+      incr qty
+    }  
+  }
+  foreach fi [glob -nocomplain c:/temp/*eeprom.txt] {
+    if {[file mtime $fi]<$daysAgo} {
+      file delete -force $fi
+      incr qty
+    }  
+  }
+  puts "[MyTime] $qty files deleted\n"; update
+}
+# ***************************************************************************
+# DeleteOldCaptConsFiles
+# ***************************************************************************
+proc DeleteOldCaptConsFiles {} {
+  set daysAgo [clock add [clock seconds] -4 days]
+  foreach fi [glob -nocomplain c:/temp/ConsoleCapt*.txt] {
+    if {[file mtime $fi]<$daysAgo} {
+      file delete -force $fi
+    }  
+  }
+}
+
+
